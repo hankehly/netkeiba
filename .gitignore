@@ -137,3 +137,7 @@ fabric.properties
 # *.iml
 # modules.xml
 # *.ipr
+
+# environment variables
+.env
+
