@@ -1,14 +1,20 @@
+import os
+
 import scrapy
 
 
 class LoginSpider(scrapy.Spider):
-    name = 'regist_netkeiba_com'
+    name = 'regist.netkeiba.com'
+    # start_urls = ['https://regist.netkeiba.com/account/']
     start_urls = ['https://regist.netkeiba.com/account/?pid=login']
 
     def parse(self, response):
+        username = os.environ.get('LOGIN_USERNAME')
+        password = os.environ.get('LOGIN_PASSWORD')
+
         return scrapy.FormRequest.from_response(
             response,
-            formdata={'login_id': 'henry.ehly@gmail.com', 'pswd': 'vbSBqWLptua2W9773hr3gm4XfhAz'},
+            formdata={'login_id': username, 'pswd': password},
             callback=self.after_login
         )
 
