@@ -7,7 +7,7 @@ Run `race_spider` crawler to extract all race data from netkeiba.com.
 scrapy crawl race_spider -o races.json
 ```
 
-| JP | EN | meaning |
+| JP | EN | Description |
 |:-- |:-- |:-- |
 | 斤量　| mounted_weight(?) | 騎手の体重　＋　騎手が身につけているもの（勝負服やプロテクター）と所定の馬具（鞍など）の重量 |
 | 着差 | margin | ... |
