@@ -36,8 +36,15 @@ class RaceSpiderSpider(CrawlSpider):
 
                 # todo: convert to seconds
                 'finish_time': record.css('td:nth-child(8)::text').extract_first(),
-                'margin': record.css('td:nth-child(9)::text').extract_first(),
 
+                # todo: find meaning of varieties
+                # - 2.1/2 (float "/" integer)
+                # - 3/4 (integer "/" integer)
+                # - アタマ (string constant)
+                # - クビ (string constant)
+                # - ハナ
+                # - 4 (integer)
+                'margin': record.css('td:nth-child(9)::text').extract_first(),
                 # todo: :nth-child(11) comes wrapped in a <diary_snap_cut> element
                 # '__tsuka': int(record.css('td:nth-child(11)::text').extract_first()),
             })
