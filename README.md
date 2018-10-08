@@ -1,8 +1,10 @@
 # netkeiba
 
+A scrapy project for extracting race data from netkeiba.com.
+
 ### Usage
 
-Run `race_spider` crawler to extract all race data from netkeiba.com.
+Run `race_spider` crawler to scrape all race data.
 ```bash
 scrapy crawl race_spider -o races.json
 ```
