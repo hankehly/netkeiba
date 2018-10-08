@@ -15,9 +15,9 @@ class RaceSpiderSpider(CrawlSpider):
     )
 
     def parse_item(self, response):
-        # print(response)
-        i = {}
-        # i['horses'] = response.css('table[summary="レース結果"] a[id^="umalink_"]::text').extract()
-        i['raw_rows'] = response.css('table[summary="レース結果"] tr').extract()
-        print(i)
-        return i
+        for i, record in enumerate(response.css('table[summary="レース結果"] tr')):
+            if i == 0:
+                continue
+            yield {
+                'horse_name': record.css('a[id^="umalink_"]::text').extract_first()
+            }
