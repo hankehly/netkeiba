@@ -1,6 +1,6 @@
 # netkeiba
 
-A scrapy project for extracting race data from netkeiba.com.
+A scrapy project for extracting race data from netkeiba.com
 
 ### Usage
 
