@@ -2,6 +2,7 @@ import re
 from datetime import date
 
 import scrapy
+from scrapy.linkextractors import LinkExtractor
 
 
 class RaceSpiderSpider(scrapy.Spider):
@@ -10,7 +11,11 @@ class RaceSpiderSpider(scrapy.Spider):
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
 
     def parse(self, response):
-        links = response.css('.race_calendar td a::attr(href)').extract()
+        links = LinkExtractor(allow=r'\/race\/list\/[0-9]+', restrict_css='.race_calendar').extract_links(response)
+        # [Link(url='http://db.netkeiba.com/race/list/20181002/', text='2', fragment='', nofollow=False),
+        #  Link(url='http://db.netkeiba.com/race/list/20181006/', text='6', fragment='', nofollow=False),
+        #  Link(url='http://db.netkeiba.com/race/list/20181007/', text='7', fragment='', nofollow=False),
+        #  Link(url='http://db.netkeiba.com/race/list/20181008/', text='8', fragment='', nofollow=False)]
         print('LINKS', links)
 
     def parse_item(self, response):
