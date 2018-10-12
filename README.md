@@ -32,7 +32,3 @@ scrapy crawl race_spider -o races.json
 ### Todo
 - get data from [horse viewer](http://db.netkeiba.com/v1.1/?pid=horse_reviewer_list&id=2013105537)
 
-### Prediction ideas
-
-- one training instance should be the attributes of horse, rider, etc.., and labelled with "finish place"
-
