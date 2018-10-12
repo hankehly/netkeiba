@@ -24,3 +24,7 @@ scrapy crawl race_spider -o races.json
 | | jockey | |
 | | finish_time | |
 | | margin | |
+
+
+### Other things to consider
+- some finish times are "取", etc..
