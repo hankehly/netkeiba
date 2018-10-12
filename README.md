@@ -27,4 +27,12 @@ scrapy crawl race_spider -o races.json
 
 
 ### Other things to consider
-- some finish times are "取", etc..
+- some finish times are "取", etc.. which means by default some horses will finish higher place because others weren't included
+
+### Todo
+- get data from [horse viewer](http://db.netkeiba.com/v1.1/?pid=horse_reviewer_list&id=2013105537)
+
+### Prediction ideas
+
+- one training instance should be the attributes of horse, rider, etc.., and labelled with "finish place"
+
