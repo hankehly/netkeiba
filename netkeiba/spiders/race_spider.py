@@ -11,16 +11,23 @@ class RaceSpiderSpider(scrapy.Spider):
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
 
     def parse(self, response):
-        links = LinkExtractor(allow=r'\/race\/list\/[0-9]+', restrict_css='.race_calendar').extract_links(response)
-        # [Link(url='http://db.netkeiba.com/race/list/20181002/', text='2', fragment='', nofollow=False),
-        #  Link(url='http://db.netkeiba.com/race/list/20181006/', text='6', fragment='', nofollow=False),
-        #  Link(url='http://db.netkeiba.com/race/list/20181007/', text='7', fragment='', nofollow=False),
-        #  Link(url='http://db.netkeiba.com/race/list/20181008/', text='8', fragment='', nofollow=False)]
-        print('LINKS', links)
+        race_list_links = LinkExtractor(allow=r'\/race\/list\/[0-9]+', restrict_css='.race_calendar') \
+            .extract_links(response)
 
-    def parse_item(self, response):
-        pass
+        for link in race_list_links:
+            yield scrapy.Request(link.url, callback=self.parse_race_list)
 
+        prev_month_link = LinkExtractor(restrict_css='.race_calendar .rev').extract_links(response)[-1]
+        yield scrapy.Request(prev_month_link.url, callback=self.parse)
+
+    def parse_race_list(self, response):
+        race_links = LinkExtractor(allow=r'\/race\/[0-9]+', restrict_css='.race_list').extract_links(response)
+
+        for link in race_links:
+            yield scrapy.Request(link.url, callback=self.parse_race)
+
+    def parse_race(self, response):
+        self.logger.debug('(!) RACE %s' % response)
         # results = []
         # for record in response.css('table[summary="レース結果"] tr')[1:]:
         #     gender_map = {
