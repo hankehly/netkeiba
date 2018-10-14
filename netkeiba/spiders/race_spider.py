@@ -4,6 +4,8 @@ from datetime import date
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 
+from netkeiba.items import Race
+
 
 class RaceSpiderSpider(scrapy.Spider):
     name = 'race_spider'
@@ -28,38 +30,32 @@ class RaceSpiderSpider(scrapy.Spider):
 
     def parse_race(self, response):
         for record in response.css('table[summary="レース結果"] tr:not(:first-child)'):
-            post_position = int(record.css('td:nth-child(2) span::text').extract_first())
             horse_sex, horse_age = parse_horse_sex_age(record)
+            post_position = int(record.css('td:nth-child(2) span::text').extract_first())
             weight_carried = record.css('td:nth-child(6)::text').extract_first()
 
-            # TODO: add below info
-            # Previous Wins by Horse (通算成績: 12戦"1勝")
-            # Number of Races by Horse (通算成績: "12戦"1勝)
-            # Medication Given / Bute and/or Lasix
-            # Previous Wins by Jockey
-            # Number of Races by Jockey
-            # Previous Wins by Trainer
-            # Number of Races by Trainer
-            # Final Odds / Final odds for this horse to win given by the track
-            # Track Conditions
+            race = Race(
+                course_type=parse_course_type(response),
+                weather=parse_weather(response),
+                distance_meters=parse_distance(response),
+                direction=parse_direction(response),
+                weight_carried=weight_carried,
+                horse_sex=horse_sex,
+                horse_age=horse_age,
+                post_position=post_position,
+                order_of_finish=parse_order_of_finish(record),
+                url=response.request.url
+            )
 
-            yield {
-                # for convenience
-                'url': response.request.url,
+            horse_detail = record.css('td:nth-child(4) a::attr(href)').extract_first()
+            yield scrapy.Request(response.urljoin(horse_detail), callback=self.parse_horse_stats, meta={'race': race})
 
-                'course_type': parse_course_type(response),
-                'weather': parse_weather(response),
-                'distance_meters': parse_distance(response),
-                'direction': parse_direction(response),
-
-                'weight_carried': weight_carried,
-                'horse_sex': horse_sex,
-                'horse_age': horse_age,
-                'post_position': post_position,
-
-                # label
-                'order_of_finish': parse_order_of_finish(record)
-            }
+    def parse_horse_stats(self, response):
+        race = response.meta['race']
+        data = response.css('.db_prof_area_02 tr:nth-child(8) td::text').extract_first()
+        comps = re.split('[戦勝]', data)  # ['7', '2', ' [']
+        race['horse_num_races'], race['horse_previous_wins'] = comps[:2]
+        yield race
 
 
 def parse_horse_sex_age(record):
