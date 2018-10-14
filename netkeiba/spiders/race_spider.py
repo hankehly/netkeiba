@@ -27,64 +27,50 @@ class RaceSpiderSpider(scrapy.Spider):
             yield scrapy.Request(link.url, callback=self.parse_race)
 
     def parse_race(self, response):
-        results = []
         for record in response.css('table[summary="レース結果"] tr:not(:first-child)'):
-            gender_map = {
-                '牡': 1,
-                '牝': 2,
-                'セ': 3
-            }
-
-            race_id = response.request.url.strip('/').split('/')[-1]
             order_of_finish = parse_order_of_finish(record)
             post_position = int(record.css('td:nth-child(2) span::text').extract_first())
-            horse_number = int(record.css('td:nth-child(3)::text').extract_first())
-            horse_name = record.css('td:nth-child(4) a[id^="umalink_"]::text').extract_first()
-            horse_sex = gender_map.get(record.css('td:nth-child(5)::text').extract_first()[0])
+            horse_sex = parse_horse_sex(record)
             horse_age = int(record.css('td:nth-child(5)::text').extract_first()[1])
-            mounted_weight = record.css('td:nth-child(6)::text').extract_first()
-            finish_time = parse_finish_time(record)
+            weight_carried = record.css('td:nth-child(6)::text').extract_first()
 
-            result = {
-                'race_id': race_id,
-                'order_of_finish': order_of_finish,
-                'post_position': post_position,
-                'horse_number': horse_number,
-                'horse_name': horse_name,
+            # TODO: add below info
+            # Previous Wins by Horse
+            # Number of Races by Horse
+            # Medication Given / Bute and/or Lasix
+            # Previous Wins by Jockey
+            # Number of Races by Jockey
+            # Previous Wins by Trainer
+            # Number of Races by Trainer
+            # Final Odds / Final odds for this horse to win given by the track
+            # Track Conditions
+
+            yield {
+                # for convenience
+                'url': response.request.url,
+
+                'course_type': parse_course_type(response),
+                'weather': parse_weather(response),
+                'distance_meters': parse_distance(response),
+                'direction': parse_direction(response),
+
+                'weight_carried': weight_carried,
                 'horse_sex': horse_sex,
                 'horse_age': horse_age,
-                'mounted_weight': mounted_weight,
-                'finish_time': finish_time,
+                'post_position': post_position,
 
-                # todo: maybe add jockey attributes?
-                'jockey': record.css('td:nth-child(7) a::text').extract_first(),
-
-                # todo: find meaning of varieties
-                # - 2.1/2 (float "/" integer)
-                # - 3/4 (integer "/" integer)
-                # - アタマ (string constant)
-                # - クビ (string constant)
-                # - ハナ
-                # - 4 (integer)
-                'margin': record.css('td:nth-child(9)::text').extract_first(),
-
-                # todo: :nth-child(11) comes wrapped in a <diary_snap_cut> element
-                # ' __tsuka': int(record.css('td:nth-child(11)::text').extract_first()),
+                # label
+                'order_of_finish': order_of_finish
             }
 
-            results.append(result)
 
-        yield {
-            'title': response.css('.mainrace_data h1::text').extract_first(),
-            'details': response.css('.mainrace_data h1+p span::text').extract_first(),
-            'description': response.css('.mainrace_data .smalltxt::text').extract_first(),
-            'results': results,
-            'date': parse_race_date(response),
-            'course_type': parse_course_type(response),
-            'direction': parse_direction(response),
-            'distance_meters': parse_distance(response),
-            'weather': parse_weather(response)
-        }
+def parse_horse_sex(record):
+    gender_map = {
+        '牡': 1,
+        '牝': 2,
+        'セ': 3
+    }
+    return gender_map.get(record.css('td:nth-child(5)::text').extract_first()[0])
 
 
 def parse_order_of_finish(record):
