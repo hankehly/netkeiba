@@ -35,8 +35,8 @@ class RaceSpiderSpider(scrapy.Spider):
             weight_carried = record.css('td:nth-child(6)::text').extract_first()
 
             # TODO: add below info
-            # Previous Wins by Horse
-            # Number of Races by Horse
+            # Previous Wins by Horse (通算成績: 12戦"1勝")
+            # Number of Races by Horse (通算成績: "12戦"1勝)
             # Medication Given / Bute and/or Lasix
             # Previous Wins by Jockey
             # Number of Races by Jockey
