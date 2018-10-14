@@ -28,10 +28,8 @@ class RaceSpiderSpider(scrapy.Spider):
 
     def parse_race(self, response):
         for record in response.css('table[summary="レース結果"] tr:not(:first-child)'):
-            order_of_finish = parse_order_of_finish(record)
             post_position = int(record.css('td:nth-child(2) span::text').extract_first())
-            horse_sex = parse_horse_sex(record)
-            horse_age = int(record.css('td:nth-child(5)::text').extract_first()[1])
+            horse_sex, horse_age = parse_horse_sex_age(record)
             weight_carried = record.css('td:nth-child(6)::text').extract_first()
 
             # TODO: add below info
@@ -60,17 +58,18 @@ class RaceSpiderSpider(scrapy.Spider):
                 'post_position': post_position,
 
                 # label
-                'order_of_finish': order_of_finish
+                'order_of_finish': parse_order_of_finish(record)
             }
 
 
-def parse_horse_sex(record):
+def parse_horse_sex_age(record):
     gender_map = {
         '牡': 1,
         '牝': 2,
         'セ': 3
     }
-    return gender_map.get(record.css('td:nth-child(5)::text').extract_first()[0])
+    text_attr = record.css('td:nth-child(5)::text').extract_first()
+    return gender_map.get(text_attr[0]), int(text_attr[1])
 
 
 def parse_order_of_finish(record):
