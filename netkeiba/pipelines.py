@@ -51,15 +51,16 @@ class RacePipeline(object):
         item['jockey_no_turf_races'] = str2int(item['jockey_no_turf_races'])
         item['jockey_no_dirt_races'] = str2int(item['jockey_no_dirt_races'])
         item['jockey_no_dirt_wins'] = str2int(item['jockey_no_dirt_wins'])
-        item['jockey_1_rate'] = float(item['jockey_1_rate'])
-        item['jockey_1_2_rate'] = float(item['jockey_1_2_rate'])
-        item['jockey_place_rate'] = float(item['jockey_place_rate'])
-        item['jockey_sum_earnings'] = float(item['jockey_sum_earnings'])
+        item['jockey_1_rate'] = str2float(item['jockey_1_rate'])
+        item['jockey_1_2_rate'] = str2float(item['jockey_1_2_rate'])
+        item['jockey_place_rate'] = str2float(item['jockey_place_rate'])
+        item['jockey_sum_earnings'] = str2float(item['jockey_sum_earnings'])
         return item
 
 
 def str2int(val):
-    try:
-        return int(val.replace(',', ''))
-    except ValueError:
-        return None
+    return int(val.replace(',', ''))
+
+
+def str2float(val):
+    return float(val.replace(',', ''))
