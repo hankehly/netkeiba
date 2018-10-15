@@ -33,6 +33,12 @@ class RaceSpiderSpider(scrapy.Spider):
             horse_sex, horse_age = parse_horse_sex_age(record)
             post_position = int(record.css('td:nth-child(2) span::text').extract_first())
             weight_carried = record.css('td:nth-child(6)::text').extract_first()
+            horse_profile_href = record.css('td:nth-child(4) a::attr(href)').extract_first()
+
+            jockey_results_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
+            jockey_href_comps = _filter_empty(jockey_results_href.split('/'))
+            jockey_href_comps.insert(1, 'result')
+            jockey_results_href = f'/{jockey_results_href}'
 
             race = Race(
                 course_type=parse_course_type(response),
@@ -44,17 +50,24 @@ class RaceSpiderSpider(scrapy.Spider):
                 horse_age=horse_age,
                 post_position=post_position,
                 order_of_finish=parse_order_of_finish(record),
-                url=response.request.url
+                race_url=response.request.url,
+                horse_profile=response.urljoin(horse_profile_href),
+                jockey_record=response.urljoin(jockey_results_href)
             )
 
-            horse_detail = record.css('td:nth-child(4) a::attr(href)').extract_first()
-            yield scrapy.Request(response.urljoin(horse_detail), callback=self.parse_horse_stats, meta={'race': race})
+            yield scrapy.Request(race.horse_url, callback=self.parse_horse_details, meta={'race': race})
 
-    def parse_horse_stats(self, response):
+    def parse_horse_details(self, response):
         race = response.meta['race']
-        data = response.css('.db_prof_area_02 tr:nth-child(8) td::text').extract_first()
-        comps = re.split('[戦勝]', data)  # ['7', '2', ' [']
-        race['horse_num_races'], race['horse_previous_wins'] = comps[:2]
+        win_record = response.css('.db_prof_area_02 tr:nth-child(8) td::text').extract_first()
+        race['horse_num_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
+        yield scrapy.Request(race.jockey_url, callback=self.parse_jockey_details, meta={'race': race})
+
+    def parse_jockey_details(self, response):
+        race = response.meta['race']
+        # for stat in response.css('table[summary="年度別成績"] tr:nth-child(3) td'):
+            # 本来は本賞金の与えられる5着までを着といい、6着以下が着外となります。
+            # race['jockey_win_rate'] =
         yield race
 
 
