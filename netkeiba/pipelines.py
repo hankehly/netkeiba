@@ -5,34 +5,6 @@
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 
-# {
-#     "course_type": null,
-#     "weather": "cloudy",
-#     "distance_meters": "1800",
-#     "direction": null,
-#     "weight_carried": "54",
-#     "horse_sex": "male",
-#     "horse_age": "3",
-#     "post_position": "7",
-#     "order_of_finish": "1",
-#     "race_url": "http://db.netkeiba.com/race/201806040512/",
-#     "horse_profile": "http://db.netkeiba.com/horse/2015104299/",
-#     "jockey_record": "http://db.netkeiba.com/jockey/result/01075",
-#     "horse_num_races": "4",
-#     "horse_previous_wins": "2",
-#     "jockey_no_1": "785",
-#     "jockey_no_2": "758",
-#     "jockey_no_3": "823",
-#     "jockey_no_4_below": "7,469",
-#     "jockey_no_turf_races": "4,888",
-#     "jockey_no_turf_wins": "369",
-#     "jockey_no_dirt_races": "4,947",
-#     "jockey_no_dirt_wins": "416",
-#     "jockey_1_rate": ".080",
-#     "jockey_1_2_rate": ".157",
-#     "jockey_place_rate": ".241",
-#     "jockey_sum_earnings": "1,461,169.7"
-# }
 
 class RacePipeline(object):
     def process_item(self, item, spider):
