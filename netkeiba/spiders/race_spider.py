@@ -1,10 +1,10 @@
 import re
-from datetime import date
 
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 
 from netkeiba.items import Race
+from netkeiba.pipelines import _filter_empty
 
 
 class RaceSpiderSpider(scrapy.Spider):
@@ -41,10 +41,7 @@ class RaceSpiderSpider(scrapy.Spider):
             jockey_results_href = '/' + '/'.join(jockey_href_comps)
 
             race = Race(
-                course_type=parse_course_type(response),
-                weather=parse_weather(response),
-                distance_meters=parse_distance(response),
-                direction=parse_direction(response),
+                detail_text=response.css('.mainrace_data h1+p span::text').extract_first(),
                 weight_carried=weight_carried,
                 horse_sex=horse_sex,
                 horse_age=horse_age,
@@ -105,50 +102,3 @@ def parse_finish_time(record):
 
     minutes, seconds = map(float, finish_time_str.split(':'))
     return minutes * 60 + seconds
-
-
-# TODO: It can be multiple of these
-def parse_course_type(response):
-    course_type_map = {
-        'ダ': 'dirt',
-        '芝': 'turf',
-        '障害': 'obstacle'
-    }
-    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    # matches = [v for k, v in course_type_map.items() if re.search(k, detail_text)]
-    # return matches[0] if matches else None
-    return None
-
-
-# TODO: You need to work on this
-def parse_direction(response):
-    direction_map = {
-        '右': 'right',
-        '左': 'left',
-        '直線': 'straight'
-    }
-    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    # matches = [v for k, v in direction_map.items() if re.search(k, detail_text)]
-    # return matches[0] if matches else None
-    return None
-
-
-def parse_distance(response):
-    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    return _filter_empty(re.split('\D', detail_text))[0]
-
-
-def parse_weather(response):
-    weather_map = {
-        '曇': 'cloudy',
-        '晴': 'sunny',
-        '雨': 'rainy',
-        '小雨': 'drizzle'
-    }
-    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    weather_key = re.split('\xa0/\xa0', detail_text)[1].split(':')[-1].strip()
-    return weather_map.get(weather_key)
-
-
-def _filter_empty(l):
-    return list(filter(None, l))

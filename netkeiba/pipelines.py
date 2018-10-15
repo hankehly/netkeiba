@@ -4,6 +4,7 @@
 #
 # Don't forget to add your pipeline to the ITEM_PIPELINES setting
 # See: https://doc.scrapy.org/en/latest/topics/item-pipeline.html
+import re
 
 
 class RacePipeline(object):
@@ -36,3 +37,50 @@ def str2int(val):
 
 def str2float(val):
     return float(val.replace(',', ''))
+
+
+# TODO: It can be multiple of these
+def parse_course_type(response):
+    course_type_map = {
+        'ダ': 'dirt',
+        '芝': 'turf',
+        '障害': 'obstacle'
+    }
+    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
+    # matches = [v for k, v in course_type_map.items() if re.search(k, detail_text)]
+    # return matches[0] if matches else None
+    return None
+
+
+# TODO: You need to work on this
+def parse_direction(response):
+    direction_map = {
+        '右': 'right',
+        '左': 'left',
+        '直線': 'straight'
+    }
+    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
+    # matches = [v for k, v in direction_map.items() if re.search(k, detail_text)]
+    # return matches[0] if matches else None
+    return None
+
+
+def parse_distance(response):
+    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
+    return _filter_empty(re.split('\D', detail_text))[0]
+
+
+def parse_weather(response):
+    weather_map = {
+        '曇': 'cloudy',
+        '晴': 'sunny',
+        '雨': 'rainy',
+        '小雨': 'drizzle'
+    }
+    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
+    weather_key = re.split('\xa0/\xa0', detail_text)[1].split(':')[-1].strip()
+    return weather_map.get(weather_key)
+
+
+def _filter_empty(l):
+    return list(filter(None, l))
