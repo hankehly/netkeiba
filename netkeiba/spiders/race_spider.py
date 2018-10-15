@@ -55,15 +55,15 @@ class RaceSpiderSpider(scrapy.Spider):
                 jockey_record=response.urljoin(jockey_results_href)
             )
 
-            yield scrapy.Request(race.horse_url, callback=self.parse_horse_details, meta={'race': race})
+            yield scrapy.Request(race.horse_profile, callback=self.parse_horse_profile, meta={'race': race})
 
-    def parse_horse_details(self, response):
+    def parse_horse_profile(self, response):
         race = response.meta['race']
         win_record = response.css('.db_prof_area_02 tr:nth-child(8) td::text').extract_first()
         race['horse_num_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
-        yield scrapy.Request(race.jockey_url, callback=self.parse_jockey_details, meta={'race': race})
+        yield scrapy.Request(race.jockey_url, callback=self.parse_jockey_record, meta={'race': race})
 
-    def parse_jockey_details(self, response):
+    def parse_jockey_record(self, response):
         race = response.meta['race']
         # for stat in response.css('table[summary="年度別成績"] tr:nth-child(3) td'):
             # 本来は本賞金の与えられる5着までを着といい、6着以下が着外となります。
