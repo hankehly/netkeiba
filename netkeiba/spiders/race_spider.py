@@ -31,7 +31,7 @@ class RaceSpiderSpider(scrapy.Spider):
     def parse_race(self, response):
         for record in response.css('table[summary="レース結果"] tr:not(:first-child)'):
             horse_sex, horse_age = parse_horse_sex_age(record)
-            post_position = int(record.css('td:nth-child(2) span::text').extract_first())
+            post_position = record.css('td:nth-child(2) span::text').extract_first()
             weight_carried = record.css('td:nth-child(6)::text').extract_first()
             horse_profile_href = record.css('td:nth-child(4) a::attr(href)').extract_first()
 
@@ -72,8 +72,8 @@ class RaceSpiderSpider(scrapy.Spider):
         race['jockey_no_2'] = totals.css('td:nth-child(4) a::text').extract_first()
         race['jockey_no_3'] = totals.css('td:nth-child(5) a::text').extract_first()
         race['jockey_no_4_below'] = totals.css('td:nth-child(6) a::text').extract_first()
-        race['jockey_no_grass_races'] = totals.css('td:nth-child(13) a::text').extract_first()
-        race['jockey_no_grass_wins'] = totals.css('td:nth-child(14) a::text').extract_first()
+        race['jockey_no_turf_races'] = totals.css('td:nth-child(13) a::text').extract_first()
+        race['jockey_no_turf_wins'] = totals.css('td:nth-child(14) a::text').extract_first()
         race['jockey_no_dirt_races'] = totals.css('td:nth-child(15) a::text').extract_first()
         race['jockey_no_dirt_wins'] = totals.css('td:nth-child(16) a::text').extract_first()
         race['jockey_1_rate'] = totals.css('td:nth-child(17)::text').extract_first()
@@ -85,23 +85,16 @@ class RaceSpiderSpider(scrapy.Spider):
 
 def parse_horse_sex_age(record):
     gender_map = {
-        '牡': 1,
-        '牝': 2,
-        'セ': 3
+        '牡': 'male',
+        '牝': 'female',
+        'セ': 'castrated'
     }
     text_attr = record.css('td:nth-child(5)::text').extract_first()
-    return gender_map.get(text_attr[0]), int(text_attr[1])
+    return gender_map.get(text_attr[0]), text_attr[1]
 
 
 def parse_order_of_finish(record):
-    extracted_text = record.css('td:nth-child(1)::text').extract_first()
-
-    try:
-        order = int(extracted_text)
-    except ValueError:
-        order = None
-
-    return order
+    return record.css('td:nth-child(1)::text').extract_first()
 
 
 def parse_finish_time(record):
@@ -114,41 +107,43 @@ def parse_finish_time(record):
     return minutes * 60 + seconds
 
 
-def parse_race_date(response):
-    date_str = response.css('title::text').extract_first().split('|')[0].split('｜')[1].strip()
-    year, month, day = _filter_empty(re.split('[年月日]', date_str))
-    return date(year=int(year), month=int(month), day=int(day))
-
-
+# TODO: It can be multiple of these
 def parse_course_type(response):
     course_type_map = {
         'ダ': 'dirt',
-        '芝': 'grass',
-        '障害': 'damaged'  # ?
+        '芝': 'turf',
+        '障害': 'obstacle'
     }
-    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    return course_type_map.get(detail_text[0])
+    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
+    # matches = [v for k, v in course_type_map.items() if re.search(k, detail_text)]
+    # return matches[0] if matches else None
+    return None
 
 
+# TODO: You need to work on this
 def parse_direction(response):
     direction_map = {
         '右': 'right',
-        '左': 'left'
+        '左': 'left',
+        '直線': 'straight'
     }
-    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    return direction_map.get(detail_text[1])
+    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
+    # matches = [v for k, v in direction_map.items() if re.search(k, detail_text)]
+    # return matches[0] if matches else None
+    return None
 
 
 def parse_distance(response):
     detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    return int(_filter_empty(re.split('\D', detail_text))[0])
+    return _filter_empty(re.split('\D', detail_text))[0]
 
 
 def parse_weather(response):
     weather_map = {
         '曇': 'cloudy',
         '晴': 'sunny',
-        '雨': 'rainy'
+        '雨': 'rainy',
+        '小雨': 'drizzle'
     }
     detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
     weather_key = re.split('\xa0/\xa0', detail_text)[1].split(':')[-1].strip()
