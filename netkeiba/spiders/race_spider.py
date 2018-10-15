@@ -55,19 +55,31 @@ class RaceSpiderSpider(scrapy.Spider):
                 jockey_record=response.urljoin(jockey_results_href)
             )
 
-            yield scrapy.Request(race.horse_profile, callback=self.parse_horse_profile, meta={'race': race})
+            yield scrapy.Request(race['horse_profile'], callback=self.parse_horse_profile, meta={'race': race})
 
     def parse_horse_profile(self, response):
         race = response.meta['race']
-        win_record = response.css('.db_prof_area_02 tr:nth-child(8) td::text').extract_first()
+        prof_table_rows = response.css('.db_prof_table tr')
+        win_record_ix = len(prof_table_rows) - 2
+        win_record = response.css(f'.db_prof_table tr:nth-child({win_record_ix})').extract_first()
         race['horse_num_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
-        yield scrapy.Request(race.jockey_url, callback=self.parse_jockey_record, meta={'race': race})
+        yield scrapy.Request(race['jockey_record'], callback=self.parse_jockey_record, meta={'race': race})
 
     def parse_jockey_record(self, response):
         race = response.meta['race']
-        # for stat in response.css('table[summary="年度別成績"] tr:nth-child(3) td'):
-            # 本来は本賞金の与えられる5着までを着といい、6着以下が着外となります。
-            # race['jockey_win_rate'] =
+        totals = response.css('table[summary="年度別成績"] tr:nth-child(3)')
+        race['jockey_no_1'] = totals.css('td:nth-child(3) a::text').extract_first()
+        race['jockey_no_2'] = totals.css('td:nth-child(4) a::text').extract_first()
+        race['jockey_no_3'] = totals.css('td:nth-child(5) a::text').extract_first()
+        race['jockey_no_4_below'] = totals.css('td:nth-child(6) a::text').extract_first()
+        race['jockey_no_grass_races'] = totals.css('td:nth-child(13) a::text').extract_first()
+        race['jockey_no_grass_wins'] = totals.css('td:nth-child(14) a::text').extract_first()
+        race['jockey_no_dirt_races'] = totals.css('td:nth-child(15) a::text').extract_first()
+        race['jockey_no_dirt_wins'] = totals.css('td:nth-child(16) a::text').extract_first()
+        race['jockey_1_rate'] = totals.css('td:nth-child(17)::text').extract_first()
+        race['jockey_1_2_rate'] = totals.css('td:nth-child(18)::text').extract_first()
+        race['jockey_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
+        race['jockey_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
         yield race
 
 

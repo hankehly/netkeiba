@@ -24,11 +24,6 @@ scrapy crawl race_spider -o races.json
 | | jockey | |
 | | finish_time | |
 | | margin | |
-
-
-### Other things to consider
-- some finish times are "取", etc.. which means by default some horses will finish higher place because others weren't included
-
-### Todo
-- get data from [horse viewer](http://db.netkeiba.com/v1.1/?pid=horse_reviewer_list&id=2013105537)
-
+| 勝率 | | １着に入った割合 |
+| 連対率 | | ２着以内に入った割合 |
+| 複勝率 | | 複勝馬券が絡んだ割合 |
