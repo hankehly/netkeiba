@@ -38,7 +38,7 @@ class RaceSpiderSpider(scrapy.Spider):
             jockey_results_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
             jockey_href_comps = _filter_empty(jockey_results_href.split('/'))
             jockey_href_comps.insert(1, 'result')
-            jockey_results_href = f'/{jockey_results_href}'
+            jockey_results_href = '/' + '/'.join(jockey_href_comps)
 
             race = Race(
                 course_type=parse_course_type(response),
@@ -61,7 +61,7 @@ class RaceSpiderSpider(scrapy.Spider):
         race = response.meta['race']
         prof_table_rows = response.css('.db_prof_table tr')
         win_record_ix = len(prof_table_rows) - 2
-        win_record = response.css(f'.db_prof_table tr:nth-child({win_record_ix})').extract_first()
+        win_record = response.css(f'.db_prof_table tr:nth-child({win_record_ix}) td::text').extract_first()
         race['horse_num_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
         yield scrapy.Request(race['jockey_record'], callback=self.parse_jockey_record, meta={'race': race})
 
@@ -80,7 +80,7 @@ class RaceSpiderSpider(scrapy.Spider):
         race['jockey_1_2_rate'] = totals.css('td:nth-child(18)::text').extract_first()
         race['jockey_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
         race['jockey_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
-        yield race
+        return race
 
 
 def parse_horse_sex_age(record):
