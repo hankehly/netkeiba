@@ -30,40 +30,35 @@ class RaceSpiderSpider(scrapy.Spider):
 
     def parse_race(self, response):
         for record in response.css('table[summary="レース結果"] tr:not(:first-child)'):
-            horse_sex, horse_age = parse_horse_sex_age(record)
-            post_position = record.css('td:nth-child(2) span::text').extract_first()
-            weight_carried = record.css('td:nth-child(6)::text').extract_first()
-            horse_profile_href = record.css('td:nth-child(4) a::attr(href)').extract_first()
+            race = Race()
 
-            jockey_results_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
-            jockey_href_comps = _filter_empty(jockey_results_href.split('/'))
-            jockey_href_comps.insert(1, 'result')
-            jockey_results_href = '/' + '/'.join(jockey_href_comps)
+            race['weight_carried'] = record.css('td:nth-child(6)::text').extract_first()
+            race['horse_sex_age'] = record.css('td:nth-child(5)::text').extract_first()
+            race['post_position'] = record.css('td:nth-child(2) span::text').extract_first()
+            race['order_of_finish'] = record.css('td:nth-child(1)::text').extract_first()
+            race['race_url'] = response.request.url
+            race['horse_url'] = response.urljoin(record.css('td:nth-child(4) a::attr(href)').extract_first())
+            race['race_header_text'] = response.css('.mainrace_data h1+p span::text').extract_first()
 
-            race = Race(
-                detail_text=response.css('.mainrace_data h1+p span::text').extract_first(),
-                weight_carried=weight_carried,
-                horse_sex=horse_sex,
-                horse_age=horse_age,
-                post_position=post_position,
-                order_of_finish=parse_order_of_finish(record),
-                race_url=response.request.url,
-                horse_profile=response.urljoin(horse_profile_href),
-                jockey_record=response.urljoin(jockey_results_href)
-            )
+            jockey_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
+            jockey_href_split = _filter_empty(jockey_href.split('/'))
+            jockey_href_split.insert(1, 'result')
+            jockey_href = '/' + '/'.join(jockey_href_split)
+            race['jockey_url'] = response.urljoin(jockey_href),
 
-            yield scrapy.Request(race['horse_profile'], callback=self.parse_horse_profile, meta={'race': race})
+            yield scrapy.Request(race['horse_url'], callback=self.parse_horse_url, meta={'race': race})
 
-    def parse_horse_profile(self, response):
+    def parse_horse_url(self, response):
         race = response.meta['race']
-        prof_table_rows = response.css('.db_prof_table tr')
-        win_record_ix = len(prof_table_rows) - 2
-        win_record = response.css(f'.db_prof_table tr:nth-child({win_record_ix}) td::text').extract_first()
+
+        win_record = response.css('.db_prof_table tr:nth-last-child(3) td::text').extract_first()
         race['horse_num_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
-        yield scrapy.Request(race['jockey_record'], callback=self.parse_jockey_record, meta={'race': race})
 
-    def parse_jockey_record(self, response):
+        yield scrapy.Request(race['jockey_url'], callback=self.parse_jockey_url, meta={'race': race})
+
+    def parse_jockey_url(self, response):
         race = response.meta['race']
+
         totals = response.css('table[summary="年度別成績"] tr:nth-child(3)')
         race['jockey_no_1'] = totals.css('td:nth-child(3) a::text').extract_first()
         race['jockey_no_2'] = totals.css('td:nth-child(4) a::text').extract_first()
@@ -77,28 +72,5 @@ class RaceSpiderSpider(scrapy.Spider):
         race['jockey_1_2_rate'] = totals.css('td:nth-child(18)::text').extract_first()
         race['jockey_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
         race['jockey_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
-        return race
 
-
-def parse_horse_sex_age(record):
-    gender_map = {
-        '牡': 'male',
-        '牝': 'female',
-        'セ': 'castrated'
-    }
-    text_attr = record.css('td:nth-child(5)::text').extract_first()
-    return gender_map.get(text_attr[0]), text_attr[1]
-
-
-def parse_order_of_finish(record):
-    return record.css('td:nth-child(1)::text').extract_first()
-
-
-def parse_finish_time(record):
-    finish_time_str = record.css('td:nth-child(8)::text').extract_first()
-
-    if finish_time_str is None:
-        return None
-
-    minutes, seconds = map(float, finish_time_str.split(':'))
-    return minutes * 60 + seconds
+        yield race

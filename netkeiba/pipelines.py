@@ -3,7 +3,8 @@ import re
 
 class RacePipeline(object):
     def process_item(self, item, spider):
-        item['distance_meters'] = str2int(item['distance_meters'])
+        item['horse_sex'], item['horse_age'] = parse_horse_sex_age(item['horse_sex_age'])
+        item['distance_meters'] = _filter_empty(re.split('\D', item['race_header_text']))[0]
         item['weight_carried'] = str2int(item['weight_carried'])
         item['horse_age'] = str2int(item['horse_age'])
         item['post_position'] = str2int(item['post_position'])
@@ -59,11 +60,6 @@ def parse_direction(response):
     return None
 
 
-def parse_distance(response):
-    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    return _filter_empty(re.split('\D', detail_text))[0]
-
-
 def parse_weather(response):
     weather_map = {
         '曇': 'cloudy',
@@ -76,5 +72,25 @@ def parse_weather(response):
     return weather_map.get(weather_key)
 
 
+def parse_horse_sex_age(text):
+    gender_map = {
+        '牡': 'male',
+        '牝': 'female',
+        'セ': 'castrated'
+    }
+    return gender_map.get(text[0]), text[1]
+
+
 def _filter_empty(l):
     return list(filter(None, l))
+
+# arr = ['ダ右1400m / 天候 : 晴 / ダート : 稍重 / 発走 : 09:55',
+# '芝左1400m / 天候 : 晴 / 芝 : 良 / 発走 : 11:10',
+# '芝左1800m / 天候 : 晴 / 芝 : 良 / 発走 : 15:45',
+# '芝左1600m / 天候 : 晴 / 芝 : 良 / 発走 : 14:35',
+# 'ダ右1400m / 天候 : 晴 / ダート : 稍重 / 発走 : 11:25',
+# 'ダ右1200m / 天候 : 雨 / ダート : 稍重 / 発走 : 10:40',
+# 'ダ右1800m / 天候 : 曇 / ダート : 稍重 / 発走 : 15:35',
+# '芝右 外2200m / 天候 : 曇 / 芝 : 良 / 発走 : 15:45',
+# 'ダ右1200m / 天候 : 曇 / ダート : 稍重 / 発走 : 14:40',
+# 'ダ右1800m / 天候 : 晴 / ダート : 重 / 発走 : 11:10']
