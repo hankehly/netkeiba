@@ -3,14 +3,15 @@ import re
 
 class RacePipeline(object):
     def process_item(self, item, spider):
-        item['horse_sex'], item['horse_age'] = parse_horse_sex_age(item['horse_sex_age'])
-        item['distance_meters'] = _filter_empty(re.split('\D', item['race_header_text']))[0]
+        item['distance_meters'] = parse_distance_meters(item['race_header_text'])
         item['weight_carried'] = str2int(item['weight_carried'])
-        item['horse_age'] = str2int(item['horse_age'])
         item['post_position'] = str2int(item['post_position'])
         item['order_of_finish'] = str2int(item['order_of_finish'])
+
+        item['horse_sex'], item['horse_age'] = parse_horse_sex_age(item['horse_sex_age'])
         item['horse_no_races'] = str2int(item['horse_no_races'])
         item['horse_previous_wins'] = str2int(item['horse_previous_wins'])
+
         item['jockey_no_1'] = str2int(item['jockey_no_1'])
         item['jockey_no_2'] = str2int(item['jockey_no_2'])
         item['jockey_no_3'] = str2int(item['jockey_no_3'])
@@ -23,6 +24,21 @@ class RacePipeline(object):
         item['jockey_1_2_rate'] = str2float(item['jockey_1_2_rate'])
         item['jockey_place_rate'] = str2float(item['jockey_place_rate'])
         item['jockey_sum_earnings'] = str2float(item['jockey_sum_earnings'])
+
+        course_type = parse_course_type_one_hot(item['race_header_text'])
+        item['course_type_dirt'] = course_type['dirt']
+        item['course_type_turf'] = course_type['turf']
+        item['course_type_obstacle'] = course_type['obstacle']
+
+        direction = parse_direction_one_hot(item['race_header_text'])
+        item['direction_left'] = direction['left']
+        item['direction_right'] = direction['right']
+        item['direction_straight'] = direction['straight']
+
+        weather = parse_weather_one_hot(item['race_header_text'])
+        item['weather_cloudy'] = weather['cloudy']
+        item['weather_sunny'] = weather['sunny']
+        item['weather_rainy'] = weather['rainy']
 
         del item['horse_sex_age']
         del item['race_header_text']
@@ -38,42 +54,55 @@ def str2float(val):
     return float(val.replace(',', ''))
 
 
-# TODO: It can be multiple of these
-def parse_course_type(response):
-    course_type_map = {
-        'ダ': 'dirt',
-        '芝': 'turf',
-        '障害': 'obstacle'
+def parse_course_type_one_hot(text):
+    course_types = {
+        'dirt': 0,
+        'turf': 0,
+        'obstacle': 0
     }
-    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    # matches = [v for k, v in course_type_map.items() if re.search(k, detail_text)]
-    # return matches[0] if matches else None
-    return None
+
+    if re.search(r'ダ', text):
+        course_types['dirt'] = 1
+    if re.search(r'芝', text):
+        course_types['turf'] = 1
+    if re.search(r'障害', text):
+        course_types['obstacle'] = 1
+
+    return course_types
 
 
-# TODO: You need to work on this
-def parse_direction(response):
-    direction_map = {
-        '右': 'right',
-        '左': 'left',
-        '直線': 'straight'
+def parse_direction_one_hot(text):
+    directions = {
+        'right': 0,
+        'left': 0,
+        'straight': 0
     }
-    # detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    # matches = [v for k, v in direction_map.items() if re.search(k, detail_text)]
-    # return matches[0] if matches else None
-    return None
+
+    if re.search(r'右', text):
+        directions['right'] = 1
+    if re.search(r'左', text):
+        directions['left'] = 1
+    if re.search(r'直線', text):
+        directions['straight'] = 1
+
+    return directions
 
 
-def parse_weather(response):
-    weather_map = {
-        '曇': 'cloudy',
-        '晴': 'sunny',
-        '雨': 'rainy',
-        '小雨': 'drizzle'
+def parse_weather_one_hot(text):
+    weather = {
+        'cloudy': 0,
+        'sunny': 0,
+        'rainy': 0
     }
-    detail_text = response.css('.mainrace_data h1+p span::text').extract_first()
-    weather_key = re.split('\xa0/\xa0', detail_text)[1].split(':')[-1].strip()
-    return weather_map.get(weather_key)
+
+    if re.search(r'曇', text):
+        weather['cloudy'] = 1
+    if re.search(r'晴', text):
+        weather['sunny'] = 1
+    if re.search(r'雨', text):
+        weather['rainy'] = 1
+
+    return weather
 
 
 def parse_horse_sex_age(text):
@@ -82,7 +111,11 @@ def parse_horse_sex_age(text):
         '牝': 'female',
         'セ': 'castrated'
     }
-    return gender_map.get(text[0]), text[1]
+    return gender_map.get(text[0]), str2int(text[1])
+
+
+def parse_distance_meters(text):
+    return str2int(_filter_empty(re.split('\D', text))[0])
 
 
 def _filter_empty(l):
