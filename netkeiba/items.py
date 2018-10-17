@@ -21,7 +21,7 @@ class Race(scrapy.Item):
     horse_sex = scrapy.Field()
     horse_age = scrapy.Field()
     horse_previous_wins = scrapy.Field()
-    horse_num_races = scrapy.Field()
+    horse_no_races = scrapy.Field()
 
     jockey_url = scrapy.Field()
     jockey_num_races = scrapy.Field()

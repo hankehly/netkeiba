@@ -9,7 +9,7 @@ class RacePipeline(object):
         item['horse_age'] = str2int(item['horse_age'])
         item['post_position'] = str2int(item['post_position'])
         item['order_of_finish'] = str2int(item['order_of_finish'])
-        item['horse_num_races'] = str2int(item['horse_num_races'])
+        item['horse_no_races'] = str2int(item['horse_no_races'])
         item['horse_previous_wins'] = str2int(item['horse_previous_wins'])
         item['jockey_no_1'] = str2int(item['jockey_no_1'])
         item['jockey_no_2'] = str2int(item['jockey_no_2'])
@@ -23,6 +23,10 @@ class RacePipeline(object):
         item['jockey_1_2_rate'] = str2float(item['jockey_1_2_rate'])
         item['jockey_place_rate'] = str2float(item['jockey_place_rate'])
         item['jockey_sum_earnings'] = str2float(item['jockey_sum_earnings'])
+
+        del item['horse_sex_age']
+        del item['race_header_text']
+
         return item
 
 

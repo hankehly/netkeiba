@@ -52,7 +52,7 @@ class RaceSpiderSpider(scrapy.Spider):
         race = response.meta['race']
 
         win_record = response.css('.db_prof_table tr:nth-last-child(3) td::text').extract_first()
-        race['horse_num_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
+        race['horse_no_races'], race['horse_previous_wins'] = re.split('[戦勝]', win_record)[:2]
 
         yield scrapy.Request(race['jockey_url'], callback=self.parse_jockey_url, meta={'race': race})
 
