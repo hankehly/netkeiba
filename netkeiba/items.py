@@ -16,12 +16,10 @@ class Race(scrapy.Item):
     distance_meters = scrapy.Field()
     direction = scrapy.Field()
     race_url = scrapy.Field()
-    race_header_text = scrapy.Field()
 
     horse_url = scrapy.Field()
     horse_sex = scrapy.Field()
     horse_age = scrapy.Field()
-    horse_sex_age = scrapy.Field()
     horse_previous_wins = scrapy.Field()
     horse_num_races = scrapy.Field()
 
@@ -42,3 +40,7 @@ class Race(scrapy.Item):
     jockey_sum_earnings = scrapy.Field()
 
     order_of_finish = scrapy.Field()
+
+    # temporary attributes
+    horse_sex_age = scrapy.Field()
+    race_header_text = scrapy.Field()

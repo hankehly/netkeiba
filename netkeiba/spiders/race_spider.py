@@ -44,7 +44,7 @@ class RaceSpiderSpider(scrapy.Spider):
             jockey_href_split = _filter_empty(jockey_href.split('/'))
             jockey_href_split.insert(1, 'result')
             jockey_href = '/' + '/'.join(jockey_href_split)
-            race['jockey_url'] = response.urljoin(jockey_href),
+            race['jockey_url'] = response.urljoin(jockey_href)
 
             yield scrapy.Request(race['horse_url'], callback=self.parse_horse_url, meta={'race': race})
 
