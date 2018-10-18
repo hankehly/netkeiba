@@ -6,7 +6,8 @@ class RacePipeline(object):
         item['distance_meters'] = parse_distance_meters(item['race_header_text'])
         item['weight_carried'] = str2int(item['weight_carried'])
         item['post_position'] = str2int(item['post_position'])
-        item['order_of_finish'] = str2int(item['order_of_finish'])
+        item['order_of_finish'] = parse_order_of_finish(item['order_of_finish'])
+        item['finish_time'] = parse_finish_time(item['finish_time'])
 
         item['horse_sex'], item['horse_age'] = parse_horse_sex_age(item['horse_sex_age'])
         item['horse_no_races'] = str2int(item['horse_no_races'])
@@ -137,6 +138,10 @@ def parse_finish_time(text):
 
     minutes, seconds = map(float, text.split(':'))
     return minutes * 60 + seconds
+
+
+def parse_order_of_finish(text):
+    return None if text in ['取', '中', '除'] else str2int(text)
 
 
 def _filter_empty(l):
