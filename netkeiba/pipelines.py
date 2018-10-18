@@ -118,6 +118,14 @@ def parse_distance_meters(text):
     return str2int(_filter_empty(re.split('\D', text))[0])
 
 
+def parse_finish_time(text):
+    if text is None:
+        return None
+
+    minutes, seconds = map(float, text.split(':'))
+    return minutes * 60 + seconds
+
+
 def _filter_empty(l):
     return list(filter(None, l))
 

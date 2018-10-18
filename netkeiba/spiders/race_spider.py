@@ -36,6 +36,7 @@ class RaceSpiderSpider(scrapy.Spider):
             race['horse_sex_age'] = record.css('td:nth-child(5)::text').extract_first()
             race['post_position'] = record.css('td:nth-child(2) span::text').extract_first()
             race['order_of_finish'] = record.css('td:nth-child(1)::text').extract_first()
+            race['finish_time'] = record.css('td:nth-child(8)::text').extract_first()
             race['race_url'] = response.request.url
             race['horse_url'] = response.urljoin(record.css('td:nth-child(4) a::attr(href)').extract_first())
             race['race_header_text'] = response.css('.mainrace_data h1+p span::text').extract_first()

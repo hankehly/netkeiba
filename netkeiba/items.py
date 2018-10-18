@@ -46,6 +46,7 @@ class Race(scrapy.Item):
     jockey_sum_earnings = scrapy.Field()
 
     order_of_finish = scrapy.Field()
+    finish_time = scrapy.Field()
 
     # temporary attributes
     horse_sex_age = scrapy.Field()
