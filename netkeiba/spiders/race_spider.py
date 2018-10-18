@@ -1,4 +1,5 @@
 import re
+from urllib.parse import urlparse, urlunparse
 
 import scrapy
 from scrapy.linkextractors import LinkExtractor
@@ -38,26 +39,33 @@ class RaceSpiderSpider(scrapy.Spider):
             race['order_of_finish'] = record.css('td:nth-child(1)::text').extract_first()
             race['finish_time'] = record.css('td:nth-child(8)::text').extract_first()
             race['race_url'] = response.request.url
-            race['horse_url'] = response.urljoin(record.css('td:nth-child(4) a::attr(href)').extract_first())
+            race['horse'] = response.urljoin(record.css('td:nth-child(4) a::attr(href)').extract_first())
             race['race_header_text'] = response.css('.mainrace_data h1+p span::text').extract_first()
 
             jockey_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
             jockey_href_split = _filter_empty(jockey_href.split('/'))
             jockey_href_split.insert(1, 'result')
             jockey_href = '/' + '/'.join(jockey_href_split)
-            race['jockey_url'] = response.urljoin(jockey_href)
+            race['jockey'] = response.urljoin(jockey_href)
 
-            yield scrapy.Request(race['horse_url'], callback=self.parse_horse_url, meta={'race': race})
+            trainer_url_str = LinkExtractor(allow=r'\/trainer\/[0-9]+', restrict_css='.race_table_01 tr:nth-child(2)') \
+                .extract_links(response)[0].url
+            trainer_url = urlparse(trainer_url_str)
+            trainer_id = re.match(r'/trainer/([0-9]+)/', trainer_url.path).group(1)
+            trainer_result_url = trainer_url._replace(path=f'/trainer/result/{trainer_id}')
+            race['trainer'] = urlunparse(trainer_result_url)
 
-    def parse_horse_url(self, response):
+            yield scrapy.Request(race['horse'], callback=self.parse_horse, meta={'race': race})
+
+    def parse_horse(self, response):
         race = response.meta['race']
 
         win_record = response.css('.db_prof_table tr:nth-last-child(3) td::text').extract_first()
         race['horse_no_races'], race['horse_no_wins'] = re.split('[戦勝]', win_record)[:2]
 
-        yield scrapy.Request(race['jockey_url'], callback=self.parse_jockey_url, meta={'race': race})
+        yield scrapy.Request(race['jockey'], callback=self.parse_jockey, meta={'race': race})
 
-    def parse_jockey_url(self, response):
+    def parse_jockey(self, response):
         race = response.meta['race']
 
         totals = response.css('table[summary="年度別成績"] tr:nth-child(3)')
@@ -74,4 +82,8 @@ class RaceSpiderSpider(scrapy.Spider):
         race['jockey_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
         race['jockey_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
 
+        yield scrapy.Request(race['trainer'], callback=self.parse_trainer, meta={'race': race})
+
+    def parse_trainer(self, response):
+        race = response.meta['race']
         yield race

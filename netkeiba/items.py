@@ -7,10 +7,9 @@ import scrapy
 # Track Conditions
 
 class Race(scrapy.Item):
+    race_url = scrapy.Field()
     weight_carried = scrapy.Field()
     post_position = scrapy.Field()
-    trainer_previous_wins = scrapy.Field()
-    trainer_num_races = scrapy.Field()
     course_type_dirt = scrapy.Field()
     course_type_turf = scrapy.Field()
     course_type_obstacle = scrapy.Field()
@@ -21,15 +20,18 @@ class Race(scrapy.Item):
     direction_left = scrapy.Field()
     direction_right = scrapy.Field()
     direction_straight = scrapy.Field()
-    race_url = scrapy.Field()
 
-    horse_url = scrapy.Field()
+    trainer = scrapy.Field()
+    trainer_previous_wins = scrapy.Field()
+    trainer_num_races = scrapy.Field()
+
+    horse = scrapy.Field()
     horse_sex = scrapy.Field()
     horse_age = scrapy.Field()
     horse_no_wins = scrapy.Field()
     horse_no_races = scrapy.Field()
 
-    jockey_url = scrapy.Field()
+    jockey = scrapy.Field()
     jockey_num_races = scrapy.Field()
     jockey_win_rate = scrapy.Field()
     jockey_no_1 = scrapy.Field()
