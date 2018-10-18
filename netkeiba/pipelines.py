@@ -25,6 +25,19 @@ class RacePipeline(object):
         item['jockey_place_rate'] = str2float(item['jockey_place_rate'])
         item['jockey_sum_earnings'] = str2float(item['jockey_sum_earnings'])
 
+        item['trainer_no_1'] = str2int(item['trainer_no_1'])
+        item['trainer_no_2'] = str2int(item['trainer_no_2'])
+        item['trainer_no_3'] = str2int(item['trainer_no_3'])
+        item['trainer_no_4_below'] = str2int(item['trainer_no_4_below'])
+        item['trainer_no_turf_wins'] = str2int(item['trainer_no_turf_wins'])
+        item['trainer_no_turf_races'] = str2int(item['trainer_no_turf_races'])
+        item['trainer_no_dirt_races'] = str2int(item['trainer_no_dirt_races'])
+        item['trainer_no_dirt_wins'] = str2int(item['trainer_no_dirt_wins'])
+        item['trainer_1_rate'] = str2float(item['trainer_1_rate'])
+        item['trainer_1_2_rate'] = str2float(item['trainer_1_2_rate'])
+        item['trainer_place_rate'] = str2float(item['trainer_place_rate'])
+        item['trainer_sum_earnings'] = str2float(item['trainer_sum_earnings'])
+
         course_type = parse_course_type_one_hot(item['race_header_text'])
         item['course_type_dirt'] = course_type['dirt']
         item['course_type_turf'] = course_type['turf']
