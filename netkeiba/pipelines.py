@@ -10,7 +10,7 @@ class RacePipeline(object):
 
         item['horse_sex'], item['horse_age'] = parse_horse_sex_age(item['horse_sex_age'])
         item['horse_no_races'] = str2int(item['horse_no_races'])
-        item['horse_previous_wins'] = str2int(item['horse_previous_wins'])
+        item['horse_no_wins'] = str2int(item['horse_no_wins'])
 
         item['jockey_no_1'] = str2int(item['jockey_no_1'])
         item['jockey_no_2'] = str2int(item['jockey_no_2'])
