@@ -30,7 +30,7 @@ class RaceSpiderSpider(scrapy.Spider):
             yield scrapy.Request(link.url, callback=self.parse_race)
 
     def parse_race(self, response):
-        for record in response.css('table[summary="レース結果"] tr:not(:first-child)'):
+        for i, record in enumerate(response.css('table[summary="レース結果"] tr:not(:first-child)'), start=2):
             race = Race()
 
             race['weight_carried'] = record.css('td:nth-child(6)::text').extract_first()
@@ -48,7 +48,8 @@ class RaceSpiderSpider(scrapy.Spider):
             jockey_href = '/' + '/'.join(jockey_href_split)
             race['jockey'] = response.urljoin(jockey_href)
 
-            trainer_url_str = LinkExtractor(allow=r'\/trainer\/[0-9]+', restrict_css='.race_table_01 tr:nth-child(2)') \
+            trainer_url_selector = f'table[summary="レース結果"] tr:nth-child({i})'
+            trainer_url_str = LinkExtractor(allow=r'\/trainer\/[0-9]+', restrict_css=trainer_url_selector) \
                 .extract_links(response)[0].url
             trainer_url = urlparse(trainer_url_str)
             trainer_id = re.match(r'/trainer/([0-9]+)/', trainer_url.path).group(1)
@@ -86,4 +87,19 @@ class RaceSpiderSpider(scrapy.Spider):
 
     def parse_trainer(self, response):
         race = response.meta['race']
+
+        totals = response.css('table[summary="年度別成績"] tr:nth-child(3)')
+        race['trainer_no_1'] = totals.css('td:nth-child(3) a::text').extract_first()
+        race['trainer_no_2'] = totals.css('td:nth-child(4) a::text').extract_first()
+        race['trainer_no_3'] = totals.css('td:nth-child(5) a::text').extract_first()
+        race['trainer_no_4_below'] = totals.css('td:nth-child(6) a::text').extract_first()
+        race['trainer_no_turf_races'] = totals.css('td:nth-child(13) a::text').extract_first()
+        race['trainer_no_turf_wins'] = totals.css('td:nth-child(14) a::text').extract_first()
+        race['trainer_no_dirt_races'] = totals.css('td:nth-child(15) a::text').extract_first()
+        race['trainer_no_dirt_wins'] = totals.css('td:nth-child(16) a::text').extract_first()
+        race['trainer_1_rate'] = totals.css('td:nth-child(17)::text').extract_first()
+        race['trainer_1_2_rate'] = totals.css('td:nth-child(18)::text').extract_first()
+        race['trainer_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
+        race['trainer_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
+
         yield race
