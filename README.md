@@ -27,6 +27,7 @@ scrapy crawl race_spider -o races.json
 | 勝率 | | １着に入った割合 |
 | 連対率 | | ２着以内に入った割合 |
 | 複勝率 | | 複勝馬券が絡んだ割合 |
+| 馬場状態 | Track condition | |
 
 ```json
 {

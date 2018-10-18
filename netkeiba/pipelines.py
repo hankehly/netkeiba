@@ -39,6 +39,8 @@ class RacePipeline(object):
         item['trainer_place_rate'] = str2float(item['trainer_place_rate'])
         item['trainer_sum_earnings'] = str2float(item['trainer_sum_earnings'])
 
+        item['turf_condition'] = parse_turf_condition(item['race_header_text'])
+        item['dirt_condition'] = parse_dirt_condition(item['race_header_text'])
         course_type = parse_course_type_one_hot(item['race_header_text'])
         item['course_type_dirt'] = course_type['dirt']
         item['course_type_turf'] = course_type['turf']
@@ -49,10 +51,7 @@ class RacePipeline(object):
         item['direction_right'] = direction['right']
         item['direction_straight'] = direction['straight']
 
-        weather = parse_weather_one_hot(item['race_header_text'])
-        item['weather_cloudy'] = weather['cloudy']
-        item['weather_sunny'] = weather['sunny']
-        item['weather_rainy'] = weather['rainy']
+        item['weather'] = parse_weather(item['race_header_text'])
 
         del item['horse_sex_age']
         del item['race_header_text']
@@ -79,7 +78,7 @@ def parse_course_type_one_hot(text):
         course_types['dirt'] = 1
     if re.search(r'芝', text):
         course_types['turf'] = 1
-    if re.search(r'障害', text):
+    if re.search(r'障', text):
         course_types['obstacle'] = 1
 
     return course_types
@@ -102,21 +101,20 @@ def parse_direction_one_hot(text):
     return directions
 
 
-def parse_weather_one_hot(text):
+def parse_weather(text):
+    weather_text = text.split('/')[1]
+
     weather = {
-        'cloudy': 0,
-        'sunny': 0,
-        'rainy': 0
+        '曇': 'cloudy',
+        '晴': 'sunny',
+        '雨': 'rainy'
     }
 
-    if re.search(r'曇', text):
-        weather['cloudy'] = 1
-    if re.search(r'晴', text):
-        weather['sunny'] = 1
-    if re.search(r'雨', text):
-        weather['rainy'] = 1
+    for key, val in weather.items():
+        if f'天候 : {key}' in weather_text:
+            return val
 
-    return weather
+    return None
 
 
 def parse_horse_sex_age(text):
@@ -129,7 +127,7 @@ def parse_horse_sex_age(text):
 
 
 def parse_distance_meters(text):
-    return str2int(_filter_empty(re.split('\D', text))[0])
+    return str2int(re.search('([0-9]+)', text.split('/')[0]).group(1))
 
 
 def parse_finish_time(text):
@@ -144,10 +142,41 @@ def parse_order_of_finish(text):
     return None if text in ['取', '中', '除'] else str2int(text)
 
 
-def _filter_empty(l):
-    return list(filter(None, l))
+def parse_turf_condition(text):
+    condition_text = text.split('/')[2]
 
-# arr = ['ダ右1400m / 天候 : 晴 / ダート : 稍重 / 発走 : 09:55',
+    conditions = {
+        '芝 : 良': 'good',
+        '芝 : 稍重': 'slightly_heavy',
+        '芝 : 重': 'heavy',
+        '芝 : 不良': 'bad'
+    }
+
+    for key, val in conditions.items():
+        if f': {key}' in condition_text:
+            return val
+
+    return None
+
+
+def parse_dirt_condition(text):
+    condition_text = text.split('/')[2]
+
+    conditions = {
+        'ダート : 良': 'good',
+        'ダート : 稍重': 'slightly_heavy',
+        'ダート : 重': 'heavy',
+        'ダート : 不良': 'bad'
+    }
+
+    for key, val in conditions.items():
+        if f': {key}' in condition_text:
+            return val
+
+    return None
+
+# arr = [
+# 'ダ右1400m / 天候 : 晴 / ダート : 稍重 / 発走 : 09:55',
 # '芝左1400m / 天候 : 晴 / 芝 : 良 / 発走 : 11:10',
 # '芝左1800m / 天候 : 晴 / 芝 : 良 / 発走 : 15:45',
 # '芝左1600m / 天候 : 晴 / 芝 : 良 / 発走 : 14:35',
@@ -156,4 +185,9 @@ def _filter_empty(l):
 # 'ダ右1800m / 天候 : 曇 / ダート : 稍重 / 発走 : 15:35',
 # '芝右 外2200m / 天候 : 曇 / 芝 : 良 / 発走 : 15:45',
 # 'ダ右1200m / 天候 : 曇 / ダート : 稍重 / 発走 : 14:40',
-# 'ダ右1800m / 天候 : 晴 / ダート : 重 / 発走 : 11:10']
+# 'ダ右1800m / 天候 : 晴 / ダート : 重 / 発走 : 11:10'
+# '障芝 ダート2880m / 天候 : 晴 / 芝 : 良  ダート : 良 / 発走 : 11:40',
+# '障芝3110m / 天候 : 晴 / 芝 : 稍重 / 発走 : 14:15'
+# ]
+
+# ['ダ右1400m ', ' 天候 : 晴 ', ' ダート : 稍重 ', ' 発走 : 11:25']

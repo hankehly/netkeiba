@@ -5,7 +5,6 @@ import scrapy
 from scrapy.linkextractors import LinkExtractor
 
 from netkeiba.items import Race
-from netkeiba.pipelines import _filter_empty
 
 
 class RaceSpiderSpider(scrapy.Spider):
@@ -43,7 +42,7 @@ class RaceSpiderSpider(scrapy.Spider):
             race['race_header_text'] = response.css('.mainrace_data h1+p span::text').extract_first()
 
             jockey_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
-            jockey_href_split = _filter_empty(jockey_href.split('/'))
+            jockey_href_split = list(filter(None, jockey_href.split('/')))
             jockey_href_split.insert(1, 'result')
             jockey_href = '/' + '/'.join(jockey_href_split)
             race['jockey'] = response.urljoin(jockey_href)
