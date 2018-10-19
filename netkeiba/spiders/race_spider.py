@@ -33,7 +33,11 @@ class RaceSpiderSpider(scrapy.Spider):
         for i, record in enumerate(response.css('table[summary="レース結果"] tr:not(:first-child)'), start=2):
             race_finish_loader = ItemLoader(item=RaceFinish(), response=response)
 
-            race_finish_loader.add_css('horse_sex_age', 'td:nth-child(5)::text')
+            # you can get horse sex / age from detail page
+            # http://db.netkeiba.com/horse/2013105318/
+            # look for 現役　牝5歳　鹿毛
+            # race_finish_loader.add_css('horse_sex_age', 'td:nth-child(5)::text')
+
             race_finish_loader.add_css('weight_carried', 'td:nth-child(6)::text')
 
             race['post_position'] = record.css('td:nth-child(2) span::text').extract_first()
