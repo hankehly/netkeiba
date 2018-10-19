@@ -65,7 +65,6 @@ COOKIES_ENABLED = False
 # See https://doc.scrapy.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
     'netkeiba.pipelines.RacePipeline': 300,
-    'netkeiba.pipelines.FooPipeline': 400,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)

@@ -1,11 +1,9 @@
-import re
-from urllib.parse import urlparse, urlunparse
-
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
+from scrapy.loader.processors import TakeFirst
 
-from netkeiba.items import Race, FooItem, Horse, RaceFinish
+from netkeiba.items import Horse, RaceFinish
 
 
 class RaceSpiderSpider(scrapy.Spider):
@@ -30,65 +28,65 @@ class RaceSpiderSpider(scrapy.Spider):
             yield scrapy.Request(link.url, callback=self.parse_race)
 
     def parse_race(self, response):
-        for i, record in enumerate(response.css('table[summary="レース結果"] tr:not(:first-child)'), start=2):
-            race_finish_loader = ItemLoader(item=RaceFinish(), response=response)
+        for i, record in enumerate(response.css('.race_table_01 tr:not(:first-child)'), start=2):
+            loader = ItemLoader(
+                item=RaceFinish(),
+                selector=response.selector.css(f'.race_table_01 tr:nth-child({i})'),
+                default_output_processor=TakeFirst()
+            )
 
-            # you can get horse sex / age from detail page
-            # http://db.netkeiba.com/horse/2013105318/
-            # look for 現役　牝5歳　鹿毛
-            # race_finish_loader.add_css('horse_sex_age', 'td:nth-child(5)::text')
+            loader.add_css('weight_carried', 'td:nth-child(6)::text')
+            loader.add_css('post_position', 'td:nth-child(2) span::text')
+            loader.add_css('order_of_finish', 'td:nth-child(1)::text')
+            loader.add_css('finish_time', 'td:nth-child(8)::text')
+            loader.add_value('distance_meters', response.css('.mainrace_data h1+p span::text').extract_first())
+            loader.add_value('race_url', response.request.url)
+            loader.add_css('horse', 'td:nth-child(4) a::attr(href)')
+            loader.add_css('jockey', 'td:nth-child(7) a::attr(href)')
+            loader.add_value('trainer', record.css('*').extract_first())
 
-            race_finish_loader.add_css('weight_carried', 'td:nth-child(6)::text')
+            race_finish_item = loader.load_item()
 
-            race['post_position'] = record.css('td:nth-child(2) span::text').extract_first()
-            race['order_of_finish'] = record.css('td:nth-child(1)::text').extract_first()
-            race['finish_time'] = record.css('td:nth-child(8)::text').extract_first()
-            race['race_url'] = response.request.url
-            race['horse'] = response.urljoin(record.css('td:nth-child(4) a::attr(href)').extract_first())
-            race['race_header_text'] = response.css('.mainrace_data h1+p span::text').extract_first()
+            yield race_finish_item
 
-            jockey_href = record.css('td:nth-child(7) a::attr(href)').extract_first()
-            jockey_href_split = list(filter(None, jockey_href.split('/')))
-            jockey_href_split.insert(1, 'result')
-            jockey_href = '/' + '/'.join(jockey_href_split)
-            race['jockey'] = response.urljoin(jockey_href)
-
-            trainer_url_selector = f'table[summary="レース結果"] tr:nth-child({i})'
-            trainer_url_str = LinkExtractor(allow=r'\/trainer\/[0-9]+', restrict_css=trainer_url_selector) \
-                .extract_links(response)[0].url
-            trainer_url = urlparse(trainer_url_str)
-            trainer_id = re.match(r'/trainer/([0-9]+)/', trainer_url.path).group(1)
-            trainer_result_url = trainer_url._replace(path=f'/trainer/result/{trainer_id}')
-            race['trainer'] = urlunparse(trainer_result_url)
-
-            yield scrapy.Request(race['horse'], callback=self.parse_horse, meta={'race': race})
+            # yield scrapy.Request(race_finish_item['horse'], callback=self.parse_horse,
+            #                      meta={'race_finish_item': race_finish_item})
 
     def parse_horse(self, response):
-        horse_loader = ItemLoader(item=Horse(), response=response)
+        # you can get horse sex / age from detail page
+        # http://db.netkeiba.com/horse/2013105318/
+        # look for 現役　牝5歳　鹿毛
+        # l.add_css('horse_sex_age', 'td:nth-child(5)::text')
 
-        horse_loader.add_css('total_races', '.db_prof_table tr:nth-last-child(3) td::text')
-        horse_loader.add_css('total_wins', '.db_prof_table tr:nth-last-child(3) td::text')
+        loader = ItemLoader(item=Horse(), response=response)
 
-        yield scrapy.Request(race['jockey'], callback=self.parse_jockey, meta={'race': race})
+        loader.add_css('total_races', '.db_prof_table tr:nth-last-child(3) td::text')
+        loader.add_css('total_wins', '.db_prof_table tr:nth-last-child(3) td::text')
+
+        response.meta['horse_item'] = loader.load_item()
+
+        yield scrapy.Request(response.meta['race_finish_item']['jockey'], callback=self.parse_jockey,
+                             meta=response.meta)
 
     def parse_jockey(self, response):
-        race = response.meta['race']
+        # race = response.meta['race']
+        #
+        # totals = response.css('table[summary="年度別成績"] tr:nth-child(3)')
+        # race['jockey_no_1'] = totals.css('td:nth-child(3) a::text').extract_first()
+        # race['jockey_no_2'] = totals.css('td:nth-child(4) a::text').extract_first()
+        # race['jockey_no_3'] = totals.css('td:nth-child(5) a::text').extract_first()
+        # race['jockey_no_4_below'] = totals.css('td:nth-child(6) a::text').extract_first()
+        # race['jockey_no_turf_races'] = totals.css('td:nth-child(13) a::text').extract_first()
+        # race['jockey_no_turf_wins'] = totals.css('td:nth-child(14) a::text').extract_first()
+        # race['jockey_no_dirt_races'] = totals.css('td:nth-child(15) a::text').extract_first()
+        # race['jockey_no_dirt_wins'] = totals.css('td:nth-child(16) a::text').extract_first()
+        # race['jockey_1_rate'] = totals.css('td:nth-child(17)::text').extract_first()
+        # race['jockey_1_2_rate'] = totals.css('td:nth-child(18)::text').extract_first()
+        # race['jockey_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
+        # race['jockey_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
 
-        totals = response.css('table[summary="年度別成績"] tr:nth-child(3)')
-        race['jockey_no_1'] = totals.css('td:nth-child(3) a::text').extract_first()
-        race['jockey_no_2'] = totals.css('td:nth-child(4) a::text').extract_first()
-        race['jockey_no_3'] = totals.css('td:nth-child(5) a::text').extract_first()
-        race['jockey_no_4_below'] = totals.css('td:nth-child(6) a::text').extract_first()
-        race['jockey_no_turf_races'] = totals.css('td:nth-child(13) a::text').extract_first()
-        race['jockey_no_turf_wins'] = totals.css('td:nth-child(14) a::text').extract_first()
-        race['jockey_no_dirt_races'] = totals.css('td:nth-child(15) a::text').extract_first()
-        race['jockey_no_dirt_wins'] = totals.css('td:nth-child(16) a::text').extract_first()
-        race['jockey_1_rate'] = totals.css('td:nth-child(17)::text').extract_first()
-        race['jockey_1_2_rate'] = totals.css('td:nth-child(18)::text').extract_first()
-        race['jockey_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
-        race['jockey_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
-
-        yield scrapy.Request(race['trainer'], callback=self.parse_trainer, meta={'race': race})
+        # yield scrapy.Request(race['trainer'], callback=self.parse_trainer, meta={'race': race})
+        pass
 
     def parse_trainer(self, response):
         race = response.meta['race']
@@ -109,5 +107,4 @@ class RaceSpiderSpider(scrapy.Spider):
 
         yield {
             'race': race,
-            'foo': FooItem(foo='bar')
         }

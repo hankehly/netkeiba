@@ -1,68 +1,8 @@
 import re
 
 
-# You can call pipelines without linking them directly to an item type
-class FooPipeline(object):
-    def process_item(self, item, spider):
-        print('***************** FOO!!')
-        return item
-
-
 class RacePipeline(object):
     def process_item(self, item, spider):
-        # item['distance_meters'] = parse_distance_meters(item['race_header_text'])
-        # item['weight_carried'] = str2int(item['weight_carried'])
-        # item['post_position'] = str2int(item['post_position'])
-        # item['order_of_finish'] = parse_order_of_finish(item['order_of_finish'])
-        # item['finish_time'] = parse_finish_time(item['finish_time'])
-        #
-        # item['horse_sex'], item['horse_age'] = parse_horse_sex_age(item['horse_sex_age'])
-        # item['horse_no_races'] = str2int(item['horse_no_races'])
-        # item['horse_no_wins'] = str2int(item['horse_no_wins'])
-        #
-        # item['jockey_no_1'] = str2int(item['jockey_no_1'])
-        # item['jockey_no_2'] = str2int(item['jockey_no_2'])
-        # item['jockey_no_3'] = str2int(item['jockey_no_3'])
-        # item['jockey_no_4_below'] = str2int(item['jockey_no_4_below'])
-        # item['jockey_no_turf_wins'] = str2int(item['jockey_no_turf_wins'])
-        # item['jockey_no_turf_races'] = str2int(item['jockey_no_turf_races'])
-        # item['jockey_no_dirt_races'] = str2int(item['jockey_no_dirt_races'])
-        # item['jockey_no_dirt_wins'] = str2int(item['jockey_no_dirt_wins'])
-        # item['jockey_1_rate'] = str2float(item['jockey_1_rate'])
-        # item['jockey_1_2_rate'] = str2float(item['jockey_1_2_rate'])
-        # item['jockey_place_rate'] = str2float(item['jockey_place_rate'])
-        # item['jockey_sum_earnings'] = str2float(item['jockey_sum_earnings'])
-        #
-        # item['trainer_no_1'] = str2int(item['trainer_no_1'])
-        # item['trainer_no_2'] = str2int(item['trainer_no_2'])
-        # item['trainer_no_3'] = str2int(item['trainer_no_3'])
-        # item['trainer_no_4_below'] = str2int(item['trainer_no_4_below'])
-        # item['trainer_no_turf_wins'] = str2int(item['trainer_no_turf_wins'])
-        # item['trainer_no_turf_races'] = str2int(item['trainer_no_turf_races'])
-        # item['trainer_no_dirt_races'] = str2int(item['trainer_no_dirt_races'])
-        # item['trainer_no_dirt_wins'] = str2int(item['trainer_no_dirt_wins'])
-        # item['trainer_1_rate'] = str2float(item['trainer_1_rate'])
-        # item['trainer_1_2_rate'] = str2float(item['trainer_1_2_rate'])
-        # item['trainer_place_rate'] = str2float(item['trainer_place_rate'])
-        # item['trainer_sum_earnings'] = str2float(item['trainer_sum_earnings'])
-        #
-        # item['turf_condition'] = parse_turf_condition(item['race_header_text'])
-        # item['dirt_condition'] = parse_dirt_condition(item['race_header_text'])
-        # course_type = parse_course_type_one_hot(item['race_header_text'])
-        # item['course_type_dirt'] = course_type['dirt']
-        # item['course_type_turf'] = course_type['turf']
-        # item['course_type_obstacle'] = course_type['obstacle']
-        #
-        # direction = parse_direction_one_hot(item['race_header_text'])
-        # item['direction_left'] = direction['left']
-        # item['direction_right'] = direction['right']
-        # item['direction_straight'] = direction['straight']
-        #
-        # item['weather'] = parse_weather(item['race_header_text'])
-        #
-        # del item['horse_sex_age']
-        # del item['race_header_text']
-
         return item
 
 
@@ -122,10 +62,6 @@ def parse_weather(text):
             return val
 
     return None
-
-
-def parse_distance_meters(text):
-    return str2int(re.search('([0-9]+)', text.split('/')[0]).group(1))
 
 
 def parse_finish_time(text):
