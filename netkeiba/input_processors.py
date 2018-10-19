@@ -58,7 +58,8 @@ def parse_jockey_url(values):
     return f'http://db.netkeiba.com/{jockey_href}'
 
 
-def parse_trainer_url(values):
+def parse_trainer_url(values, context):
+    import ipdb; ipdb.set_trace()
     # trainer_url_selector = f'.race_table_01 tr:nth-child({i})'
     # trainer_url_str = LinkExtractor(allow=r'\/trainer\/[0-9]+', restrict_css=trainer_url_selector) \
     #     .extract_links(response)[0].url

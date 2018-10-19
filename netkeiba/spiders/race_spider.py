@@ -29,7 +29,8 @@ class RaceSpiderSpider(scrapy.Spider):
 
     def parse_race(self, response):
         for i, record in enumerate(response.css('.race_table_01 tr:not(:first-child)'), start=2):
-            loader = ItemLoader(item=RaceFinish(), selector=response.selector.css(f'.race_table_01 tr:nth-child({i})'))
+            loader = ItemLoader(item=RaceFinish(), response=response,
+                                selector=response.selector.css(f'.race_table_01 tr:nth-child({i})'))
             loader.default_output_processor = TakeFirst()
 
             loader.add_css('weight_carried', 'td:nth-child(6)::text')

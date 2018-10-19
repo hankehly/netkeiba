@@ -1,6 +1,6 @@
 import scrapy
 
-from scrapy.loader.processors import TakeFirst
+from scrapy.loader.processors import TakeFirst, Compose
 
 # TODO: add below info
 # Medication Given / Bute and/or Lasix
@@ -39,7 +39,7 @@ class RaceFinish(scrapy.Item):
     race_url = scrapy.Field()
     horse = scrapy.Field(input_processor=parse_horse_url)
     jockey = scrapy.Field(input_processor=parse_jockey_url)
-    trainer = scrapy.Field(input_processor=parse_trainer_url)
+    trainer = scrapy.Field(input_processor=Compose(parse_trainer_url))
 
 
 class Race(scrapy.Item):
