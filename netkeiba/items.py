@@ -12,7 +12,10 @@ from netkeiba.input_processors import (
     parse_trainer_url,
     parse_horse_url,
     parse_distance_meters,
-    parse_weight_carried
+    parse_weight_carried,
+    parse_post_position,
+    parse_order_of_finish,
+    parse_finish_time
 )
 
 
@@ -29,15 +32,14 @@ class Jockey(scrapy.Item):
 
 class RaceFinish(scrapy.Item):
     weight_carried = scrapy.Field(input_processor=parse_weight_carried)
-    post_position = scrapy.Field()
-    order_of_finish = scrapy.Field()
-    finish_time = scrapy.Field()
+    post_position = scrapy.Field(input_processor=parse_post_position)
+    order_of_finish = scrapy.Field(input_processor=parse_order_of_finish)
+    finish_time = scrapy.Field(input_processor=parse_finish_time)
     distance_meters = scrapy.Field(input_processor=parse_distance_meters)
     race_url = scrapy.Field()
     horse = scrapy.Field(input_processor=parse_horse_url)
     jockey = scrapy.Field(input_processor=parse_jockey_url)
     trainer = scrapy.Field(input_processor=parse_trainer_url)
-    pass
 
 
 class Race(scrapy.Item):
