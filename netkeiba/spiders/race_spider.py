@@ -3,8 +3,9 @@ from urllib.parse import urlparse, urlunparse
 
 import scrapy
 from scrapy.linkextractors import LinkExtractor
+from scrapy.loader import ItemLoader
 
-from netkeiba.items import Race
+from netkeiba.items import Race, FooItem, Horse, RaceFinish
 
 
 class RaceSpiderSpider(scrapy.Spider):
@@ -30,10 +31,11 @@ class RaceSpiderSpider(scrapy.Spider):
 
     def parse_race(self, response):
         for i, record in enumerate(response.css('table[summary="レース結果"] tr:not(:first-child)'), start=2):
-            race = Race()
+            race_finish_loader = ItemLoader(item=RaceFinish(), response=response)
 
-            race['weight_carried'] = record.css('td:nth-child(6)::text').extract_first()
-            race['horse_sex_age'] = record.css('td:nth-child(5)::text').extract_first()
+            race_finish_loader.add_css('horse_sex_age', 'td:nth-child(5)::text')
+            race_finish_loader.add_css('weight_carried', 'td:nth-child(6)::text')
+
             race['post_position'] = record.css('td:nth-child(2) span::text').extract_first()
             race['order_of_finish'] = record.css('td:nth-child(1)::text').extract_first()
             race['finish_time'] = record.css('td:nth-child(8)::text').extract_first()
@@ -58,10 +60,10 @@ class RaceSpiderSpider(scrapy.Spider):
             yield scrapy.Request(race['horse'], callback=self.parse_horse, meta={'race': race})
 
     def parse_horse(self, response):
-        race = response.meta['race']
+        horse_loader = ItemLoader(item=Horse(), response=response)
 
-        win_record = response.css('.db_prof_table tr:nth-last-child(3) td::text').extract_first()
-        race['horse_no_races'], race['horse_no_wins'] = re.split('[戦勝]', win_record)[:2]
+        horse_loader.add_css('total_races', '.db_prof_table tr:nth-last-child(3) td::text')
+        horse_loader.add_css('total_wins', '.db_prof_table tr:nth-last-child(3) td::text')
 
         yield scrapy.Request(race['jockey'], callback=self.parse_jockey, meta={'race': race})
 
@@ -101,4 +103,7 @@ class RaceSpiderSpider(scrapy.Spider):
         race['trainer_place_rate'] = totals.css('td:nth-child(19)::text').extract_first()
         race['trainer_sum_earnings'] = totals.css('td:nth-child(20)::text').extract_first()
 
-        yield race
+        yield {
+            'race': race,
+            'foo': FooItem(foo='bar')
+        }
