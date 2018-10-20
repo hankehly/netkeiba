@@ -18,7 +18,9 @@ from netkeiba.input_processors import (
     parse_horse_total_races,
     parse_horse_total_wins,
     parse_weather,
-    parse_direction
+    parse_direction,
+    str2int,
+    str2float
 )
 
 
@@ -45,19 +47,18 @@ class Horse(scrapy.Item):
 
 
 class AnnualRecordHolder(scrapy.Item):
-    win_rate = scrapy.Field()
-    no_1 = scrapy.Field()
-    no_2 = scrapy.Field()
-    no_3 = scrapy.Field()
-    no_4_below = scrapy.Field()
-    no_turf_races = scrapy.Field()
-    no_turf_wins = scrapy.Field()
-    no_dirt_races = scrapy.Field()
-    no_dirt_wins = scrapy.Field()
-    place_1_rate = scrapy.Field()
-    place_1_or_2_rate = scrapy.Field()
-    place_any_rate = scrapy.Field()
-    sum_earnings = scrapy.Field()
+    no_1 = scrapy.Field(input_processor=str2int)
+    no_2 = scrapy.Field(input_processor=str2int)
+    no_3 = scrapy.Field(input_processor=str2int)
+    no_4_below = scrapy.Field(input_processor=str2int)
+    no_turf_races = scrapy.Field(input_processor=str2int)
+    no_turf_wins = scrapy.Field(input_processor=str2int)
+    no_dirt_races = scrapy.Field(input_processor=str2int)
+    no_dirt_wins = scrapy.Field(input_processor=str2int)
+    place_1_rate = scrapy.Field(input_processor=str2float)
+    place_1_or_2_rate = scrapy.Field(input_processor=str2float)
+    place_any_rate = scrapy.Field(input_processor=str2float)
+    sum_earnings = scrapy.Field(input_processor=str2float)
 
 
 class Jockey(AnnualRecordHolder):

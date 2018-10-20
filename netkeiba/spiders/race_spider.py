@@ -80,10 +80,10 @@ class RaceSpiderSpider(scrapy.Spider):
         loader.add_css('no_turf_wins', 'td:nth-child(14) a::text')
         loader.add_css('no_dirt_races', 'td:nth-child(15) a::text')
         loader.add_css('no_dirt_wins', 'td:nth-child(16) a::text')
-        loader.add_css('place_1_rate', 'td:nth-child(17) a::text')
-        loader.add_css('place_1_or_2_rate', 'td:nth-child(18) a::text')
-        loader.add_css('place_any_rate', 'td:nth-child(19) a::text')
-        loader.add_css('sum_earnings', 'td:nth-child(20) a::text')
+        loader.add_css('place_1_rate', 'td:nth-child(17)::text')
+        loader.add_css('place_1_or_2_rate', 'td:nth-child(18)::text')
+        loader.add_css('place_any_rate', 'td:nth-child(19)::text')
+        loader.add_css('sum_earnings', 'td:nth-child(20)::text')
 
         response.meta['jockey'] = loader.load_item()
 
@@ -103,10 +103,10 @@ class RaceSpiderSpider(scrapy.Spider):
         loader.add_css('no_turf_wins', 'td:nth-child(14) a::text')
         loader.add_css('no_dirt_races', 'td:nth-child(15) a::text')
         loader.add_css('no_dirt_wins', 'td:nth-child(16) a::text')
-        loader.add_css('place_1_rate', 'td:nth-child(17) a::text')
-        loader.add_css('place_1_or_2_rate', 'td:nth-child(18) a::text')
-        loader.add_css('place_any_rate', 'td:nth-child(19) a::text')
-        loader.add_css('sum_earnings', 'td:nth-child(20) a::text')
+        loader.add_css('place_1_rate', 'td:nth-child(17)::text')
+        loader.add_css('place_1_or_2_rate', 'td:nth-child(18)::text')
+        loader.add_css('place_any_rate', 'td:nth-child(19)::text')
+        loader.add_css('sum_earnings', 'td:nth-child(20)::text')
 
         trainer = loader.load_item()
 

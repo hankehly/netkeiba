@@ -9,14 +9,6 @@ class RacePipeline(object):
         return item
 
 
-def str2int(val):
-    return int(val.replace(',', ''))
-
-
-def str2float(val):
-    return float(val.replace(',', ''))
-
-
 def parse_course_type_one_hot(text):
     course_types = {
         'dirt': 0,

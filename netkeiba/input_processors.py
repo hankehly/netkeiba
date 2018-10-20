@@ -122,3 +122,11 @@ def parse_direction(values: List) -> Optional[str]:
             return val
 
     return None
+
+
+def str2int(values: List) -> int:
+    return int(values[0].replace(',', ''))
+
+
+def str2float(values: List) -> float:
+    return float(values[0].replace(',', ''))
