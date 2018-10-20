@@ -48,22 +48,6 @@ def parse_direction_one_hot(text):
     return directions
 
 
-def parse_weather(text):
-    weather_text = text.split('/')[1]
-
-    weather = {
-        '曇': 'cloudy',
-        '晴': 'sunny',
-        '雨': 'rainy'
-    }
-
-    for key, val in weather.items():
-        if f'天候 : {key}' in weather_text:
-            return val
-
-    return None
-
-
 def parse_turf_condition(text):
     condition_text = text.split('/')[2]
 

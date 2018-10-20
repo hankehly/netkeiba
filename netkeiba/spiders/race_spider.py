@@ -28,6 +28,8 @@ class RaceSpiderSpider(scrapy.Spider):
             yield scrapy.Request(link.url, callback=self.parse_race)
 
     def parse_race(self, response):
+        race_details = response.css('.mainrace_data h1+p span::text').extract_first()
+
         for i, record in enumerate(response.css('.race_table_01 tr:not(:first-child)'), start=2):
             loader = ItemLoader(item=RaceFinish(), response=response,
                                 selector=response.selector.css(f'.race_table_01 tr:nth-child({i})'))
@@ -37,34 +39,35 @@ class RaceSpiderSpider(scrapy.Spider):
             loader.add_css('post_position', 'td:nth-child(2) span::text')
             loader.add_css('order_of_finish', 'td:nth-child(1)::text')
             loader.add_css('finish_time', 'td:nth-child(8)::text')
-            loader.add_value('distance_meters', response.css('.mainrace_data h1+p span::text').extract_first())
+            loader.add_value('distance_meters', race_details)
+            loader.add_value('weather', race_details)
+            loader.add_value('direction', race_details)
             loader.add_value('race_url', response.request.url)
             loader.add_css('horse', 'td:nth-child(4) a::attr(href)')
             loader.add_css('jockey', 'td:nth-child(7) a::attr(href)')
             loader.add_value('trainer', record.css('*').extract_first())
 
-            race_finish_item = loader.load_item()
+            response.meta['race_finish_item'] = loader.load_item()
 
-            yield race_finish_item
-
-            # yield scrapy.Request(race_finish_item['horse'], callback=self.parse_horse,
-            #                      meta={'race_finish_item': race_finish_item})
+            yield scrapy.Request(response.meta['race_finish_item']['horse'], callback=self.parse_horse,
+                                 meta=response.meta)
 
     def parse_horse(self, response):
-        # you can get horse sex / age from detail page
-        # http://db.netkeiba.com/horse/2013105318/
-        # look for 現役　牝5歳　鹿毛
-        # l.add_css('horse_sex_age', 'td:nth-child(5)::text')
-
         loader = ItemLoader(item=Horse(), response=response)
+        loader.default_output_processor = TakeFirst()
 
         loader.add_css('total_races', '.db_prof_table tr:nth-last-child(3) td::text')
         loader.add_css('total_wins', '.db_prof_table tr:nth-last-child(3) td::text')
+        loader.add_css('sex', '.horse_title .txt_01::text')
+        loader.add_css('age', '.horse_title .txt_01::text')
+        loader.add_css('rating', '.horse_title .rate strong::text')
 
         response.meta['horse_item'] = loader.load_item()
 
-        yield scrapy.Request(response.meta['race_finish_item']['jockey'], callback=self.parse_jockey,
-                             meta=response.meta)
+        return response.meta
+
+        # yield scrapy.Request(response.meta['race_finish_item']['jockey'], callback=self.parse_jockey,
+        #                      meta=response.meta)
 
     def parse_jockey(self, response):
         # race = response.meta['race']
