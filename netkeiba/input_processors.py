@@ -17,7 +17,7 @@ def parse_horse_sex(values: List) -> str:
     return possible_inputs.get(value)
 
 
-def parse_horse_age(values: List) -> int:
+def parse_horse_age(values: List):
     return values
     # '現役\u3000牝5歳\u3000鹿毛'
     # value = re.split('\s', values[0])[1]
@@ -32,7 +32,7 @@ def parse_horse_total_races(values: List):
     return values
 
 
-def parse_horse_total_wins(values: List) -> float:
+def parse_horse_total_wins(values: List):
     return values
     # return float(values[0]) if values else None
 
@@ -75,7 +75,7 @@ def parse_order_of_finish(values: List) -> Optional[int]:
 
 
 def parse_finish_time(values: List):
-    text = values[0]
+    text = values[0] if values else None
 
     if text is None:
         return None
@@ -89,7 +89,7 @@ def parse_jockey_url(values: List, loader_context: Dict):
     jockey_href_split = list(filter(None, jockey_href.split('/')))
     jockey_href_split.insert(1, 'result')
     jockey_href = '/'.join(jockey_href_split)
-    return loader_context.get('response').urljoin(jockey_href)
+    return f'http://db.netkeiba.com/{jockey_href}'
 
 
 def parse_trainer_url(values: List, loader_context: Dict):
@@ -118,7 +118,7 @@ def parse_direction(values: List) -> Optional[str]:
     }
 
     for key, val in directions.items():
-        if f'天候 : {key}' in direction_text:
+        if key in direction_text:
             return val
 
     return None

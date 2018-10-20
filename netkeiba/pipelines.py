@@ -3,6 +3,9 @@ import re
 
 class RacePipeline(object):
     def process_item(self, item, spider):
+        # output to pandas dataframe with normalized json structure
+        # data = json.load(open('output.json', 'rb'))
+        # df = pd.io.json.json_normalize(data, sep='_')
         return item
 
 
@@ -29,23 +32,6 @@ def parse_course_type_one_hot(text):
         course_types['obstacle'] = 1
 
     return course_types
-
-
-def parse_direction_one_hot(text):
-    directions = {
-        'right': 0,
-        'left': 0,
-        'straight': 0
-    }
-
-    if re.search(r'右', text):
-        directions['right'] = 1
-    if re.search(r'左', text):
-        directions['left'] = 1
-    if re.search(r'直線', text):
-        directions['straight'] = 1
-
-    return directions
 
 
 def parse_turf_condition(text):
