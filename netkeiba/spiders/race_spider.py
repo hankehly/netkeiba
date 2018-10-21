@@ -34,7 +34,7 @@ class RaceSpiderSpider(scrapy.Spider):
             prev_month_dt_match = re.search('date=([0-9]+)$', prev_month_link.url)
             if prev_month_dt_match:
                 prev_month_dt = datetime.strptime(prev_month_dt_match.group(1), '%Y%m%d').date()
-                if prev_month_dt > min_race_date:
+                if prev_month_dt >= min_race_date:
                     yield scrapy.Request(prev_month_link.url, callback=self.parse)
                 else:
                     self.logger.info(f'Reached minimum race date ({min_race_date})')
