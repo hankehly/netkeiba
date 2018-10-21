@@ -1,3 +1,6 @@
+import re
+from datetime import datetime
+
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 from scrapy.loader import ItemLoader
@@ -10,6 +13,9 @@ class RaceSpiderSpider(scrapy.Spider):
     name = 'race_spider'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
+    custom_settings = {
+        'MIN_RACE_DATE': '2018-10-01'
+    }
 
     def parse(self, response):
         race_list_links = LinkExtractor(allow='/race/list/[0-9]+', restrict_css='.race_calendar') \
@@ -18,8 +24,18 @@ class RaceSpiderSpider(scrapy.Spider):
         for link in race_list_links:
             yield scrapy.Request(link.url, callback=self.parse_race_list)
 
-        prev_month_link = LinkExtractor(restrict_css='.race_calendar .rev').extract_links(response)[-1]
-        yield scrapy.Request(prev_month_link.url, callback=self.parse)
+        rev_links = LinkExtractor(restrict_css='.race_calendar .rev').extract_links(response)
+
+        if len(rev_links) > 1:
+            prev_month_link = rev_links[-1]
+            min_race_date = datetime.strptime(self.settings.get('MIN_RACE_DATE'), '%Y-%m-%d').date()
+            prev_month_dt_match = re.search('date=([0-9]+)$', prev_month_link.url)
+            if prev_month_dt_match:
+                prev_month_dt = datetime.strptime(prev_month_dt_match.group(1), '%Y%m%d').date()
+                if prev_month_dt > min_race_date:
+                    yield scrapy.Request(prev_month_link.url, callback=self.parse)
+                else:
+                    self.logger.debug(f'Stopping because previous month is less than min race date {min_race_date}')
 
     def parse_race_list(self, response):
         race_links = LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list').extract_links(response)
