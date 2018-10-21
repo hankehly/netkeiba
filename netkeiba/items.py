@@ -10,11 +10,9 @@ from netkeiba.input_processors import (
     parse_trainer_url,
     parse_horse_url,
     parse_distance_meters,
-    parse_weight_carried,
     parse_post_position,
     parse_order_of_finish,
     parse_finish_time,
-    parse_horse_rating,
     parse_horse_total_races,
     parse_horse_total_wins,
     parse_weather,
@@ -31,7 +29,7 @@ class RaceFinisher(scrapy.Item):
     horse_url = scrapy.Field(input_processor=parse_horse_url)
     jockey_url = scrapy.Field(input_processor=parse_jockey_url)
     trainer_url = scrapy.Field(input_processor=parse_trainer_url)
-    weight_carried = scrapy.Field(input_processor=parse_weight_carried)
+    weight_carried = scrapy.Field(input_processor=str2float)
     post_position = scrapy.Field(input_processor=parse_post_position)
     order_of_finish = scrapy.Field(input_processor=parse_order_of_finish)
     finish_time = scrapy.Field(input_processor=parse_finish_time)
@@ -46,7 +44,7 @@ class RaceFinisher(scrapy.Item):
 class Horse(scrapy.Item):
     sex = scrapy.Field(input_processor=parse_horse_sex)
     age = scrapy.Field(input_processor=parse_horse_age)
-    rating = scrapy.Field(input_processor=parse_horse_rating)
+    rating = scrapy.Field(input_processor=str2float)
     total_races = scrapy.Field(input_processor=parse_horse_total_races)
     total_wins = scrapy.Field(input_processor=parse_horse_total_wins)
 

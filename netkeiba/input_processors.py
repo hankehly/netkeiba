@@ -1,12 +1,12 @@
 import re
-from typing import List, Optional, Dict
+from typing import List, Dict, Union
 
 from bs4 import BeautifulSoup
 
 
 def parse_horse_sex(values: List) -> str:
-    # '現役\u3000牝5歳\u3000鹿毛'
-    value = re.split('\s', values[0])[1]
+    # values: ['現役\u3000牝5歳\u3000鹿毛'] or ['抹消　牡　青鹿毛']
+    age_sex_str = re.split('\s', values[0])[1]
 
     possible_inputs = {
         '牡': 'male',
@@ -14,30 +14,35 @@ def parse_horse_sex(values: List) -> str:
         'セ': 'castrated'
     }
 
-    return possible_inputs.get(value)
+    for key, val in possible_inputs.items():
+        if re.search(key, age_sex_str):
+            return val
+
+    return 'unknown'
 
 
 def parse_horse_age(values: List):
-    return values
-    # '現役\u3000牝5歳\u3000鹿毛'
-    # value = re.split('\s', values[0])[1]
-    # return int(value)
-
-
-def parse_horse_rating(values: List):
-    return values
+    # values: ['現役\u3000牝5歳\u3000鹿毛'] or ['抹消　牡　青鹿毛']
+    age_sex_str = re.split('\s', values[0])[1]
+    match = re.search('([0-9]+)', age_sex_str)
+    if match is None:
+        return None
+    return int(match.group(1))
 
 
 def parse_horse_total_races(values: List):
-    return values
+    # values: ['26戦4勝 [']
+    total_races_str = re.search('([0-9]+)戦', values[0]).group(1)
+    return int(total_races_str)
 
 
 def parse_horse_total_wins(values: List):
-    return values
-    # return float(values[0]) if values else None
+    # values: ['26戦4勝 [']
+    total_wins_str = re.search('([0-9]+)勝', values[0]).group(1)
+    return int(total_wins_str)
 
 
-def parse_weather(values: List) -> Optional[str]:
+def parse_weather(values: List) -> str:
     weather_text = values[0].split('/')[1]
 
     weather = {
@@ -50,7 +55,7 @@ def parse_weather(values: List) -> Optional[str]:
         if f'天候 : {key}' in weather_text:
             return val
 
-    return None
+    return 'unknown'
 
 
 def parse_horse_url(values: List) -> str:
@@ -61,17 +66,13 @@ def parse_distance_meters(values: List) -> int:
     return int(re.search('([0-9]+)', values[0].split('/')[0]).group(1))
 
 
-def parse_weight_carried(values: List) -> int:
-    return int(values[0])
-
-
 def parse_post_position(values: List) -> int:
     return int(values[0])
 
 
-def parse_order_of_finish(values: List) -> Optional[int]:
-    text = values[0]
-    return None if text in ['取', '中', '除'] else int(text)
+def parse_order_of_finish(values: List) -> Union[int, str]:
+    place = values[0]
+    return 'disqualified' if place in ['取', '中', '除'] else int(place)
 
 
 def parse_finish_time(values: List):
@@ -84,7 +85,7 @@ def parse_finish_time(values: List):
     return minutes * 60 + seconds
 
 
-def parse_jockey_url(values: List, loader_context: Dict):
+def parse_jockey_url(values: List):
     jockey_href = values[0]
     jockey_href_split = list(filter(None, jockey_href.split('/')))
     jockey_href_split.insert(1, 'result')
@@ -108,7 +109,7 @@ def parse_trainer_url(values: List, loader_context: Dict):
     return loader_context.get('response').urljoin(href_result)
 
 
-def parse_direction(values: List) -> Optional[str]:
+def parse_direction(values: List) -> str:
     direction_text = values[0].split('/')[0]
 
     directions = {
@@ -121,18 +122,18 @@ def parse_direction(values: List) -> Optional[str]:
         if key in direction_text:
             return val
 
-    return None
+    return 'unknown'
 
 
 def str2int(values: List) -> int:
-    return int(values[0].replace(',', ''))
+    return int(values[0].replace(',', '')) if values else None
 
 
 def str2float(values: List) -> float:
-    return float(values[0].replace(',', ''))
+    return float(values[0].replace(',', '')) if values else None
 
 
-def parse_track_condition(values: List) -> Optional[str]:
+def parse_track_condition(values: List) -> str:
     track_condition_text = values[0].split('/')[2]
 
     # TODO: Handle following case
@@ -148,10 +149,10 @@ def parse_track_condition(values: List) -> Optional[str]:
         if key in track_condition_text:
             return val
 
-    return None
+    return 'unknown'
 
 
-def parse_track_type(values: List) -> Optional[str]:
+def parse_track_type(values: List) -> str:
     track_type_text = values[0].split('/')[0]
 
     track_types = {
@@ -164,4 +165,4 @@ def parse_track_type(values: List) -> Optional[str]:
         if key in track_type_text:
             return val
 
-    return None
+    return 'unknown'
