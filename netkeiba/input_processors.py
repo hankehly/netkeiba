@@ -165,7 +165,3 @@ def parse_track_type(values: List) -> Optional[str]:
             return val
 
     return None
-
-
-def parse_no_participants(values: List) -> int:
-    return values

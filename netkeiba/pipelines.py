@@ -10,23 +10,6 @@ class RacePipeline(object):
         # drop items with no finish time
         return item
 
-
-def parse_course_type_one_hot(text):
-    course_types = {
-        'dirt': 0,
-        'turf': 0,
-        'obstacle': 0
-    }
-
-    if re.search(r'ダ', text):
-        course_types['dirt'] = 1
-    if re.search(r'芝', text):
-        course_types['turf'] = 1
-    if re.search(r'障', text):
-        course_types['obstacle'] = 1
-
-    return course_types
-
 # arr = [
 # 'ダ右1400m / 天候 : 晴 / ダート : 稍重 / 発走 : 09:55',
 # '芝左1400m / 天候 : 晴 / 芝 : 良 / 発走 : 11:10',
