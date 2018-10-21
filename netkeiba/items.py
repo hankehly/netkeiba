@@ -21,7 +21,8 @@ from netkeiba.input_processors import (
     parse_direction,
     str2int,
     str2float,
-    parse_track_condition
+    parse_track_condition,
+    parse_track_type
 )
 
 
@@ -38,6 +39,7 @@ class RaceFinisher(scrapy.Item):
     weather = scrapy.Field(input_processor=parse_weather)
     direction = scrapy.Field(input_processor=parse_direction)
     track_condition = scrapy.Field(input_processor=parse_track_condition)
+    track_type = scrapy.Field(input_processor=parse_track_type)
     participant_count = scrapy.Field()
 
 
