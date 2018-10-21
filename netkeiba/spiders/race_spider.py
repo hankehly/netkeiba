@@ -35,7 +35,7 @@ class RaceSpiderSpider(scrapy.Spider):
                 if prev_month_dt > min_race_date:
                     yield scrapy.Request(prev_month_link.url, callback=self.parse)
                 else:
-                    self.logger.debug(f'Stopping because previous month is less than min race date {min_race_date}')
+                    self.logger.info(f'Reached minimum race date ({min_race_date})')
 
     def parse_race_list(self, response):
         race_links = LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list').extract_links(response)
