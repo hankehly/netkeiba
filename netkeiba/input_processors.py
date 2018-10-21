@@ -130,3 +130,42 @@ def str2int(values: List) -> int:
 
 def str2float(values: List) -> float:
     return float(values[0].replace(',', ''))
+
+
+def parse_track_condition(values: List) -> Optional[str]:
+    track_condition_text = values[0].split('/')[2]
+
+    # TODO: Handle following case
+    # 障芝 ダート2970m / 天候 : 晴 / 芝 : 良  ダート : 稍重 / 発走 : 11:20
+    track_conditions = {
+        '良': 'good',
+        '稍重': 'slightly_heavy',
+        '重': 'heavy',
+        '不良': 'bad'
+    }
+
+    for key, val in track_conditions.items():
+        if key in track_condition_text:
+            return val
+
+    return None
+
+
+def parse_track_type(values: List) -> Optional[str]:
+    track_type_text = values[0].split('/')[0]
+
+    track_types = {
+        'ダ': 'dirt',
+        '芝': 'turf',
+        '障': 'obstacle'
+    }
+
+    for key, val in track_types.items():
+        if key in track_type_text:
+            return val
+
+    return None
+
+
+def parse_no_participants(values: List) -> int:
+    return values

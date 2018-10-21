@@ -28,9 +28,11 @@ class RaceSpiderSpider(scrapy.Spider):
             yield scrapy.Request(link.url, callback=self.parse_race)
 
     def parse_race(self, response):
-        race_environment_details = response.css('.mainrace_data h1+p span::text').extract_first()
+        track_details = response.css('.mainrace_data h1+p span::text').extract_first()
+        participants = response.css('.race_table_01 tr:not(:first-child)')
+        participant_count = len(participants)
 
-        for i, record in enumerate(response.css('.race_table_01 tr:not(:first-child)'), start=2):
+        for i, record in enumerate(participants, start=2):
             loader = ItemLoader(item=RaceFinisher(), response=response,
                                 selector=response.selector.css(f'.race_table_01 tr:nth-child({i})'))
             loader.default_output_processor = TakeFirst()
@@ -39,13 +41,16 @@ class RaceSpiderSpider(scrapy.Spider):
             loader.add_css('post_position', 'td:nth-child(2) span::text')
             loader.add_css('order_of_finish', 'td:nth-child(1)::text')
             loader.add_css('finish_time', 'td:nth-child(8)::text')
-            loader.add_value('distance_meters', race_environment_details)
-            loader.add_value('weather', race_environment_details)
-            loader.add_value('direction', race_environment_details)
+            loader.add_value('distance_meters', track_details)
+            loader.add_value('weather', track_details)
+            loader.add_value('direction', track_details)
+            loader.add_value('track_condition', track_details)
+            loader.add_value('track_type', track_details)
             loader.add_value('race_url', response.request.url)
             loader.add_css('horse_url', 'td:nth-child(4) a::attr(href)')
             loader.add_css('jockey_url', 'td:nth-child(7) a::attr(href)')
             loader.add_value('trainer_url', record.css('*').extract_first())
+            loader.add_value('participant_count', participant_count)
 
             response.meta['race_finisher'] = loader.load_item()
 

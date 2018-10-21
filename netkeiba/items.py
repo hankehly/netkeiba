@@ -20,7 +20,8 @@ from netkeiba.input_processors import (
     parse_weather,
     parse_direction,
     str2int,
-    str2float
+    str2float,
+    parse_track_condition
 )
 
 
@@ -36,6 +37,8 @@ class RaceFinisher(scrapy.Item):
     distance_meters = scrapy.Field(input_processor=parse_distance_meters)
     weather = scrapy.Field(input_processor=parse_weather)
     direction = scrapy.Field(input_processor=parse_direction)
+    track_condition = scrapy.Field(input_processor=parse_track_condition)
+    participant_count = scrapy.Field()
 
 
 class Horse(scrapy.Item):
@@ -72,8 +75,3 @@ class Trainer(AnnualRecordHolder):
 #     course_type_dirt = scrapy.Field()
 #     course_type_turf = scrapy.Field()
 #     course_type_obstacle = scrapy.Field()
-#     turf_condition = scrapy.Field()
-#     dirt_condition = scrapy.Field()
-#     direction_left = scrapy.Field()
-#     direction_right = scrapy.Field()
-#     direction_straight = scrapy.Field()

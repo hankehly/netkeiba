@@ -6,6 +6,8 @@ class RacePipeline(object):
         # output to pandas dataframe with normalized json structure
         # data = json.load(open('output.json', 'rb'))
         # df = pd.io.json.json_normalize(data, sep='_')
+
+        # drop items with no finish time
         return item
 
 
@@ -24,40 +26,6 @@ def parse_course_type_one_hot(text):
         course_types['obstacle'] = 1
 
     return course_types
-
-
-def parse_turf_condition(text):
-    condition_text = text.split('/')[2]
-
-    conditions = {
-        '芝 : 良': 'good',
-        '芝 : 稍重': 'slightly_heavy',
-        '芝 : 重': 'heavy',
-        '芝 : 不良': 'bad'
-    }
-
-    for key, val in conditions.items():
-        if f': {key}' in condition_text:
-            return val
-
-    return None
-
-
-def parse_dirt_condition(text):
-    condition_text = text.split('/')[2]
-
-    conditions = {
-        'ダート : 良': 'good',
-        'ダート : 稍重': 'slightly_heavy',
-        'ダート : 重': 'heavy',
-        'ダート : 不良': 'bad'
-    }
-
-    for key, val in conditions.items():
-        if f': {key}' in condition_text:
-            return val
-
-    return None
 
 # arr = [
 # 'ダ右1400m / 天候 : 晴 / ダート : 稍重 / 発走 : 09:55',
