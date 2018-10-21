@@ -48,6 +48,7 @@ class RaceSpiderSpider(scrapy.Spider):
     def parse_race(self, response):
         track_details = response.css('.mainrace_data h1+p span::text').extract_first()
         participants = response.css('.race_table_01 tr:not(:first-child)')
+        race_details = response.css('.mainrace_data .smalltxt::text').extract_first()
         participant_count = len(participants)
 
         for i, record in enumerate(participants, start=2):
@@ -69,6 +70,8 @@ class RaceSpiderSpider(scrapy.Spider):
             loader.add_css('jockey_url', 'td:nth-child(7) a::attr(href)')
             loader.add_value('trainer_url', record.css('*').extract_first())
             loader.add_value('participant_count', participant_count)
+            loader.add_value('race_date', race_details)
+            loader.add_value('race_location', race_details)
 
             response.meta['race_finisher'] = loader.load_item()
 

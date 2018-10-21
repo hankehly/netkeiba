@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from typing import List, Dict, Union
 
 from bs4 import BeautifulSoup
@@ -163,6 +164,42 @@ def parse_track_type(values: List) -> str:
 
     for key, val in track_types.items():
         if key in track_type_text:
+            return val
+
+    return 'unknown'
+
+
+def parse_race_date(values: List):
+    # values: ['2018年9月17日 4回中山5日目 障害3歳以上未勝利\xa0\xa0(混)(定量)']
+    date_str = re.search('([0-9]+)年([0-9]+)月([0-9]+)日', values[0])
+
+    if date_str:
+        year = int(date_str.group(1))
+        month = int(date_str.group(2))
+        day = int(date_str.group(3))
+        return datetime(year, month, day).date()
+
+    return None
+
+
+def parse_race_location(values: List):
+    # values: ['2018年9月17日 4回中山5日目 障害3歳以上未勝利\xa0\xa0(混)(定量)']
+
+    locations = {
+        '札幌': 'sapporo',
+        '函館': 'hakodate',
+        '福島': 'fuma',
+        '新潟': 'niigata',
+        '東京': 'tokyo',
+        '中山': 'nakayama',
+        '中京': 'chukyo',
+        '京都': 'kyoto',
+        '阪神': 'hanshin',
+        '小倉': 'ogura',
+    }
+
+    for key, val in locations.items():
+        if re.search(key, values[0]):
             return val
 
     return 'unknown'
