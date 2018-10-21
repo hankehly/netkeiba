@@ -13,7 +13,9 @@ class RaceSpiderSpider(scrapy.Spider):
     name = 'race_spider'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
+
     custom_settings = {
+        # TODO: Ignore races less than date (currently only ignoring less than month)
         'MIN_RACE_DATE': '2018-10-01'
     }
 
