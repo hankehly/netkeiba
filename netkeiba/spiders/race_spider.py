@@ -15,11 +15,12 @@ class RaceSpiderSpider(scrapy.Spider):
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
 
     custom_settings = {
-        # TODO: Ignore races less than date (currently only ignoring less than month)
-        'MIN_RACE_DATE': '2018-10-01'
+        'MIN_RACE_DATE': '2018-10-13'
     }
 
     def parse(self, response):
+        self.logger.info(f'Begin – minimum race date <{self._min_race_date}>')
+
         race_list_links = LinkExtractor(allow='/race/list/[0-9]+', restrict_css='.race_calendar') \
             .extract_links(response)
 
@@ -30,14 +31,13 @@ class RaceSpiderSpider(scrapy.Spider):
 
         if len(rev_links) > 1:
             prev_month_link = rev_links[-1]
-            min_race_date = datetime.strptime(self.settings.get('MIN_RACE_DATE'), '%Y-%m-%d').date()
             prev_month_dt_match = re.search('date=([0-9]+)$', prev_month_link.url)
             if prev_month_dt_match:
                 prev_month_dt = datetime.strptime(prev_month_dt_match.group(1), '%Y%m%d').date()
-                if prev_month_dt >= min_race_date:
+                if prev_month_dt >= self._min_race_date:
                     yield scrapy.Request(prev_month_link.url, callback=self.parse)
                 else:
-                    self.logger.info(f'Reached minimum race date ({min_race_date})')
+                    self.logger.info(f'Reached minimum race date ({self._min_race_date})')
 
     def parse_race_list(self, response):
         race_links = LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list').extract_links(response)
@@ -75,8 +75,14 @@ class RaceSpiderSpider(scrapy.Spider):
 
             response.meta['race_finisher'] = loader.load_item()
 
-            yield scrapy.Request(response.meta['race_finisher']['horse_url'], callback=self.parse_horse,
-                                 meta=response.meta)
+            race_date = response.meta['race_finisher']['race_date']
+            if race_date >= self._min_race_date:
+                yield scrapy.Request(response.meta['race_finisher']['horse_url'], callback=self.parse_horse,
+                                     meta=response.meta)
+            else:
+                self.logger.info(
+                    f'Skipped <{race_date}> race (below minimum race date <{self.settings.get("MIN_RACE_DATE")}>)')
+                return None
 
     def parse_horse(self, response):
         loader = ItemLoader(item=Horse(), response=response)
@@ -142,3 +148,7 @@ class RaceSpiderSpider(scrapy.Spider):
             'jockey': response.meta['jockey'],
             'trainer': trainer
         }
+
+    @property
+    def _min_race_date(self):
+        return datetime.strptime(self.settings.get('MIN_RACE_DATE'), '%Y-%m-%d').date()
