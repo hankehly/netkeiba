@@ -9,7 +9,7 @@ from scrapy.loader.processors import TakeFirst
 from netkeiba.items import Horse, RaceFinisher, Jockey, Trainer
 
 
-class RaceSpiderSpider(scrapy.Spider):
+class RaceSpider(scrapy.Spider):
     name = 'race_spider'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
