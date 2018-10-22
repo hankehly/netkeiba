@@ -7,7 +7,7 @@ A scrapy project for extracting data from netkeiba.com
 | Feature | Description |
 |:-- |:-- |
 | race_finisher.weight carried | (斤量) 騎手の体重　＋　騎手が身につけているもの（勝負服やプロテクター）と所定の馬具（鞍など）の重量 |
-| race_finisher.post_position | ... |
+| race_finisher.post_position | [着順](http://jra.jp/kouza/yougo/w274.html) |
 | race_finisher.order_of_finish | |
 | race_finisher.finish_time_seconds | |
 | race_finisher.distance_meters | |
