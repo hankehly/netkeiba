@@ -6,15 +6,15 @@ A scrapy project for extracting data from netkeiba.com
 
 | Feature | Description |
 |:-- |:-- |
-| race_finisher.weight carried | (斤量) 騎手の体重　＋　騎手が身につけているもの（勝負服やプロテクター）と所定の馬具（鞍など）の重量 |
-| race_finisher.post_position | [着順](http://jra.jp/kouza/yougo/w274.html) |
-| race_finisher.order_of_finish | |
-| race_finisher.finish_time_seconds | |
-| race_finisher.distance_meters | |
-| race_finisher.weather | |
-| race_finisher.direction | |
-| race_finisher.track_condition | (馬場状態) |
-| race_finisher.track_type | |
+| race_finisher.weight carried | The weight carried by the horse during the race <[斤量](http://jra.jp/kouza/yougo/w229.html)> |
+| race_finisher.post_position |  |
+| race_finisher.order_of_finish | <[着順](http://jra.jp/kouza/yougo/w274.html)> |
+| race_finisher.finish_time_seconds | <[枠番](https://www.oddspark.com/keiba/glossary/keyword/wa/42538.html)> |
+| race_finisher.distance_meters | Track length in meters |
+| race_finisher.weather | The weather during the race (categories limited to "sunny", "rainy" and "cloudy") |
+| race_finisher.direction | (WIP) |
+| race_finisher.track_condition | The physical condition of the race track (categories limited to "good", "slightly heavy", "heavy" and "bad") <馬場状態> |
+| race_finisher.track_type | The type of race track (categories limited to "dirt", "turf" and "obstacle") |
 | race_finisher.race_url | |
 | race_finisher.horse_url | |
 | race_finisher.jockey_url | |
@@ -24,25 +24,25 @@ A scrapy project for extracting data from netkeiba.com
 | race_finisher.race_location | |
 | horse.total_races | |
 | horse.total_wins | |
-| horse.sex | |
-| horse.age | |
-| horse.rating | |
-| jockey.num_1_place | |
-| jockey.num_2_place | |
-| jockey.num_3_place | |
-| jockey.num_4_below | |
-| jockey.num_turf_races | |
-| jockey.num_turf_wins | |
-| jockey.num_dirt_races | |
-| jockey.num_dirt_wins | |
+| horse.sex | Sex of the horse (categories limited to "male", "female" and "castrated") |
+| horse.age | Age of horse |
+| horse.rating | User rating of horse (nullable) |
+| jockey.num_1_place | Total number of times this jockey has placed 1st in a race |
+| jockey.num_2_place | Total number of times this jockey has placed 2nd in a race |
+| jockey.num_3_place | Total number of times this jockey has placed 3rd in a race |
+| jockey.num_4_below | Total number of times this jockey has placed 4th or lower in a race |
+| jockey.num_turf_races | Total number of turf races in which this jockey has participated |
+| jockey.num_turf_wins | Total number of turf races this jockey has won |
+| jockey.num_dirt_races | Total number of dirt races in which this jockey has participated |
+| jockey.num_dirt_wins | Total number of dirt races this jockey has won |
 | jockey.place_1_rate | (勝率) １着に入った割合 |
 | jockey.place_1_or_2_rate | (連対率) ２着以内に入った割合 |
 | jockey.place_any_rate | (複勝率) 複勝馬券が絡んだ割合 |
 | jockey.sum_earnings | |
-| trainer.num_1_place | |
-| trainer.num_2_place | |
-| trainer.num_3_place | |
-| trainer.num_4_below | |
+| trainer.num_1_place | Total number of times this trainer has placed 1st in a race |
+| trainer.num_2_place | Total number of times this trainer has placed 2nd in a race |
+| trainer.num_3_place | Total number of times this trainer has placed 3rd in a race |
+| trainer.num_4_below | Total number of times this trainer has placed 4th or lower in a race |
 | trainer.num_turf_races | |
 | trainer.num_turf_wins | |
 | trainer.num_dirt_races | |
