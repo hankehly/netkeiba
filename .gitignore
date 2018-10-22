@@ -137,3 +137,4 @@ fabric.properties
 # *.iml
 # modules.xml
 # *.ipr
+node_modules/
