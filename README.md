@@ -15,17 +15,17 @@ A scrapy project for extracting data from netkeiba.com
 | race_finisher.direction | (WIP) |
 | race_finisher.track_condition | The physical condition of the race track (categories limited to "good", "slightly heavy", "heavy" and "bad") <馬場状態> |
 | race_finisher.track_type | The type of race track (categories limited to "dirt", "turf" and "obstacle") |
-| race_finisher.race_url | |
-| race_finisher.horse_url | |
-| race_finisher.jockey_url | |
-| race_finisher.trainer_url | |
-| race_finisher.participant_count | |
-| race_finisher.race_date | |
-| race_finisher.race_location | |
-| horse.total_races | |
-| horse.total_wins | |
-| horse.sex | Sex of the horse (categories limited to "male", "female" and "castrated") |
-| horse.age | Age of horse |
+| race_finisher.race_url | The URL to the current race |
+| race_finisher.horse_url | The URL to the current horses' profile |
+| race_finisher.jockey_url | The URL to the current jockeys' results page |
+| race_finisher.trainer_url | The URL to the current trainers' results page |
+| race_finisher.participant_count | The number of participants in the current race |
+| race_finisher.race_date | The date on which the race was held |
+| race_finisher.race_location | The location of the race |
+| horse.total_races | The total number of races in which this horse has participated |
+| horse.total_wins | The total number of races this horse has won |
+| horse.sex | The sex of the horse (categories limited to "male", "female" and "castrated") |
+| horse.age | The age of horse in years |
 | horse.rating | User rating of horse (nullable) |
 | jockey.num_1_place | Total number of times this jockey has placed 1st in a race |
 | jockey.num_2_place | Total number of times this jockey has placed 2nd in a race |
@@ -38,19 +38,19 @@ A scrapy project for extracting data from netkeiba.com
 | jockey.place_1_rate | (勝率) １着に入った割合 |
 | jockey.place_1_or_2_rate | (連対率) ２着以内に入った割合 |
 | jockey.place_any_rate | (複勝率) 複勝馬券が絡んだ割合 |
-| jockey.sum_earnings | |
+| jockey.sum_earnings | The jockeys' total earnings (in ten-thousands of yen) |
 | trainer.num_1_place | Total number of times this trainer has placed 1st in a race |
 | trainer.num_2_place | Total number of times this trainer has placed 2nd in a race |
 | trainer.num_3_place | Total number of times this trainer has placed 3rd in a race |
 | trainer.num_4_below | Total number of times this trainer has placed 4th or lower in a race |
-| trainer.num_turf_races | |
-| trainer.num_turf_wins | |
-| trainer.num_dirt_races | |
-| trainer.num_dirt_wins | |
-| trainer.place_1_rate | (勝率) １着に入った割合 |
-| trainer.place_1_or_2_rate | (連対率) ２着以内に入った割合 |
-| trainer.place_any_rate | (複勝率) 複勝馬券が絡んだ割合 |
-| trainer.sum_earnings | |
+| trainer.num_turf_races | Total number of turf races in which this trainer has participated |
+| trainer.num_turf_wins | Total number of turf races this trainer has won |
+| trainer.num_dirt_races | Total number of dirt races in which this trainer has participated |
+| trainer.num_dirt_wins | Total number of dirt races this trainer has won |
+| trainer.place_1_rate | <[勝率](https://regist.netkeiba.com/?pid=faq_detail&id=211)> |
+| trainer.place_1_or_2_rate | <[連対率](https://regist.netkeiba.com/?pid=faq_detail&id=211)> |
+| trainer.place_any_rate | <[複勝率](https://regist.netkeiba.com/?pid=faq_detail&id=211)> |
+| trainer.sum_earnings | The trainers' total earnings (in ten-thousands of yen) |
 
 #### Example usage
 ```bash
