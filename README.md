@@ -52,12 +52,17 @@ A scrapy project for extracting data from netkeiba.com
 | trainer.place_any_rate | <[複勝率](https://regist.netkeiba.com/?pid=faq_detail&id=211)> |
 | trainer.sum_earnings | The trainers' total earnings (in ten-thousands of yen) |
 
-#### Example usage
+#### Usage
+
+Execute the scrapy `race_spider` with an optional minimum race date, which defaults to "2018-01-01". Each output
+instance contains multiple scrapy items. For machine learning projects, I find it easiest to output to JSON and load
+with `pandas` using the `json_normalize` function.
+
 ```bash
 scrapy crawl race_spider -o output.json [-s RACE_MIN_DATE='2018-10-14']
 ```
 
-#### Example output
+#### Output
 ```json
 {
     "race_finisher": {
@@ -114,5 +119,18 @@ scrapy crawl race_spider -o output.json [-s RACE_MIN_DATE='2018-10-14']
         "sum_earnings": 1800019.6
     }
 }
+```
+
+#### Flattening
+```python
+>>> import pandas as pd
+>>> import json
+>>> data = json.load(open('output.json', 'rb'))
+>>> df = pd.io.json.json_normalize(data, sep='_')
+>>> df.head()
+   horse_age  horse_rating horse_sex  horse_total_races          ...           trainer_place_1_or_2_rate  trainer_place_1_rate  trainer_place_any_rate  trainer_sum_earnings
+0          3           3.0    female                  8          ...                               0.152                 0.089                   0.234              176978.4
+
+[1 rows x 44 columns]
 ```
 
