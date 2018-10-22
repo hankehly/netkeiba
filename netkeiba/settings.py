@@ -13,8 +13,8 @@ ITEM_PIPELINES = {
 
 AUTOTHROTTLE_ENABLED = True
 
-DOWNLOAD_DELAY = 5.0
+DOWNLOAD_DELAY = 4.0
 
 DOWNLOADER_MIDDLEWARES = {
-    'netkeiba.middlewares.useragent.UserAgentMiddleware': 300,
+    'netkeiba.middlewares.UserAgentMiddleware': 300,
 }
