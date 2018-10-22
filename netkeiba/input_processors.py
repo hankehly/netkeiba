@@ -76,7 +76,7 @@ def parse_order_of_finish(values: List) -> Union[int, str]:
     return 'disqualified' if place in ['取', '中', '除'] else int(place)
 
 
-def parse_finish_time(values: List):
+def parse_finish_time_seconds(values: List):
     text = values[0] if values else None
 
     if text is None:

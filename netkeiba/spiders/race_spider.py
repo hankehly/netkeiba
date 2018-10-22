@@ -63,7 +63,7 @@ class RaceSpiderSpider(scrapy.Spider):
             loader.add_css('weight_carried', 'td:nth-child(6)::text')
             loader.add_css('post_position', 'td:nth-child(2) span::text')
             loader.add_css('order_of_finish', 'td:nth-child(1)::text')
-            loader.add_css('finish_time', 'td:nth-child(8)::text')
+            loader.add_css('finish_time_seconds', 'td:nth-child(8)::text')
             loader.add_value('distance_meters', track_details)
             loader.add_value('weather', track_details)
             loader.add_value('direction', track_details)
