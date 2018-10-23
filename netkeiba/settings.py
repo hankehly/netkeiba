@@ -24,4 +24,8 @@ DOWNLOADER_MIDDLEWARES = {
     'netkeiba.middlewares.UserAgentMiddleware': 300,
 }
 
-LOG_FILE = os.path.join(PROJECT_ROOT, 'logs', datetime.now().isoformat(timespec='seconds'))
+iso_timestamp = datetime.now().isoformat(timespec='seconds')
+
+LOG_FILE = os.path.join(PROJECT_ROOT, 'logs', f'{iso_timestamp}.log')
+FEED_URI = os.path.join(PROJECT_ROOT, 'output', f'{iso_timestamp}.jl')
+FEED_FORMAT = 'jsonlines'

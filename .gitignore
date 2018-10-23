@@ -138,3 +138,5 @@ fabric.properties
 # modules.xml
 # *.ipr
 node_modules/
+output/*
+!output/.gitkeep
