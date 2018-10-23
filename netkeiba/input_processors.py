@@ -73,7 +73,7 @@ def parse_post_position(values: List) -> int:
 
 def parse_order_of_finish(values: List) -> Union[int, str]:
     place = values[0]
-    return 'disqualified' if place in ['取', '中', '除'] else int(place)
+    return 'disqualified' if place in ['取', '中', '除', '失'] else int(place)
 
 
 def parse_finish_time_seconds(values: List):
