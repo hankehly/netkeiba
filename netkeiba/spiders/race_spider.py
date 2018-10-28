@@ -61,6 +61,8 @@ class RaceSpider(scrapy.Spider):
             loader.default_output_processor = TakeFirst()
 
             loader.add_css('weight_carried', 'td:nth-child(6)::text')
+            loader.add_css('horse_sex', 'td:nth-child(5)::text')
+            loader.add_css('horse_age', 'td:nth-child(5)::text')
             loader.add_css('post_position', 'td:nth-child(2) span::text')
             loader.add_css('order_of_finish', 'td:nth-child(1)::text')
             loader.add_css('finish_time_seconds', 'td:nth-child(8)::text')
@@ -88,13 +90,11 @@ class RaceSpider(scrapy.Spider):
 
         loader.add_css('total_races', '.db_prof_table tr:nth-last-child(3) td::text')
         loader.add_css('total_wins', '.db_prof_table tr:nth-last-child(3) td::text')
-        loader.add_css('sex', '.horse_title .txt_01::text')
-        loader.add_css('age', '.horse_title .txt_01::text')
         loader.add_css('rating', '.horse_title .rate strong::text')
 
         response.meta['horse'] = loader.load_item()
 
-        yield scrapy.Request(response.meta['race_finisher']['jockey_url'], callback=self.parse_jockey,
+        return scrapy.Request(response.meta['race_finisher']['jockey_url'], callback=self.parse_jockey,
                              meta=response.meta, dont_filter=True)
 
     def parse_jockey(self, response):
@@ -117,7 +117,7 @@ class RaceSpider(scrapy.Spider):
 
         response.meta['jockey'] = loader.load_item()
 
-        yield scrapy.Request(response.meta['race_finisher']['trainer_url'], callback=self.parse_trainer,
+        return scrapy.Request(response.meta['race_finisher']['trainer_url'], callback=self.parse_trainer,
                              meta=response.meta, dont_filter=True)
 
     def parse_trainer(self, response):
@@ -140,7 +140,7 @@ class RaceSpider(scrapy.Spider):
 
         trainer = loader.load_item()
 
-        yield {
+        return {
             'race_finisher': response.meta['race_finisher'],
             'horse': response.meta['horse'],
             'jockey': response.meta['jockey'],

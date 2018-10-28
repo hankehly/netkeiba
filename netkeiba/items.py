@@ -1,8 +1,6 @@
 import scrapy
 
-# TODO: add below info
-# Medication Given / Bute and/or Lasix
-# Final Odds / Final odds for this horse to win given by the track
+
 from netkeiba.input_processors import (
     parse_horse_sex,
     parse_horse_age,
@@ -43,11 +41,11 @@ class RaceFinisher(scrapy.Item):
     participant_count = scrapy.Field()
     race_date = scrapy.Field(input_processor=parse_race_date)
     race_location = scrapy.Field(input_processor=parse_race_location)
+    horse_sex = scrapy.Field(input_processor=parse_horse_sex)
+    horse_age = scrapy.Field(input_processor=parse_horse_age)
 
 
 class Horse(scrapy.Item):
-    sex = scrapy.Field(input_processor=parse_horse_sex)
-    age = scrapy.Field(input_processor=parse_horse_age)
     rating = scrapy.Field(input_processor=str2float)
     total_races = scrapy.Field(input_processor=parse_horse_total_races)
     total_wins = scrapy.Field(input_processor=parse_horse_total_wins)
