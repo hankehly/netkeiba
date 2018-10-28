@@ -12,6 +12,8 @@ ROBOTSTXT_OBEY = True
 
 COOKIES_ENABLED = False
 
+REDIRECT_ENABLED = False
+
 ITEM_PIPELINES = {
     'netkeiba.pipelines.RacePipeline': 300,
 }
@@ -29,3 +31,4 @@ iso_timestamp = datetime.now().isoformat(timespec='seconds')
 LOG_FILE = os.path.join(PROJECT_ROOT, 'logs', f'{iso_timestamp}.log')
 FEED_URI = os.path.join(PROJECT_ROOT, 'output', f'{iso_timestamp}.jl')
 FEED_FORMAT = 'jsonlines'
+
