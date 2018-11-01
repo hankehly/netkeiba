@@ -28,6 +28,7 @@ def parse_horse_age(values: List) -> Optional[int]:
     return int(match.group(1))
 
 
+
 def parse_horse_total_races(values: List) -> Optional[int]:
     # values: ['26戦4勝 [']
     match = re.search('([0-9]+)戦', values[0])
@@ -242,3 +243,12 @@ def parse_race_location(values: List) -> Optional[str]:
             return val
 
     return None
+
+
+def parse_first_place_odds(values: List) -> Optional[float]:
+    value = values[0] if values else None
+
+    if value is None or value == '---':
+        return None
+
+    return str2float(value)

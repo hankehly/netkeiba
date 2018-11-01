@@ -20,7 +20,8 @@ from netkeiba.input_processors import (
     parse_track_condition,
     parse_track_type,
     parse_race_date,
-    parse_race_location
+    parse_race_location,
+    parse_first_place_odds
 )
 
 
@@ -43,7 +44,7 @@ class RaceFinisher(scrapy.Item):
     race_location = scrapy.Field(input_processor=parse_race_location)
     horse_sex = scrapy.Field(input_processor=parse_horse_sex)
     horse_age = scrapy.Field(input_processor=parse_horse_age)
-    first_place_odds = scrapy.Field(input_processor=str2float)
+    first_place_odds = scrapy.Field(input_processor=parse_first_place_odds)
     popularity = scrapy.Field(input_processor=str2int)
     horse_weight = scrapy.Field()
 
