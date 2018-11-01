@@ -83,15 +83,18 @@ def parse_post_position(values: List) -> Optional[int]:
 
 
 def parse_order_of_finish(values: List) -> Optional[Union[int, str]]:
+    # Possible values: '7', '6(降)', '取', '中', '除', '失'
     place = values[0] if values else None
-    
-    if place is None:
-        return None
 
-    if place in ['取', '中', '除', '失']:
-        return 'disqualified'
+    # if place is None:
+    #     return None
+    #
+    # if place in ['取', '中', '除', '失']:
+    #     return 'disqualified'
+    #
+    # return int(place)
 
-    return int(place)
+    return place
 
 
 def parse_finish_time_seconds(values: List) -> Optional[float]:

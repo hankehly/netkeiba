@@ -43,6 +43,9 @@ class RaceFinisher(scrapy.Item):
     race_location = scrapy.Field(input_processor=parse_race_location)
     horse_sex = scrapy.Field(input_processor=parse_horse_sex)
     horse_age = scrapy.Field(input_processor=parse_horse_age)
+    first_place_odds = scrapy.Field(input_processor=str2float)
+    popularity = scrapy.Field(input_processor=str2int)
+    horse_weight = scrapy.Field()
 
 
 class Horse(scrapy.Item):

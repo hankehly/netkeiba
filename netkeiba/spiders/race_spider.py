@@ -79,6 +79,11 @@ class RaceSpider(scrapy.Spider):
             loader.add_value('race_date', race_details)
             loader.add_value('race_location', race_details)
 
+            # for some reason, nth-child fails to access the following columns by index
+            loader.add_value('first_place_odds', record.css('td')[12].css('::text').extract_first())
+            loader.add_value('popularity', record.css('td')[13].css('::text').extract_first())
+            loader.add_value('horse_weight', record.css('td')[14].css('::text').extract_first())
+
             response.meta['race_finisher'] = loader.load_item()
 
             yield scrapy.Request(response.meta['race_finisher']['horse_url'], callback=self.parse_horse,
