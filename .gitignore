@@ -140,3 +140,4 @@ fabric.properties
 node_modules/
 output/*
 !output/.gitkeep
+data.pkl
