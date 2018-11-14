@@ -51,7 +51,8 @@ def parse_weather(values: List) -> Optional[str]:
     weather = {
         '曇': 'cloudy',
         '晴': 'sunny',
-        '雨': 'rainy'
+        '雨': 'rainy',
+        '小雨': 'drizzling'
     }
 
     for key, val in weather.items():
@@ -251,4 +252,4 @@ def parse_first_place_odds(values: List) -> Optional[float]:
     if value is None or value == '---':
         return None
 
-    return str2float(value)
+    return float(value)
