@@ -1,6 +1,5 @@
 import scrapy
 
-
 from netkeiba.input_processors import (
     parse_horse_sex,
     parse_horse_age,
@@ -75,4 +74,27 @@ class Jockey(AnnualRecordHolder):
 
 
 class Trainer(AnnualRecordHolder):
+    pass
+
+
+class BaseRequestItem(scrapy.Item):
+    item_type = scrapy.Field()
+    id = scrapy.Field()
+    response_body = scrapy.Field()
+    url = scrapy.Field()
+
+
+class RaceRequest(BaseRequestItem):
+    pass
+
+
+class HorseRequest(BaseRequestItem):
+    pass
+
+
+class TrainerRequest(BaseRequestItem):
+    pass
+
+
+class JockeyRequest(BaseRequestItem):
     pass

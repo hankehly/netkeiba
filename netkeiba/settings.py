@@ -16,9 +16,9 @@ REDIRECT_ENABLED = False
 
 DUPEFILTER_DEBUG = True
 
-ITEM_PIPELINES = {
-    'netkeiba.pipelines.RacePipeline': 300,
-}
+# ITEM_PIPELINES = {
+#     'netkeiba.pipelines.RacePipeline': 300,
+# }
 
 AUTOTHROTTLE_ENABLED = True
 
