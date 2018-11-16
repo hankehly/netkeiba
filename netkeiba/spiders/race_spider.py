@@ -12,10 +12,6 @@ class RaceSpider(scrapy.Spider):
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
 
-    custom_settings = {
-        'MIN_RACE_DATE': '2018-01-01'
-    }
-
     def parse(self, response):
         min_race_date = datetime.strptime(self.settings.get('MIN_RACE_DATE'), '%Y-%m-%d').date()
 
