@@ -25,6 +25,7 @@ CREATE TABLE jockeys
 (
   id                              INTEGER      NOT NULL,
   key                             VARCHAR(255) NOT NULL,
+  url                             VARCHAR(255),
   career_1st_place_count          INTEGER,
   career_2nd_place_count          INTEGER,
   career_3rd_place_count          INTEGER,
@@ -76,6 +77,7 @@ CREATE TABLE trainers
 (
   id                              INTEGER      NOT NULL,
   key                             VARCHAR(255) NOT NULL,
+  url                             VARCHAR(255),
   career_1st_place_count          INTEGER,
   career_2nd_place_count          INTEGER,
   career_3rd_place_count          INTEGER,
