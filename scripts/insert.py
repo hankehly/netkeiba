@@ -148,7 +148,7 @@ def main(opts):
         raise FileNotFoundError(f'input file does not exist: {opts.input}')
 
     if opts.reset:
-        print(opts)
+        logger.debug('Dropping and rebuilding database')
         create_db(overwrite=True)
 
     persistor = Persistor()
