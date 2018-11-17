@@ -103,3 +103,21 @@ CREATE TABLE race_contenders
   constraint race_contenders_races_id_fk
   foreign key (race_id) references races
 );
+
+INSERT INTO course_types (name) VALUES
+  ('turf'),
+  ('dirt'),
+  ('obstacle');
+
+INSERT INTO racetracks (name)
+VALUES
+  ('sapporo'),
+  ('hakodate'),
+  ('fuma'),
+  ('niigata'),
+  ('tokyo'),
+  ('nakayama'),
+  ('chukyo'),
+  ('kyoto'),
+  ('hanshin'),
+  ('ogura');
