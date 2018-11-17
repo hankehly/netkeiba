@@ -2,9 +2,10 @@ import argparse
 import json
 import logging
 import os
+import re
 import sqlite3
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 
 from create_db import create_db
 
@@ -39,7 +40,11 @@ class Persistor:
                         ON CONFLICT(key) DO UPDATE SET {updates};
                 ''')
         except sqlite3.IntegrityError as e:
-            logger.debug(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
+            logger.error(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
+            raise e
+        except sqlite3.OperationalError as e:
+            logger.error(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
+            raise e
 
 
 class Parser:
@@ -140,6 +145,32 @@ class Parser:
 
     def parse_horse_item(self, item: dict):
         logger.debug(f"[Parser.parse_horse_item] {item['id']}")
+
+        soup = BeautifulSoup(item['response_body'], 'html.parser')
+
+        # the first group of text in the only 'td' in the 3rd to last 'tr' in .db_prof_table
+        win_record_str = soup.select('.db_prof_table tr')[-3].select_one('td').contents[0]
+
+        win_record_matches = re.search('([0-9]+)戦([0-9]+)勝', win_record_str)
+        total_races = self.str2int(win_record_matches.group(1))
+        total_wins = self.str2int(win_record_matches.group(2))
+
+        data = {'total_races': total_races, 'total_wins': total_wins, 'url': f"'{item['url']}'"}
+
+        if soup.select_one('.horse_title .rate strong'):
+            for child in soup.select_one('.horse_title .rate strong').children:
+                if isinstance(child, Comment):
+                    child.extract()
+            data['user_rating'] = self.str2float(soup.select_one('.horse_title .rate strong').string)
+
+        if '牝' in soup.select_one('.horse_title .txt_01').string:
+            data['sex'] = "'female'"
+        elif '牡' in soup.select_one('.horse_title .txt_01').string:
+            data['sex'] = "'male'"
+        elif 'セ' in soup.select_one('.horse_title .txt_01').string:
+            data['sex'] = "'castrated'"
+
+        self.persistor.create_or_update('horses', item['id'], **data)
 
     def parse_race_item(self, item: dict):
         logger.debug(f"[Parser.parse_race_item] {item['id']}")
