@@ -32,7 +32,7 @@ column_rename_map = {
 }
 
 
-def fetch_data(cache=True) -> pd.DataFrame:
+def main():
     tempdir = tempfile.gettempdir()
     filename_jl = 'netkeiba_20140101_20181101.jl'
     filename_pkl = 'data.pkl'
@@ -46,6 +46,8 @@ def fetch_data(cache=True) -> pd.DataFrame:
     data_as_dict = json.loads(df_from_jsonlines.to_json(orient='records'))
     df_normalized = pd.io.json.json_normalize(data_as_dict, sep='_')
     df = df_normalized.rename(index=str, columns=column_rename_map)
-    if cache:
-        pickle.dump(df, open(filename_pkl, 'wb'))
-    return df
+    pickle.dump(df, open(filename_pkl, 'wb'))
+
+
+if __name__ == '__main__':
+    main()
