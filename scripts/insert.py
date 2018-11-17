@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import sqlite3
+import sys
 from datetime import datetime
 
 from bs4 import BeautifulSoup, Comment
@@ -13,8 +14,7 @@ from create_db import create_db
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 logging.basicConfig(
-    filename=os.path.join(PROJECT_ROOT, 'scripts', 'insert.log'),
-    filemode='w',
+    stream=sys.stdout,
     level=logging.DEBUG,
     format='%(asctime)s [%(levelname)s] %(message)s'
 )
