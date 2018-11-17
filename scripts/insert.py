@@ -12,7 +12,7 @@ logging.basicConfig(
     filename=os.path.join(PROJECT_ROOT, 'scripts', 'insert.log'),
     filemode='w',
     level=logging.DEBUG,
-    format='%(asctime)s %(message)s'
+    format='%(asctime)s [%(levelname)s] %(message)s'
 )
 
 logger = logging.getLogger(__name__)
@@ -22,18 +22,17 @@ class Persistor:
     def __init__(self):
         self.conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'netkeiba.sqlite'))
 
-    def create_or_update(self, table_name: str, id_: str, **kwargs):
-        logger.debug(f'[create_or_update] {table_name} {id_}')
-        c = self.conn.cursor()
+    def create_or_update(self, table_name: str, item_key: str, **kwargs):
+        logger.debug(f'[create_or_update] {table_name} {item_key}')
 
-        keys = ','.join([str(v) for v in list(kwargs.keys())])
-        vals = ','.join([str(v) for v in list(kwargs.values())])
+        keys = ','.join(['key'] + [str(v) for v in list(kwargs.keys())])
+        vals = ','.join([item_key] + [str(v) for v in list(kwargs.values())])
 
         try:
             with self.conn:
                 self.conn.execute(f'INSERT INTO {table_name} ({keys}) VALUES ({vals});')
         except sqlite3.IntegrityError as e:
-            logger.debug(f'[Persistor.create_or_update] IntegrityError for table: {table_name}, id_: {id_} ({e})')
+            logger.debug(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
 
 
 class Parser:
@@ -53,7 +52,7 @@ class Parser:
         return int(value.replace(',', ''))
 
     def parse_trainer_item(self, item: dict):
-        logger.debug(f"[parse_trainer_item] {item['id']}")
+        logger.debug(f"[Parser.parse_trainer_item] {item['id']}")
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
         agg_data = soup.select_one('.race_table_01 tr:nth-of-type(3)')
@@ -88,20 +87,58 @@ class Parser:
                 career_1st_place_rate=career_1st_place_rate,
                 career_1st_2nd_place_rate=career_1st_2nd_place_rate,
                 career_any_place_rate=career_any_place_rate,
-                career_earnings=career_earnings
+                career_earnings=career_earnings,
+                url=item['url']
             )
 
     def parse_jockey_item(self, item: dict):
-        logger.debug(f"[parse_jockey_item] {item['id']}")
+        logger.debug(f"[Parser.parse_jockey_item] {item['id']}")
+
+        soup = BeautifulSoup(item['response_body'], 'html.parser')
+        agg_data = soup.select_one('.race_table_01 tr:nth-of-type(3)')
+
+        try:
+            career_1st_place_count = self.str2int(agg_data.select_one('td:nth-of-type(3) a').string)
+            career_2nd_place_count = self.str2int(agg_data.select_one('td:nth-of-type(4) a').string)
+            career_3rd_place_count = self.str2int(agg_data.select_one('td:nth-of-type(5) a').string)
+            career_4th_place_or_below_count = self.str2int(agg_data.select_one('td:nth-of-type(6) a').string)
+            career_turf_race_count = self.str2int(agg_data.select_one('td:nth-of-type(13) a').string)
+            career_turf_win_count = self.str2int(agg_data.select_one('td:nth-of-type(14) a').string)
+            career_dirt_race_count = self.str2int(agg_data.select_one('td:nth-of-type(15) a').string)
+            career_dirt_win_count = self.str2int(agg_data.select_one('td:nth-of-type(16) a').string)
+            career_1st_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(17)').string)
+            career_1st_2nd_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(18)').string)
+            career_any_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(19)').string)
+            career_earnings = self.str2float(agg_data.select_one('td:nth-of-type(20)').string)
+        except AttributeError as e:
+            logger.debug(f"{e} - {item['url']}")
+        else:
+            self.persistor.create_or_update(
+                'jockeys',
+                item['id'],
+                career_1st_place_count=career_1st_place_count,
+                career_2nd_place_count=career_2nd_place_count,
+                career_3rd_place_count=career_3rd_place_count,
+                career_4th_place_or_below_count=career_4th_place_or_below_count,
+                career_turf_race_count=career_turf_race_count,
+                career_turf_win_count=career_turf_win_count,
+                career_dirt_race_count=career_dirt_race_count,
+                career_dirt_win_count=career_dirt_win_count,
+                career_1st_place_rate=career_1st_place_rate,
+                career_1st_2nd_place_rate=career_1st_2nd_place_rate,
+                career_any_place_rate=career_any_place_rate,
+                career_earnings=career_earnings,
+                url=item['url']
+            )
 
     def parse_horse_item(self, item: dict):
-        logger.debug(f"[parse_horse_item] {item['id']}")
+        logger.debug(f"[Parser.parse_horse_item] {item['id']}")
 
     def parse_race_item(self, item: dict):
-        logger.debug(f"[parse_race_item] {item['id']}")
+        logger.debug(f"[Parser.parse_race_item] {item['id']}")
 
-    def noop(_):
-        pass
+    def noop(item):
+        logger.debug(f"[Parser.noop] {vars(item)}")
 
 
 def main(opts):
