@@ -27,12 +27,17 @@ class Persistor:
     def create_or_update(self, table_name: str, item_key: str, **kwargs):
         logger.debug(f'[create_or_update] {table_name} {item_key}')
 
+        keys_list = ['key'] + [str(v) for v in list(kwargs.keys())]
         keys = ','.join(['key'] + [str(v) for v in list(kwargs.keys())])
         vals = ','.join([item_key] + [str(v) for v in list(kwargs.values())])
+        updates = ','.join([f'{key}=excluded.{key}' for key in keys_list if key != 'key'])
 
         try:
             with self.conn:
-                self.conn.execute(f'INSERT INTO {table_name} ({keys}) VALUES ({vals});')
+                self.conn.execute(f'''
+                    INSERT INTO {table_name} ({keys}) VALUES ({vals})
+                        ON CONFLICT(key) DO UPDATE SET {updates};
+                ''')
         except sqlite3.IntegrityError as e:
             logger.debug(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
 
