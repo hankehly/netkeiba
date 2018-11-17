@@ -7,7 +7,8 @@ CREATE TABLE course_types
 
 CREATE TABLE horses
 (
-  id          INTEGER NOT NULL,
+  id          INTEGER      NOT NULL,
+  key         VARCHAR(255) NOT NULL,
   url         VARCHAR(255),
   total_races INTEGER,
   total_wins  INTEGER,
@@ -17,9 +18,13 @@ CREATE TABLE horses
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
+CREATE UNIQUE INDEX horses_key_uindex
+  ON horses (key);
+
 CREATE TABLE jockeys
 (
-  id                              INTEGER NOT NULL,
+  id                              INTEGER      NOT NULL,
+  key                             VARCHAR(255) NOT NULL,
   career_1st_place_count          INTEGER,
   career_2nd_place_count          INTEGER,
   career_3rd_place_count          INTEGER,
@@ -35,6 +40,9 @@ CREATE TABLE jockeys
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
+CREATE UNIQUE INDEX jockeys_key_uindex
+  ON jockeys (key);
+
 CREATE TABLE racetracks
 (
   id   INTEGER      NOT NULL,
@@ -44,9 +52,10 @@ CREATE TABLE racetracks
 
 CREATE TABLE races
 (
-  id              INTEGER NOT NULL,
-  racetrack_id    INTEGER NOT NULL,
-  course_type_id  INTEGER NOT NULL,
+  id              INTEGER      NOT NULL,
+  key             VARCHAR(255) NOT NULL,
+  racetrack_id    INTEGER      NOT NULL,
+  course_type_id  INTEGER      NOT NULL,
   weather         VARCHAR(255),
   direction       VARCHAR(255),
   track_condition VARCHAR(255),
@@ -60,9 +69,13 @@ CREATE TABLE races
   foreign key (course_type_id) references course_types
 );
 
+CREATE UNIQUE INDEX races_key_uindex
+  ON races (key);
+
 CREATE TABLE trainers
 (
-  id                              INTEGER NOT NULL,
+  id                              INTEGER      NOT NULL,
+  key                             VARCHAR(255) NOT NULL,
   career_1st_place_count          INTEGER,
   career_2nd_place_count          INTEGER,
   career_3rd_place_count          INTEGER,
@@ -78,12 +91,16 @@ CREATE TABLE trainers
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
+CREATE UNIQUE INDEX trainers_key_uindex
+  ON trainers (key);
+
 CREATE TABLE race_contenders
 (
   id                INTEGER NOT NULL,
   horse_id          INTEGER NOT NULL,
   jockey_id         INTEGER NOT NULL,
   trainer_id        INTEGER NOT NULL,
+  race_id           INTEGER NOT NULL,
   weight_carried    REAL,
   post_position     INTEGER,
   order_of_finish   INTEGER,
@@ -92,7 +109,6 @@ CREATE TABLE race_contenders
   horse_weight_diff INTEGER,
   popularity        INTEGER,
   first_place_odds  REAL,
-  race_id           INTEGER,
   PRIMARY KEY (id AUTOINCREMENT),
   constraint race_contenders_horses_id_fk
   foreign key (horse_id) references horses,
@@ -103,6 +119,9 @@ CREATE TABLE race_contenders
   constraint race_contenders_races_id_fk
   foreign key (race_id) references races
 );
+
+CREATE UNIQUE INDEX race_contenders_horse_id_jockey_id_trainer_id_race_id_uindex
+  ON race_contenders (horse_id, jockey_id, trainer_id, race_id);
 
 INSERT INTO course_types (name) VALUES
   ('turf'),
