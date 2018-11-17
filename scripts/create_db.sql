@@ -1,18 +1,18 @@
 CREATE TABLE course_types
 (
-  id   INTEGER NOT NULL,
-  name VARCHAR(255) DEFAULT '' NOT NULL,
+  id   INTEGER      NOT NULL,
+  name VARCHAR(255) NOT NULL,
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
 CREATE TABLE horses
 (
   id          INTEGER NOT NULL,
-  url         VARCHAR(255) DEFAULT '' NOT NULL,
-  total_races INTEGER NOT NULL,
-  total_wins  INTEGER NOT NULL,
-  sex         VARCHAR(255) DEFAULT '' NOT NULL,
-  age         INTEGER NOT NULL,
+  url         VARCHAR(255),
+  total_races INTEGER,
+  total_wins  INTEGER,
+  sex         VARCHAR(255),
+  age         INTEGER,
   user_rating REAL,
   PRIMARY KEY (id AUTOINCREMENT)
 );
@@ -20,25 +20,25 @@ CREATE TABLE horses
 CREATE TABLE jockeys
 (
   id                              INTEGER NOT NULL,
-  career_1st_place_count          INTEGER NOT NULL,
-  career_2nd_place_count          INTEGER NOT NULL,
-  career_3rd_place_count          INTEGER NOT NULL,
-  career_4th_place_or_below_count INTEGER NOT NULL,
-  career_turf_race_count          INTEGER NOT NULL,
-  career_turf_win_count           INTEGER NOT NULL,
-  career_dirt_race_count          INTEGER NOT NULL,
-  career_dirt_win_count           INTEGER NOT NULL,
-  career_1st_place_rate           REAL    NOT NULL,
-  career_1st_2nd_place_rate       REAL    NOT NULL,
-  career_any_place_rate           REAL    NOT NULL,
-  career_earnings                 INTEGER NOT NULL,
+  career_1st_place_count          INTEGER,
+  career_2nd_place_count          INTEGER,
+  career_3rd_place_count          INTEGER,
+  career_4th_place_or_below_count INTEGER,
+  career_turf_race_count          INTEGER,
+  career_turf_win_count           INTEGER,
+  career_dirt_race_count          INTEGER,
+  career_dirt_win_count           INTEGER,
+  career_1st_place_rate           REAL,
+  career_1st_2nd_place_rate       REAL,
+  career_any_place_rate           REAL,
+  career_earnings                 REAL,
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
 CREATE TABLE racetracks
 (
-  id   INTEGER NOT NULL,
-  name VARCHAR(255) DEFAULT '' NOT NULL,
+  id   INTEGER      NOT NULL,
+  name VARCHAR(255) NOT NULL,
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
@@ -46,13 +46,13 @@ CREATE TABLE races
 (
   id              INTEGER NOT NULL,
   racetrack_id    INTEGER NOT NULL,
-  weather         VARCHAR(255) DEFAULT '' NOT NULL,
-  direction       VARCHAR(255) DEFAULT '' NOT NULL,
-  track_condition VARCHAR(255) DEFAULT '' NOT NULL,
   course_type_id  INTEGER NOT NULL,
-  url             VARCHAR(255) DEFAULT '' NOT NULL,
-  distance        INTEGER NOT NULL,
-  date            DATE    NOT NULL,
+  weather         VARCHAR(255),
+  direction       VARCHAR(255),
+  track_condition VARCHAR(255),
+  url             VARCHAR(255),
+  distance        INTEGER,
+  date            DATE,
   PRIMARY KEY (id AUTOINCREMENT),
   constraint races_racetracks_id_fk
   foreign key (racetrack_id) references racetracks,
@@ -63,18 +63,18 @@ CREATE TABLE races
 CREATE TABLE trainers
 (
   id                              INTEGER NOT NULL,
-  career_1st_place_count          INTEGER NOT NULL,
-  career_2nd_place_count          INTEGER NOT NULL,
-  career_3rd_place_count          INTEGER NOT NULL,
-  career_4th_place_or_below_count INTEGER NOT NULL,
-  career_turf_race_count          INTEGER NOT NULL,
-  career_turf_win_count           INTEGER NOT NULL,
-  career_dirt_race_count          INTEGER NOT NULL,
-  career_dirt_win_count           INTEGER NOT NULL,
-  career_1st_place_rate           REAL    NOT NULL,
-  career_1st_2nd_place_rate       REAL    NOT NULL,
-  career_any_place_rate           REAL    NOT NULL,
-  career_earnings                 INTEGER NOT NULL,
+  career_1st_place_count          INTEGER,
+  career_2nd_place_count          INTEGER,
+  career_3rd_place_count          INTEGER,
+  career_4th_place_or_below_count INTEGER,
+  career_turf_race_count          INTEGER,
+  career_turf_win_count           INTEGER,
+  career_dirt_race_count          INTEGER,
+  career_dirt_win_count           INTEGER,
+  career_1st_place_rate           REAL,
+  career_1st_2nd_place_rate       REAL,
+  career_any_place_rate           REAL,
+  career_earnings                 REAL,
   PRIMARY KEY (id AUTOINCREMENT)
 );
 
@@ -84,15 +84,15 @@ CREATE TABLE race_contenders
   horse_id          INTEGER NOT NULL,
   jockey_id         INTEGER NOT NULL,
   trainer_id        INTEGER NOT NULL,
-  weight_carried    REAL    NOT NULL,
-  post_position     INTEGER NOT NULL,
-  order_of_finish   INTEGER NOT NULL,
-  finish_time       INTEGER NOT NULL,
-  horse_weight      INTEGER NOT NULL,
-  horse_weight_diff INTEGER NOT NULL,
-  popularity        INTEGER NOT NULL,
-  first_place_odds  REAL    NOT NULL,
-  race_id           INTEGER NOT NULL,
+  weight_carried    REAL,
+  post_position     INTEGER,
+  order_of_finish   INTEGER,
+  finish_time       INTEGER,
+  horse_weight      INTEGER,
+  horse_weight_diff INTEGER,
+  popularity        INTEGER,
+  first_place_odds  REAL,
+  race_id           INTEGER,
   PRIMARY KEY (id AUTOINCREMENT),
   constraint race_contenders_horses_id_fk
   foreign key (horse_id) references horses,
