@@ -5,11 +5,9 @@ import argparse
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 
-from netkeiba.spiders.race_spider import RaceSpider
 
-
-def main(args):
-    jobdir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'jobs')
+def main(opts):
+    jobdir = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'jobs')
 
     if not os.path.isdir(jobdir):
         os.mkdir(jobdir)
@@ -20,7 +18,7 @@ def main(args):
     os.mkdir(job_path)
 
     custom_settings = {
-        'MIN_RACE_DATE': args.min_race_date,
+        'MIN_RACE_DATE': opts.min_race_date,
         'JOBDIR': job_path,
         'LOG_FILE': os.path.join(job_path, 'race_spider.log'),
         'FEED_URI': os.path.join(job_path, 'race_spider.jl'),
@@ -28,7 +26,7 @@ def main(args):
     }
 
     process = CrawlerProcess({**get_project_settings(), **custom_settings})
-    process.crawl(RaceSpider)
+    process.crawl('race_spider')
     process.start()
 
 
