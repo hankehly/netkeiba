@@ -142,3 +142,4 @@ output/*
 !output/.gitkeep
 data.pkl
 jobs
+netkeiba.sqlite
