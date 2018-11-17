@@ -13,7 +13,7 @@ CREATE TABLE horses
   total_races INTEGER,
   total_wins  INTEGER,
   sex         VARCHAR(255),
-  age         INTEGER,
+  birthday    DATE,
   user_rating REAL,
   PRIMARY KEY (id AUTOINCREMENT)
 );

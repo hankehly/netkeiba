@@ -4,6 +4,7 @@ import logging
 import os
 import re
 import sqlite3
+from datetime import datetime
 
 from bs4 import BeautifulSoup, Comment
 
@@ -155,7 +156,10 @@ class Parser:
         total_races = self.str2int(win_record_matches.group(1))
         total_wins = self.str2int(win_record_matches.group(2))
 
-        data = {'total_races': total_races, 'total_wins': total_wins, 'url': f"'{item['url']}'"}
+        birthday_string = soup.select_one('.db_prof_table tr:nth-of-type(1) td').string
+        birthday = datetime.strptime(birthday_string, '%Y年%m月%d日').strftime("'%Y-%m-%d'")
+
+        data = {'total_races': total_races, 'total_wins': total_wins, 'url': f"'{item['url']}'", 'birthday': birthday}
 
         if soup.select_one('.horse_title .rate strong'):
             for child in soup.select_one('.horse_title .rate strong').children:
