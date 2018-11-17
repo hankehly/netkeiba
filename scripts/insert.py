@@ -6,6 +6,8 @@ import sqlite3
 
 from bs4 import BeautifulSoup
 
+from create_db import create_db
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 logging.basicConfig(
@@ -88,7 +90,7 @@ class Parser:
                 career_1st_2nd_place_rate=career_1st_2nd_place_rate,
                 career_any_place_rate=career_any_place_rate,
                 career_earnings=career_earnings,
-                url=item['url']
+                url=f"'{item['url']}'"
             )
 
     def parse_jockey_item(self, item: dict):
@@ -128,7 +130,7 @@ class Parser:
                 career_1st_2nd_place_rate=career_1st_2nd_place_rate,
                 career_any_place_rate=career_any_place_rate,
                 career_earnings=career_earnings,
-                url=item['url']
+                url=f"'{item['url']}'"
             )
 
     def parse_horse_item(self, item: dict):
@@ -145,6 +147,10 @@ def main(opts):
     if not os.path.isfile(opts.input):
         raise FileNotFoundError(f'input file does not exist: {opts.input}')
 
+    if opts.reset:
+        print(opts)
+        create_db(overwrite=True)
+
     persistor = Persistor()
     parser = Parser(persistor)
 
@@ -160,5 +166,6 @@ def main(opts):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('input', type=str, help='file containing scraped data')
+    parser.add_argument('--reset', action='store_true', help='drop and recreate the database before insertion')
     args = parser.parse_args()
     main(args)
