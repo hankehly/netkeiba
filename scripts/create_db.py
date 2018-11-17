@@ -7,7 +7,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 def main():
     conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'netkeiba.sqlite'))
     c = conn.cursor()
-    with open(os.path.join(PROJECT_ROOT, 'utils', 'setup.sql'), 'r') as f:
+    with open(os.path.join(PROJECT_ROOT, 'scripts', 'create_db.sql'), 'r') as f:
         sql = f.read()
         c.executescript(sql)
 
