@@ -178,8 +178,53 @@ class Parser:
 
     def parse_race_item(self, item: dict):
         logger.debug(f"[Parser.parse_race_item] {item['id']}")
+        soup = BeautifulSoup(item['response_body'], 'html.parser')
+        track_details = soup.select_one('.mainrace_data p span').string
 
-    def noop(item):
+        track_types = {
+            '芝': 1,  # turf
+            'ダ': 2,  # dirt
+            '障': 3,  # obstacle
+        }
+
+        racetracks = {
+            '札幌': 1,
+            '函館': 2,
+            '福島': 3,
+            '新潟': 4,
+            '東京': 5,
+            '中山': 6,
+            '中京': 7,
+            '京都': 8,
+            '阪神': 9,
+            '小倉': 10
+        }
+
+        weather_opts = {
+            '曇': 'cloudy',
+            '晴': 'sunny',
+            '雨': 'rainy',
+            '雪': 'snowy',
+        }
+
+        distance = int(re.search('([0-9]+)', track_details).group(1))
+        course_type_id = track_types.get(track_details[0], 'UNKNOWN')
+        racetrack_id = racetracks.get(soup.select_one('.race_place .active').string, 'UNKNOWN')
+
+        data = {'distance': distance, 'course_type_id': course_type_id, 'racetrack_id': racetrack_id,
+                'url': f"'{item['url']}'"}
+
+        for k, v in weather_opts.items():
+            if k in track_details.split('/')[1]:
+                data['weather'] = f"'{v}'"
+
+        smalltext = soup.select_one('.mainrace_data .smalltxt').string
+        date_str = re.search('([0-9]+)年([0-9]+)月([0-9]+)日', smalltext).group(0)
+        data['date'] = datetime.strptime(date_str, '%Y年%m月%d日').strftime("'%Y-%m-%d'")
+
+        self.persistor.create_or_update('races', item['id'], **data)
+
+    def noop(self, item: dict):
         logger.debug(f"[Parser.noop] {vars(item)}")
 
 
@@ -194,13 +239,15 @@ def main(opts):
     persistor = Persistor()
     parser = Parser(persistor)
 
+    start_time = datetime.now()
     logger.debug('Parsing started')
 
     with open(opts.input, 'r') as f:
         for obj in f:
             parser.parse_item(json.loads(obj))
 
-    logger.debug('Parsing finished')
+    duration = (datetime.now() - start_time).seconds
+    logger.debug(f'Parsing finished, duration {duration} sec')
 
 
 if __name__ == '__main__':
