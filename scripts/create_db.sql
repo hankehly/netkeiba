@@ -1,3 +1,10 @@
+CREATE TABLE course_types
+(
+  id   INTEGER      NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id AUTOINCREMENT)
+);
+
 CREATE TABLE horses
 (
   id          INTEGER      NOT NULL,
@@ -49,15 +56,18 @@ CREATE TABLE races
   id              INTEGER      NOT NULL,
   key             VARCHAR(255) NOT NULL,
   racetrack_id    INTEGER      NOT NULL,
-  surface_type    VARCHAR(255),
+  course_type_id  INTEGER      NOT NULL,
   weather         VARCHAR(255),
+  direction       VARCHAR(255),
   track_condition VARCHAR(255),
   url             VARCHAR(255),
   distance        INTEGER,
   date            DATE,
   PRIMARY KEY (id AUTOINCREMENT),
   constraint races_racetracks_id_fk
-  foreign key (racetrack_id) references racetracks
+  foreign key (racetrack_id) references racetracks,
+  constraint races_course_types_id_fk
+  foreign key (course_type_id) references course_types
 );
 
 CREATE UNIQUE INDEX races_key_uindex
@@ -114,6 +124,11 @@ CREATE TABLE race_contenders
 
 CREATE UNIQUE INDEX race_contenders_horse_id_jockey_id_trainer_id_race_id_uindex
   ON race_contenders (horse_id, jockey_id, trainer_id, race_id);
+
+INSERT INTO course_types (name) VALUES
+  ('turf'),
+  ('dirt'),
+  ('obstacle');
 
 INSERT INTO racetracks (name)
 VALUES
