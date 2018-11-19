@@ -53,16 +53,42 @@ CREATE TABLE racetracks
 
 CREATE TABLE races
 (
-  id              INTEGER      NOT NULL,
-  key             VARCHAR(255) NOT NULL,
-  racetrack_id    INTEGER      NOT NULL,
-  course_type_id  INTEGER      NOT NULL,
-  weather         VARCHAR(255),
-  direction       VARCHAR(255),
-  track_condition VARCHAR(255),
-  url             VARCHAR(255),
-  distance        INTEGER,
-  date            DATE,
+  id                                   INTEGER      NOT NULL,
+  key                                  VARCHAR(255) NOT NULL,
+  racetrack_id                         INTEGER      NOT NULL,
+  course_type_id                       INTEGER      NOT NULL,
+  weather                              VARCHAR(255),
+  direction                            VARCHAR(255),
+  track_condition                      VARCHAR(255),
+  url                                  VARCHAR(255),
+  distance                             INTEGER,
+  date                                 DATE,
+
+  -- 負担重量 (馬齢|定量|別定|ハンデ)
+  impost_category                      VARCHAR(255),
+
+  -- (指定) [地]が出走できるレースで、かつ地方競馬所属の騎手が騎乗できる(特指)以外のレース
+  is_non_winner_regional_horse_allowed TINYINT,
+
+  -- (特指) JRAが認定した地方競馬の競走で第1着となった[地]が出走できるレースで、かつ地方競馬所属の騎手が騎乗できるレース
+  is_winner_regional_horse_allowed     TINYINT,
+
+  -- [指定] 地方競馬所属の騎手が騎乗できるレース
+  is_regional_jockey_allowed           TINYINT,
+
+  -- (混合) 内国産馬にマル外が混合して出走できるレースのこと
+  is_foreign_horse_allowed             TINYINT,
+
+  -- (国際) 内国産馬に(外)および[外]が混合して出走できるレース
+  is_foreign_horse_and_trainer_allowed TINYINT,
+
+  -- (見習騎手) 若手騎手が騎乗できるレース
+  is_apprentice_jockey_allowed         TINYINT,
+
+  -- (牝) 牝馬しか出走できないレース
+  is_female_only                       TINYINT,
+
+
   PRIMARY KEY (id AUTOINCREMENT),
   constraint races_racetracks_id_fk
   foreign key (racetrack_id) references racetracks,

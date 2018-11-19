@@ -217,9 +217,57 @@ class Parser:
             if key in track_details.split('/')[1]:
                 data['weather'] = f"'{val}'"
 
-        smalltext = soup.select_one('.mainrace_data .smalltxt').string
-        date_str = re.search('([0-9]+)年([0-9]+)月([0-9]+)日', smalltext).group(0)
-        data['date'] = datetime.strptime(date_str, '%Y年%m月%d日').strftime("'%Y-%m-%d'")
+        subtitle = soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        conditions = {
+            '混': '',
+            '国際': ''
+        }
+
+        impost_categories = {
+            '馬齢': 'age_based',
+            '定量': 'age_sex_based',
+            '別定': 'decided_per_race',
+            'ハンデ': 'handicap'
+        }
+
+        for key, val in impost_categories.items():
+            if key in subtitle[-1]:
+                data['impost_category'] = f"'{val}'"
+
+        data['date'] = datetime.strptime(subtitle[0], '%Y年%m月%d日').strftime("'%Y-%m-%d'")
+
+        is_non_winner_regional_horse_allowed = 0
+        is_winner_regional_horse_allowed = 0
+        is_regional_jockey_allowed = 0
+        is_foreign_horse_allowed = 0
+        is_foreign_horse_and_trainer_allowed = 0
+        is_apprentice_jockey_allowed = 0
+        is_female_only = 0
+
+        if '(指定)' in subtitle[-1]:
+            is_non_winner_regional_horse_allowed = 1
+
+        if '(特指)' in subtitle[-1]:
+            is_non_winner_regional_horse_allowed = 1
+
+        if '[指定]' in subtitle[-1]:
+            is_regional_jockey_allowed = 1
+
+        if '(混合)' in subtitle[-1]:
+            is_foreign_horse_allowed = 1
+
+        if '(国際)' in subtitle[-1]:
+            is_foreign_horse_and_trainer_allowed = 1
+
+        if '見習騎手' in subtitle[-1]:
+            is_apprentice_jockey_allowed = 1
+
+        if '牝' in subtitle[-1]:
+            is_female_only = 1
 
         self.persistor.create_or_update('races', item['id'], **data)
 
