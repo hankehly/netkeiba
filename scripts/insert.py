@@ -206,15 +206,39 @@ class Parser:
         }
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
-        track_details = soup.select_one('.mainrace_data p span').string
-        course_type_id = track_types.get(track_details[0])
-        distance = int(re.search('([0-9]+)', track_details).group(1))
         racetrack_id = racetracks.get(soup.select_one('.race_place .active').string)
+
+        track_details = soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
+
+        course_type_id = track_types.get(track_details[0][0])
+        distance = int(re.search('([0-9]+)', track_details[0]).group(1))
+
         data = {'distance': distance, 'course_type_id': course_type_id, 'racetrack_id': racetrack_id,
                 'url': f"'{item['url']}'"}
 
+        if '芝:良' in track_details[2]:
+            data['turf_condition'] = f"'good'"
+        elif '芝:稍重' in track_details[2]:
+            data['turf_condition'] = f"'slightly_heavy'"
+        elif '芝:重' in track_details[2]:
+            data['turf_condition'] = f"'heavy'"
+        elif '芝:不良' in track_details[2]:
+            data['turf_condition'] = f"'bad'"
+
+        if 'ダート:良' in track_details[2]:
+            data['dirt_condition'] = f"'good'"
+        elif 'ダート:稍重' in track_details[2]:
+            data['dirt_condition'] = f"'slightly_heavy'"
+        elif 'ダート:重' in track_details[2]:
+            data['dirt_condition'] = f"'heavy'"
+        elif 'ダート:不良' in track_details[2]:
+            data['dirt_condition'] = f"'bad'"
+
         for key, val in weather_opts.items():
-            if key in track_details.split('/')[1]:
+            if key in track_details[1]:
                 data['weather'] = f"'{val}'"
 
         subtitle = soup.select_one('.mainrace_data .smalltxt').string \

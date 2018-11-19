@@ -58,11 +58,11 @@ CREATE TABLE races
   racetrack_id                         INTEGER      NOT NULL,
   course_type_id                       INTEGER      NOT NULL,
   weather                              VARCHAR(255),
-  direction                            VARCHAR(255),
-  track_condition                      VARCHAR(255),
   url                                  VARCHAR(255),
   distance                             INTEGER,
   date                                 DATE,
+  dirt_condition                       VARCHAR(255),
+  turf_condition                       VARCHAR(255),
 
   -- 負担重量 (馬齢|定量|別定|ハンデ)
   impost_category                      VARCHAR(255),
