@@ -222,11 +222,6 @@ class Parser:
             .replace('  ', ' ') \
             .split(' ')
 
-        conditions = {
-            '混': '',
-            '国際': ''
-        }
-
         impost_categories = {
             '馬齢': 'age_based',
             '定量': 'age_sex_based',
@@ -240,34 +235,13 @@ class Parser:
 
         data['date'] = datetime.strptime(subtitle[0], '%Y年%m月%d日').strftime("'%Y-%m-%d'")
 
-        is_non_winner_regional_horse_allowed = 0
-        is_winner_regional_horse_allowed = 0
-        is_regional_jockey_allowed = 0
-        is_foreign_horse_allowed = 0
-        is_foreign_horse_and_trainer_allowed = 0
-        is_apprentice_jockey_allowed = 0
-        is_female_only = 0
-
-        if '(指定)' in subtitle[-1]:
-            is_non_winner_regional_horse_allowed = 1
-
-        if '(特指)' in subtitle[-1]:
-            is_non_winner_regional_horse_allowed = 1
-
-        if '[指定]' in subtitle[-1]:
-            is_regional_jockey_allowed = 1
-
-        if '(混合)' in subtitle[-1]:
-            is_foreign_horse_allowed = 1
-
-        if '(国際)' in subtitle[-1]:
-            is_foreign_horse_and_trainer_allowed = 1
-
-        if '見習騎手' in subtitle[-1]:
-            is_apprentice_jockey_allowed = 1
-
-        if '牝' in subtitle[-1]:
-            is_female_only = 1
+        data['is_non_winner_regional_horse_allowed'] = 1 if '(指定)' in subtitle[-1] else 0
+        data['is_winner_regional_horse_allowed'] = 1 if '(特指)' in subtitle[-1] else 0
+        data['is_regional_jockey_allowed'] = 1 if '[指定]' in subtitle[-1] else 0
+        data['is_foreign_horse_allowed'] = 1 if '(混合)' in subtitle[-1] else 0
+        data['is_foreign_horse_and_trainer_allowed'] = 1 if '(国際)' in subtitle[-1] else 0
+        data['is_apprentice_jockey_allowed'] = 1 if '見習騎手' in subtitle[-1] else 0
+        data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
 
         self.persistor.create_or_update('races', item['id'], **data)
 
