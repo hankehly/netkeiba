@@ -208,6 +208,8 @@ class Parser:
         soup = BeautifulSoup(item['response_body'], 'html.parser')
         racetrack_id = racetracks.get(soup.select_one('.race_place .active').string)
 
+        import ipdb; ipdb.set_trace()
+
         track_details = soup.select_one('.mainrace_data p span').string \
             .replace(u'\xa0', u'') \
             .replace(' ', '') \
@@ -268,6 +270,24 @@ class Parser:
         data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
 
         self.persistor.create_or_update('races', item['id'], **data)
+
+        # race participant parsing
+        participants = soup.select('.race_table_01 tr')[1:]
+
+        for p in participants:
+            order_of_finish = int(p.select('td')[0].string)
+            post_position = int(p.select('td')[1].select_one('span').string)
+            horse_id = ''
+            weight_carried = int(p.select('td')[5].string)
+            jockey_id = ''
+
+            minutes, seconds = map(float, p.select('td')[7].string.split(':'))
+            finish_time = minutes * 60 + seconds
+
+            first_place_odds = float(p.select('td')[12].string)
+            popularity = float(p.select('td')[13].string)
+            horse_weight = ''
+
 
     def noop(self, item: dict):
         logger.debug(f"[Parser.noop] {vars(item)}")
