@@ -56,6 +56,8 @@ class Persistor:
                     INSERT INTO {table_name} ({keys}) VALUES ({vals})
                         ON CONFLICT(key) DO UPDATE SET {updates};
                 ''')
+
+                return self.conn.execute(f"SELECT (id) FROM {table_name} WHERE key='{item_key}'").fetchone()[0]
         except sqlite3.IntegrityError as e:
             logger.error(f'[Persistor.create_or_update_item] {e} (table: {table_name}, item_key: {item_key})')
             raise e
@@ -270,10 +272,10 @@ class Parser:
         data['is_apprentice_jockey_allowed'] = 1 if '見習騎手' in subtitle[-1] else 0
         data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
 
-        self.persistor.create_or_update_item('races', item['id'], **data)
+        race_id = self.persistor.create_or_update_item('races', item['id'], **data)
 
         for record in soup.select('.race_table_01 tr')[1:]:
-            contender = {}
+            contender = {'race_id': race_id}
 
             horse_key = re.search('/horse/([0-9]+)', record.select('td')[3].select_one('a').get('href')).group(1)
             contender['horse_id'] = self.persistor.find_id_or_create('horses', horse_key)
@@ -284,7 +286,7 @@ class Parser:
             trainer_key = re.search('/trainer/([0-9]+)', record.select('td')[18].select_one('a').get('href')).group(1)
             contender['trainer_id'] = self.persistor.find_id_or_create('trainers', trainer_key)
 
-            contender['order_of_finish'] = int(record.select('td')[0].string)
+            contender['order_of_finish'] = f"'{record.select('td')[0].string}'"
             contender['post_position'] = int(record.select('td')[1].string)
 
             contender['weight_carried'] = int(record.select('td')[5].string)

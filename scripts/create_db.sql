@@ -131,7 +131,7 @@ CREATE TABLE race_contenders
   race_id           INTEGER NOT NULL,
   weight_carried    REAL,
   post_position     INTEGER,
-  order_of_finish   INTEGER,
+  order_of_finish   VARCHAR(255),
   finish_time       INTEGER,
   horse_weight      INTEGER,
   horse_weight_diff INTEGER,
