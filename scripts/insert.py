@@ -26,8 +26,24 @@ class Persistor:
     def __init__(self):
         self.conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'netkeiba.sqlite'))
 
-    def create_or_update(self, table_name: str, item_key: str, **kwargs):
-        logger.debug(f'[create_or_update] {table_name} {item_key}')
+    def find_id_or_create(self, table_name: str, item_key: str):
+        logger.debug(f'[Persistor.find_id_or_create] {table_name} {item_key}')
+
+        try:
+            with self.conn:
+                select_query = f"SELECT (id) FROM {table_name} WHERE key='{item_key}'"
+                existing_record = self.conn.execute(select_query).fetchone()
+
+                if existing_record is None:
+                    self.conn.execute(f"INSERT INTO {table_name} (key) VALUES ('{item_key}')")
+
+                return self.conn.execute(select_query).fetchone()[0]
+        except sqlite3.OperationalError as e:
+            logger.error(f'[Persistor.find_or_create] {e} (table: {table_name}, item_key: {item_key})')
+            raise e
+
+    def create_or_update_item(self, table_name: str, item_key: str, **kwargs):
+        logger.debug(f'[Persistor.create_or_update_item] {table_name} {item_key}')
 
         keys_list = ['key'] + [str(v) for v in list(kwargs.keys())]
         keys = ','.join(['key'] + [str(v) for v in list(kwargs.keys())])
@@ -41,10 +57,23 @@ class Persistor:
                         ON CONFLICT(key) DO UPDATE SET {updates};
                 ''')
         except sqlite3.IntegrityError as e:
-            logger.error(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
+            logger.error(f'[Persistor.create_or_update_item] {e} (table: {table_name}, item_key: {item_key})')
             raise e
         except sqlite3.OperationalError as e:
-            logger.error(f'[Persistor.create_or_update] {e} (table: {table_name}, item_key: {item_key})')
+            logger.error(f'[Persistor.create_or_update_item] {e} (table: {table_name}, item_key: {item_key})')
+            raise e
+
+    def create(self, table_name: str, **kwargs):
+        logger.debug(f'[Persistor.create] {table_name}')
+
+        keys = ','.join([str(v) for v in list(kwargs.keys())])
+        vals = ','.join([str(v) for v in list(kwargs.values())])
+
+        try:
+            with self.conn:
+                self.conn.execute(f'INSERT INTO {table_name} ({keys}) VALUES ({vals});')
+        except sqlite3.OperationalError as e:
+            logger.error(f'[Persistor.create] {e} (table: {table_name}, keys: {keys}, values: {vals})')
             raise e
 
 
@@ -68,81 +97,55 @@ class Parser:
         logger.debug(f"[Parser.parse_trainer_item] {item['id']}")
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
-        agg_data = soup.select_one('.race_table_01 tr:nth-of-type(3)')
+        row = soup.select_one('.race_table_01 tr:nth-of-type(3)')
 
         try:
-            career_1st_place_count = self.str2int(agg_data.select_one('td:nth-of-type(3) a').string)
-            career_2nd_place_count = self.str2int(agg_data.select_one('td:nth-of-type(4) a').string)
-            career_3rd_place_count = self.str2int(agg_data.select_one('td:nth-of-type(5) a').string)
-            career_4th_place_or_below_count = self.str2int(agg_data.select_one('td:nth-of-type(6) a').string)
-            career_turf_race_count = self.str2int(agg_data.select_one('td:nth-of-type(13) a').string)
-            career_turf_win_count = self.str2int(agg_data.select_one('td:nth-of-type(14) a').string)
-            career_dirt_race_count = self.str2int(agg_data.select_one('td:nth-of-type(15) a').string)
-            career_dirt_win_count = self.str2int(agg_data.select_one('td:nth-of-type(16) a').string)
-            career_1st_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(17)').string)
-            career_1st_2nd_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(18)').string)
-            career_any_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(19)').string)
-            career_earnings = self.str2float(agg_data.select_one('td:nth-of-type(20)').string)
+            data = {
+                'career_1st_place_count': self.str2int(row.select_one('td:nth-of-type(3) a').string),
+                'career_2nd_place_count': self.str2int(row.select_one('td:nth-of-type(4) a').string),
+                'career_3rd_place_count': self.str2int(row.select_one('td:nth-of-type(5) a').string),
+                'career_4th_place_or_below_count': self.str2int(row.select_one('td:nth-of-type(6) a').string),
+                'career_turf_race_count': self.str2int(row.select_one('td:nth-of-type(13) a').string),
+                'career_turf_win_count': self.str2int(row.select_one('td:nth-of-type(14) a').string),
+                'career_dirt_race_count': self.str2int(row.select_one('td:nth-of-type(15) a').string),
+                'career_dirt_win_count': self.str2int(row.select_one('td:nth-of-type(16) a').string),
+                'career_1st_place_rate': self.str2float(row.select_one('td:nth-of-type(17)').string),
+                'career_1st_2nd_place_rate': self.str2float(row.select_one('td:nth-of-type(18)').string),
+                'career_any_place_rate': self.str2float(row.select_one('td:nth-of-type(19)').string),
+                'career_earnings': self.str2float(row.select_one('td:nth-of-type(20)').string),
+                'url': f"'{item['url']}'"
+            }
+
+            self.persistor.create_or_update_item('trainers', item['id'], **data)
         except AttributeError as e:
             logger.error(f"{e} - {item['url']}")
-        else:
-            self.persistor.create_or_update(
-                'trainers',
-                item['id'],
-                career_1st_place_count=career_1st_place_count,
-                career_2nd_place_count=career_2nd_place_count,
-                career_3rd_place_count=career_3rd_place_count,
-                career_4th_place_or_below_count=career_4th_place_or_below_count,
-                career_turf_race_count=career_turf_race_count,
-                career_turf_win_count=career_turf_win_count,
-                career_dirt_race_count=career_dirt_race_count,
-                career_dirt_win_count=career_dirt_win_count,
-                career_1st_place_rate=career_1st_place_rate,
-                career_1st_2nd_place_rate=career_1st_2nd_place_rate,
-                career_any_place_rate=career_any_place_rate,
-                career_earnings=career_earnings,
-                url=f"'{item['url']}'"
-            )
 
     def parse_jockey_item(self, item: dict):
         logger.debug(f"[Parser.parse_jockey_item] {item['id']}")
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
-        agg_data = soup.select_one('.race_table_01 tr:nth-of-type(3)')
+        row = soup.select_one('.race_table_01 tr:nth-of-type(3)')
 
         try:
-            career_1st_place_count = self.str2int(agg_data.select_one('td:nth-of-type(3) a').string)
-            career_2nd_place_count = self.str2int(agg_data.select_one('td:nth-of-type(4) a').string)
-            career_3rd_place_count = self.str2int(agg_data.select_one('td:nth-of-type(5) a').string)
-            career_4th_place_or_below_count = self.str2int(agg_data.select_one('td:nth-of-type(6) a').string)
-            career_turf_race_count = self.str2int(agg_data.select_one('td:nth-of-type(13) a').string)
-            career_turf_win_count = self.str2int(agg_data.select_one('td:nth-of-type(14) a').string)
-            career_dirt_race_count = self.str2int(agg_data.select_one('td:nth-of-type(15) a').string)
-            career_dirt_win_count = self.str2int(agg_data.select_one('td:nth-of-type(16) a').string)
-            career_1st_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(17)').string)
-            career_1st_2nd_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(18)').string)
-            career_any_place_rate = self.str2float(agg_data.select_one('td:nth-of-type(19)').string)
-            career_earnings = self.str2float(agg_data.select_one('td:nth-of-type(20)').string)
+            data = {
+                'career_1st_place_count': self.str2int(row.select_one('td:nth-of-type(3) a').string),
+                'career_2nd_place_count': self.str2int(row.select_one('td:nth-of-type(4) a').string),
+                'career_3rd_place_count': self.str2int(row.select_one('td:nth-of-type(5) a').string),
+                'career_4th_place_or_below_count': self.str2int(row.select_one('td:nth-of-type(6) a').string),
+                'career_turf_race_count': self.str2int(row.select_one('td:nth-of-type(13) a').string),
+                'career_turf_win_count': self.str2int(row.select_one('td:nth-of-type(14) a').string),
+                'career_dirt_race_count': self.str2int(row.select_one('td:nth-of-type(15) a').string),
+                'career_dirt_win_count': self.str2int(row.select_one('td:nth-of-type(16) a').string),
+                'career_1st_place_rate': self.str2float(row.select_one('td:nth-of-type(17)').string),
+                'career_1st_2nd_place_rate': self.str2float(row.select_one('td:nth-of-type(18)').string),
+                'career_any_place_rate': self.str2float(row.select_one('td:nth-of-type(19)').string),
+                'career_earnings': self.str2float(row.select_one('td:nth-of-type(20)').string),
+                'url': f"'{item['url']}'"
+            }
+
+            self.persistor.create_or_update_item('jockeys', item['id'], **data)
         except AttributeError as e:
             logger.error(f"{e} - {item['url']}")
-        else:
-            self.persistor.create_or_update(
-                'jockeys',
-                item['id'],
-                career_1st_place_count=career_1st_place_count,
-                career_2nd_place_count=career_2nd_place_count,
-                career_3rd_place_count=career_3rd_place_count,
-                career_4th_place_or_below_count=career_4th_place_or_below_count,
-                career_turf_race_count=career_turf_race_count,
-                career_turf_win_count=career_turf_win_count,
-                career_dirt_race_count=career_dirt_race_count,
-                career_dirt_win_count=career_dirt_win_count,
-                career_1st_place_rate=career_1st_place_rate,
-                career_1st_2nd_place_rate=career_1st_2nd_place_rate,
-                career_any_place_rate=career_any_place_rate,
-                career_earnings=career_earnings,
-                url=f"'{item['url']}'"
-            )
 
     def parse_horse_item(self, item: dict):
         logger.debug(f"[Parser.parse_horse_item] {item['id']}")
@@ -174,7 +177,7 @@ class Parser:
         elif 'セ' in soup.select_one('.horse_title .txt_01').string:
             data['sex'] = "'castrated'"
 
-        self.persistor.create_or_update('horses', item['id'], **data)
+        self.persistor.create_or_update_item('horses', item['id'], **data)
 
     def parse_race_item(self, item: dict):
         logger.debug(f"[Parser.parse_race_item] {item['id']}")
@@ -207,8 +210,6 @@ class Parser:
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
         racetrack_id = racetracks.get(soup.select_one('.race_place .active').string)
-
-        import ipdb; ipdb.set_trace()
 
         track_details = soup.select_one('.mainrace_data p span').string \
             .replace(u'\xa0', u'') \
@@ -269,28 +270,39 @@ class Parser:
         data['is_apprentice_jockey_allowed'] = 1 if '見習騎手' in subtitle[-1] else 0
         data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
 
-        self.persistor.create_or_update('races', item['id'], **data)
+        self.persistor.create_or_update_item('races', item['id'], **data)
 
-        # race participant parsing
-        participants = soup.select('.race_table_01 tr')[1:]
+        for record in soup.select('.race_table_01 tr')[1:]:
+            contender = {}
 
-        for p in participants:
-            order_of_finish = int(p.select('td')[0].string)
-            post_position = int(p.select('td')[1].select_one('span').string)
-            horse_id = ''
-            weight_carried = int(p.select('td')[5].string)
-            jockey_id = ''
+            horse_key = re.search('/horse/([0-9]+)', record.select('td')[3].select_one('a').get('href')).group(1)
+            contender['horse_id'] = self.persistor.find_id_or_create('horses', horse_key)
 
-            minutes, seconds = map(float, p.select('td')[7].string.split(':'))
-            finish_time = minutes * 60 + seconds
+            jockey_key = re.search('/jockey/([0-9]+)', record.select('td')[6].select_one('a').get('href')).group(1)
+            contender['jockey_id'] = self.persistor.find_id_or_create('jockeys', jockey_key)
 
-            first_place_odds = float(p.select('td')[12].string)
-            popularity = float(p.select('td')[13].string)
-            horse_weight = ''
+            trainer_key = re.search('/trainer/([0-9]+)', record.select('td')[18].select_one('a').get('href')).group(1)
+            contender['trainer_id'] = self.persistor.find_id_or_create('trainers', trainer_key)
 
+            contender['order_of_finish'] = int(record.select('td')[0].string)
+            contender['post_position'] = int(record.select('td')[1].string)
+
+            contender['weight_carried'] = int(record.select('td')[5].string)
+
+            minutes, seconds = map(float, record.select('td')[7].string.split(':'))
+            contender['finish_time'] = minutes * 60 + seconds
+
+            contender['first_place_odds'] = float(record.select('td')[12].string)
+            contender['popularity'] = float(record.select('td')[13].string)
+
+            horse_weight_search = re.search('([0-9]+)\(([+-]?[0-9]+)\)', record.select('td')[14].string)
+            contender['horse_weight'] = int(horse_weight_search.group(1))
+            contender['horse_weight_diff'] = int(horse_weight_search.group(2))
+
+            self.persistor.create('race_contenders', **contender)
 
     def noop(self, item: dict):
-        logger.debug(f"[Parser.noop] {vars(item)}")
+        logger.warning(f"[Parser.noop] {vars(item)}")
 
 
 def main(opts):
