@@ -88,7 +88,6 @@ CREATE TABLE races
   -- (牝) 牝馬しか出走できないレース
   is_female_only                       TINYINT,
 
-
   PRIMARY KEY (id AUTOINCREMENT),
   constraint races_racetracks_id_fk
   foreign key (racetrack_id) references racetracks,
@@ -124,19 +123,20 @@ CREATE UNIQUE INDEX trainers_key_uindex
 
 CREATE TABLE race_contenders
 (
-  id                INTEGER NOT NULL,
-  horse_id          INTEGER NOT NULL,
-  jockey_id         INTEGER NOT NULL,
-  trainer_id        INTEGER NOT NULL,
-  race_id           INTEGER NOT NULL,
-  weight_carried    REAL,
-  post_position     INTEGER,
-  order_of_finish   VARCHAR(255),
-  finish_time       INTEGER,
-  horse_weight      INTEGER,
-  horse_weight_diff INTEGER,
-  popularity        INTEGER,
-  first_place_odds  REAL,
+  id                      INTEGER NOT NULL,
+  horse_id                INTEGER NOT NULL,
+  jockey_id               INTEGER NOT NULL,
+  trainer_id              INTEGER NOT NULL,
+  race_id                 INTEGER NOT NULL,
+  weight_carried          REAL,
+  post_position           INTEGER,
+  order_of_finish         INTEGER,
+  order_of_finish_lowered TINYINT,
+  finish_time             INTEGER,
+  horse_weight            INTEGER,
+  horse_weight_diff       INTEGER,
+  popularity              INTEGER,
+  first_place_odds        REAL,
   PRIMARY KEY (id AUTOINCREMENT),
   constraint race_contenders_horses_id_fk
   foreign key (horse_id) references horses,

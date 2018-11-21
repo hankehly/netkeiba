@@ -47,21 +47,18 @@ class Persistor:
 
         keys_list = ['key'] + [str(v) for v in list(kwargs.keys())]
         keys = ','.join(['key'] + [str(v) for v in list(kwargs.keys())])
-        vals = ','.join([item_key] + [str(v) for v in list(kwargs.values())])
+        vals = ','.join([f"'{item_key}'"] + [str(v) for v in list(kwargs.values())])
         updates = ','.join([f'{key}=excluded.{key}' for key in keys_list if key != 'key'])
 
         try:
             with self.conn:
-                self.conn.execute(f'''
+                self.conn.executescript(f'''
                     INSERT INTO {table_name} ({keys}) VALUES ({vals})
                         ON CONFLICT(key) DO UPDATE SET {updates};
                 ''')
 
                 return self.conn.execute(f"SELECT (id) FROM {table_name} WHERE key='{item_key}'").fetchone()[0]
-        except sqlite3.IntegrityError as e:
-            logger.error(f'[Persistor.create_or_update_item] {e} (table: {table_name}, item_key: {item_key})')
-            raise e
-        except sqlite3.OperationalError as e:
+        except sqlite3.DatabaseError as e:
             logger.error(f'[Persistor.create_or_update_item] {e} (table: {table_name}, item_key: {item_key})')
             raise e
 
@@ -274,8 +271,24 @@ class Parser:
 
         race_id = self.persistor.create_or_update_item('races', item['id'], **data)
 
-        for record in soup.select('.race_table_01 tr')[1:]:
-            contender = {'race_id': race_id}
+        for i, record in enumerate(soup.select('.race_table_01 tr')[1:], start=1):
+            # (失) 失格 (http://www.jra.go.jp/judge/)
+            # (取) 出走取消 (http://jra.jp/faq/pop02/2_7.html)
+            # (除) 競走除外 (http://jra.jp/faq/pop02/2_7.html)
+            # (中) 競走中止 (http://jra.jp/faq/pop02/2_8.html)
+            order_of_finish = record.select('td')[0].string
+            if order_of_finish in ['失', '取', '除', '中']:
+                logger.info(f"ignoring race_contender({i}) in race({item['url']}) for reason({order_of_finish})")
+                continue
+
+            # N(降) 降着 (http://www.jra.go.jp/judge/)
+            order_of_finish_lowered = '降' in order_of_finish
+
+            if order_of_finish_lowered:
+                order_of_finish = re.search('[0-9]+', order_of_finish).group(0)
+
+            contender = {'race_id': race_id, 'order_of_finish': int(order_of_finish),
+                         'order_of_finish_lowered': order_of_finish_lowered}
 
             horse_key = re.search('/horse/([0-9]+)', record.select('td')[3].select_one('a').get('href')).group(1)
             contender['horse_id'] = self.persistor.find_id_or_create('horses', horse_key)
@@ -286,10 +299,9 @@ class Parser:
             trainer_key = re.search('/trainer/([0-9]+)', record.select('td')[18].select_one('a').get('href')).group(1)
             contender['trainer_id'] = self.persistor.find_id_or_create('trainers', trainer_key)
 
-            contender['order_of_finish'] = f"'{record.select('td')[0].string}'"
             contender['post_position'] = int(record.select('td')[1].string)
 
-            contender['weight_carried'] = int(record.select('td')[5].string)
+            contender['weight_carried'] = float(record.select('td')[5].string)
 
             minutes, seconds = map(float, record.select('td')[7].string.split(':'))
             contender['finish_time'] = minutes * 60 + seconds
