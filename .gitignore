@@ -143,3 +143,4 @@ output/*
 data.pkl
 jobs
 db.sqlite3
+*.jl
