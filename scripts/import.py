@@ -9,9 +9,10 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup, Comment
 
-from create_db import create_db
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+
+sys.path.insert(0, PROJECT_ROOT)
+from scripts.create_db import create_db
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -24,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 class Persistor:
     def __init__(self):
-        self.conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'netkeiba.sqlite'))
+        self.conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
 
     def find_id_or_create(self, table_name: str, item_key: str):
         logger.debug(f'[Persistor.find_id_or_create] {table_name} {item_key}')

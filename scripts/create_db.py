@@ -6,7 +6,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
 def create_db(overwrite=False):
-    db_file = os.path.join(PROJECT_ROOT, 'netkeiba.sqlite')
+    db_file = os.path.join(PROJECT_ROOT, 'db.sqlite3')
     if overwrite and os.path.isfile(db_file):
         os.remove(db_file)
     conn = sqlite3.connect(db_file)

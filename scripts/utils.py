@@ -7,7 +7,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
 def read_netkeiba():
-    conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'netkeiba.sqlite'))
+    conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
     cur = conn.cursor()
 
     with open(os.path.join(PROJECT_ROOT, 'scripts', 'select_all.sql'), 'r') as f:
