@@ -18,3 +18,10 @@ def read_netkeiba():
         cols = [desc[0] for desc in cur.description]
 
         return pd.DataFrame(rows, columns=cols)
+
+
+def null_horse_keys():
+    conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
+    cur = conn.cursor()
+    rows = cur.execute('SELECT key FROM horses WHERE url IS NULL').fetchall()
+    return [o[0] for o in rows]
