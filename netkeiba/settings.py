@@ -22,3 +22,7 @@ DOWNLOAD_DELAY = 1.0
 DOWNLOADER_MIDDLEWARES = {
     'netkeiba.middlewares.UserAgentMiddleware': 300,
 }
+
+RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 302]
+
+RETRY_TIMES = 3
