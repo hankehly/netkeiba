@@ -1,12 +1,14 @@
 import logging
+import numpy as np
 import os
 import pandas as pd
 import sys
 from datetime import datetime
 
+from scipy.stats import randint
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.externals import joblib
-from sklearn.model_selection import StratifiedShuffleSplit
+from sklearn.model_selection import StratifiedShuffleSplit, RandomizedSearchCV
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -16,20 +18,17 @@ from trainer.pipeline import full_pipeline
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
 
+np.random.seed(42)
+
 
 def train():
-    """
-    Model Preparation
-    """
     df = read_netkeiba()
 
-    # TODO: allow input to specify contender count
     df['r_contender_count'] = df.groupby('r_id').c_id.count().loc[df.r_id].values
     df['c_norm_order_of_finish'] = 1.0 - (df.c_order_of_finish - 1) / (df.r_contender_count - 1)
 
     index_attrs = ['c_id', 'r_id', 'h_id', 'j_id', 't_id', 'r_key', 'r_url', 'h_key', 'h_url', 'j_key', 'j_url',
-                   't_key',
-                   't_url']
+                   't_key', 't_url']
 
     label_attrs = ['c_norm_order_of_finish', 'c_order_of_finish', 'c_finish_time', 'c_order_of_finish_lowered']
 
@@ -42,16 +41,26 @@ def train():
         y_train, y_test = y[train_idx], y[test_idx]
 
     X_train_prep = full_pipeline.fit_transform(X_train)
+
+    # change this line to train different models
     train_forest_random_search(X_train_prep, y_train)
 
 
 def train_forest_random_search(X_train_prep, y_train):
-    forest_reg = RandomForestRegressor()
-    forest_reg.fit(X_train_prep, y_train)
+    param_distributions = {
+        'n_estimators': randint(low=1, high=200),
+        'max_features': randint(low=1, high=8),
+    }
 
-    timestamp = datetime.now().isoformat().replace(':', '')
+    forest_reg = RandomForestRegressor(random_state=42)
+    rand_search = RandomizedSearchCV(forest_reg, param_distributions=param_distributions, n_iter=10, cv=5,
+                                     scoring='neg_mean_squared_error', random_state=42, verbose=5, n_jobs=-1)
+
+    rand_search.fit(X_train_prep, y_train)
+
+    timestamp = datetime.now().isoformat(timespec='minutes').replace(':', '')
     filename = f'forest_reg_{timestamp}.gz'
-    joblib.dump(forest_reg, filename)
+    joblib.dump(rand_search, filename)
 
     logging.debug(f'Training complete. Output {filename}')
 
@@ -164,43 +173,43 @@ def prediction_test():
 
     X_test_raw = pd.DataFrame([
         [  # 1st horse
-            55,            # c_weight_carried
-            6,             # c_post_position
-            478,           # c_horse_weight
-            -4,            # c_horse_weight_diff
-            1,             # c_popularity
-            2.7,           # c_first_place_odds
-            2,             # h_total_races
-            1,             # h_total_wins
-            'male',        # h_sex
+            55,  # c_weight_carried
+            6,  # c_post_position
+            478,  # c_horse_weight
+            -4,  # c_horse_weight_diff
+            1,  # c_popularity
+            2.7,  # c_first_place_odds
+            2,  # h_total_races
+            1,  # h_total_wins
+            'male',  # h_sex
             '2016-02-10',  # h_birthday
-            2.5,           # h_user_rating
+            2.5,  # h_user_rating
 
-            915,           # j_career_1st_place_count
-            696,           # j_career_2nd_place_count
-            540,           # j_career_3rd_place_count
-            2864,          # j_career_4th_place_or_below_count
-            2742,          # j_career_turf_race_count
-            556,           # j_career_turf_win_count
-            2273,          # j_career_dirt_race_count
-            359,           # j_career_dirt_win_count
-            .182,          # j_career_1st_place_rate
-            .321,          # j_career_1st_2nd_place_rate
-            .429,          # j_career_any_place_rate
-            2146768.,      # j_career_earnings
+            915,  # j_career_1st_place_count
+            696,  # j_career_2nd_place_count
+            540,  # j_career_3rd_place_count
+            2864,  # j_career_4th_place_or_below_count
+            2742,  # j_career_turf_race_count
+            556,  # j_career_turf_win_count
+            2273,  # j_career_dirt_race_count
+            359,  # j_career_dirt_win_count
+            .182,  # j_career_1st_place_rate
+            .321,  # j_career_1st_2nd_place_rate
+            .429,  # j_career_any_place_rate
+            2146768.,  # j_career_earnings
 
-            409,           # t_career_1st_place_count
-            386,           # t_career_2nd_place_count
-            406,           # t_career_3rd_place_count
-            3635,          # t_career_4th_place_or_below_count
-            2795,          # t_career_turf_race_count
-            247,           # t_career_turf_win_count
-            1958,          # t_career_dirt_race_count
-            153,           # t_career_dirt_win_count
-            .085,          # t_career_1st_place_rate
-            .164,          # t_career_1st_2nd_place_rate
-            .248,          # t_career_any_place_rate
-            854946.4,      # t_career_earnings
+            409,  # t_career_1st_place_count
+            386,  # t_career_2nd_place_count
+            406,  # t_career_3rd_place_count
+            3635,  # t_career_4th_place_or_below_count
+            2795,  # t_career_turf_race_count
+            247,  # t_career_turf_win_count
+            1958,  # t_career_dirt_race_count
+            153,  # t_career_dirt_win_count
+            .085,  # t_career_1st_place_rate
+            .164,  # t_career_1st_2nd_place_rate
+            .248,  # t_career_any_place_rate
+            854946.4,  # t_career_earnings
         ]
     ], columns=columns)
 
