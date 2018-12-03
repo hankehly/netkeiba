@@ -53,7 +53,7 @@ def train_forest_random_search(X_train_prep, y_train):
     }
 
     forest_reg = RandomForestRegressor(random_state=42)
-    rand_search = RandomizedSearchCV(forest_reg, param_distributions=param_distributions, n_iter=10, cv=5,
+    rand_search = RandomizedSearchCV(forest_reg, param_distributions=param_distributions, n_iter=25, cv=5,
                                      scoring='neg_mean_squared_error', random_state=42, verbose=5, n_jobs=-1)
 
     rand_search.fit(X_train_prep, y_train)
