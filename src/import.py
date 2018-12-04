@@ -12,7 +12,7 @@ from bs4 import BeautifulSoup, Comment
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 sys.path.insert(0, PROJECT_ROOT)
-from scripts.create_db import create_db
+from src.create_db import create_db
 
 logging.basicConfig(
     stream=sys.stdout,

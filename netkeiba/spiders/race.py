@@ -4,7 +4,7 @@ from datetime import datetime
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 
-from netkeiba.items import RaceRequest, JockeyRequest, TrainerRequest, HorseRequest
+from crawler.items import RaceRequest, JockeyRequest, TrainerRequest, HorseRequest
 
 
 class RaceSpider(scrapy.Spider):
