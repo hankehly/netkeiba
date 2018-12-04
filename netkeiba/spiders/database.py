@@ -4,16 +4,15 @@ from datetime import datetime
 import scrapy
 from scrapy.linkextractors import LinkExtractor
 
-from crawler.items import RaceRequest, JockeyRequest, TrainerRequest, HorseRequest
+from netkeiba.items import RaceRequest, JockeyRequest, TrainerRequest, HorseRequest
 
 
-class RaceSpider(scrapy.Spider):
-    name = 'race'
+class DataBaseSpider(scrapy.Spider):
+    name = 'database'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
 
     def parse(self, response):
-        print('** RETRY_HTTP_CODES', self.settings.get('RETRY_HTTP_CODES'))
         min_race_date = datetime.strptime(self.settings.get('MIN_RACE_DATE'), '%Y-%m-%d').date()
 
         race_list_links = LinkExtractor(allow='/race/list/[0-9]+', restrict_css='.race_calendar') \
