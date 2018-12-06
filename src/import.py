@@ -78,6 +78,10 @@ class Persistor:
 
 
 class Parser:
+    """
+    TODO: Refactor duplicate Parser base classes
+    TODO: Extract detailed parsing logic to netkeiba.parsers package
+    """
     def __init__(self, persistor: Persistor):
         self.persistor = persistor
 
@@ -263,10 +267,10 @@ class Parser:
         data['date'] = datetime.strptime(subtitle[0], '%Y年%m月%d日').strftime("'%Y-%m-%d'")
 
         data['is_non_winner_regional_horse_allowed'] = 1 if '(指定)' in subtitle[-1] else 0
-        data['is_winner_regional_horse_allowed'] = 1 if '(特指)' in subtitle[-1] else 0
+        data['is_winner_regional_horse_allowed'] = 1 if '特指' in subtitle[-1] else 0
         data['is_regional_jockey_allowed'] = 1 if '[指定]' in subtitle[-1] else 0
-        data['is_foreign_horse_allowed'] = 1 if '(混合)' in subtitle[-1] else 0
-        data['is_foreign_horse_and_trainer_allowed'] = 1 if '(国際)' in subtitle[-1] else 0
+        data['is_foreign_horse_allowed'] = 1 if '混' in subtitle[-1] else 0
+        data['is_foreign_horse_and_trainer_allowed'] = 1 if '国際' in subtitle[-1] else 0
         data['is_apprentice_jockey_allowed'] = 1 if '見習騎手' in subtitle[-1] else 0
         data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
 
