@@ -14,7 +14,7 @@ class HorseParser(Parser):
         h_total_wins = int(win_record_matches.group(2))
 
         birthday_string = self.soup.select_one('.db_prof_table tr:nth-of-type(1) td').string
-        h_birthday = datetime.strptime(birthday_string, '%Y年%m月%d日').strftime("'%Y-%m-%d'")
+        h_birthday = datetime.strptime(birthday_string, '%Y年%m月%d日').strftime("%Y-%m-%d")
 
         h_user_rating = None
         if self.soup.select_one('.horse_title .rate strong'):
