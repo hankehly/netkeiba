@@ -48,77 +48,9 @@ HORSE_SEX = {
 }
 
 
-# 'c_id', (not needed)
-# 'c_weight_carried',
-# 'c_post_position', (day of)
-# 'c_order_of_finish',
-# 'c_order_of_finish_lowered',
-# 'c_finish_time',
-# 'c_horse_weight',
-# 'c_horse_weight_diff', (day of)
-# 'c_popularity',
-# 'c_first_place_odds',
-# 'r_id',
-# 'r_key',
-# 'r_racetrack',
-# 'r_course_type',
-# 'r_weather',
-# 'r_url',
-# 'r_distance',
-# 'r_date',
-# 'r_dirt_condition', (day of)
-# 'r_turf_condition', (day of)
-# 'r_impost_category',
-# 'r_is_non_winner_regional_horse_allowed',
-# 'r_is_winner_regional_horse_allowed',
-# 'r_is_regional_jockey_allowed',
-# 'r_is_foreign_horse_allowed',
-# 'r_is_foreign_horse_and_trainer_allowed',
-# 'r_is_apprentice_jockey_allowed',
-# 'r_is_female_only',
-# 'h_id',
-# 'h_key',
-# 'h_url',
-# 'h_total_races',
-# 'h_total_wins',
-# 'h_sex',
-# 'h_birthday',
-# 'h_user_rating',
-# 'j_id',
-# 'j_key',
-# 'j_url',
-# 'j_career_1st_place_count',
-# 'j_career_2nd_place_count',
-# 'j_career_3rd_place_count',
-# 'j_career_4th_place_or_below_count',
-# 'j_career_turf_race_count',
-# 'j_career_turf_win_count',
-# 'j_career_dirt_race_count',
-# 'j_career_dirt_win_count',
-# 'j_career_1st_place_rate',
-# 'j_career_1st_2nd_place_rate',
-# 'j_career_any_place_rate',
-# 'j_career_earnings',
-# 't_id',
-# 't_key',
-# 't_url',
-# 't_career_1st_place_count',
-# 't_career_2nd_place_count',
-# 't_career_3rd_place_count',
-# 't_career_4th_place_or_below_count',
-# 't_career_turf_race_count',
-# 't_career_turf_win_count',
-# 't_career_dirt_race_count',
-# 't_career_dirt_win_count',
-# 't_career_1st_place_rate',
-# 't_career_1st_2nd_place_rate',
-# 't_career_any_place_rate',
-# 't_career_earnings',
-
-
 class RaceSpider(scrapy.Spider):
     """
-    scrapy crawl race -a race_url='https://race.netkeiba.com/?pid=race_old&id=xxx'
+    scrapy crawl race -a race_url='https://race.netkeiba.com/?pid=race_old&id=xxx' -o xxx.csv
     """
     name = 'race'
     allowed_domains = ['race.netkeiba.com', 'db.netkeiba.com']
