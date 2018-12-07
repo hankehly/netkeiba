@@ -11,7 +11,7 @@ def create_db(overwrite=False):
         os.remove(db_file)
     conn = sqlite3.connect(db_file)
     c = conn.cursor()
-    with open(os.path.join(PROJECT_ROOT, 'scripts', 'create_db.sql'), 'r') as f:
+    with open(os.path.join(PROJECT_ROOT, 'src', 'create_db.sql'), 'r') as f:
         sql = f.read()
         c.executescript(sql)
 
