@@ -1,9 +1,14 @@
+import os
+import sys
+
 import numpy as np
 from sklearn.model_selection import StratifiedShuffleSplit
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
 from trainer.model import train_forest_random_search
 from trainer.pipeline import full_pipeline
-from utils import read_netkeiba
+from src.utils import read_netkeiba
 
 np.random.seed(42)
 
