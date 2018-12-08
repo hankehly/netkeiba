@@ -1,5 +1,4 @@
 import logging
-from zipfile import ZipFile
 
 import numpy as np
 import os
