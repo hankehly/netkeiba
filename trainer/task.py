@@ -6,8 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
-from trainer.model import train_forest_random_search
-from trainer.pipeline import full_pipeline
+from trainer.model import train_rand_forest_reg_random_search
 from src.utils import read_netkeiba
 
 np.random.seed(42)
@@ -30,7 +29,5 @@ for train_idx, test_idx in sss.split(X, y):
     X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
     y_train, y_test = y[train_idx], y[test_idx]
 
-X_train_prep = full_pipeline.fit_transform(X_train)
-
 # change this line to train different models
-train_forest_random_search(X_train_prep, y_train)
+train_rand_forest_reg_random_search(X_train, X_test, y_train, y_test)
