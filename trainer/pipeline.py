@@ -114,5 +114,6 @@ cat_pipeline = Pipeline([
 full_pipeline = ColumnTransformer([
     ('num', num_pipeline, num_attrs),
     ('cat', cat_pipeline, list(cat_attr_categories.keys())),
-    ('date', date_pipeline, date_attrs)
+    ('date', date_pipeline, date_attrs),
+    ('bool', 'passthrough', bool_attrs)
 ])
