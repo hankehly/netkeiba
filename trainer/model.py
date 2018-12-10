@@ -1,14 +1,9 @@
 import numpy as np
-import os
-import sys
 
 from scipy.stats import randint
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.linear_model import SGDRegressor
 from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
-
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-sys.path.insert(0, PROJECT_ROOT)
 
 np.random.seed(42)
 

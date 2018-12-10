@@ -111,9 +111,29 @@ cat_pipeline = Pipeline([
     ('one_hot', OneHotEncoder(sparse=False, handle_unknown='ignore', categories=list(cat_attr_categories.values())))
 ])
 
+# features with feature_importance_ above 0.015
+important_features = [
+    'c_first_place_odds',
+    'c_popularity',
+    'r_impost_category',
+    'c_horse_weight',
+    'h_total_races',
+    'c_horse_weight_diff',
+    'r_contender_count',
+    'h_total_wins',
+    'c_post_position',
+    'r_distance',
+    'h_user_rating',
+    'h_sex',
+    'r_weather',
+    't_career_1st_2nd_place_rate',
+    't_career_any_place_rate',
+    't_career_dirt_race_count'
+]
+
 full_pipeline = ColumnTransformer([
     ('num', num_pipeline, num_attrs),
     ('cat', cat_pipeline, list(cat_attr_categories.keys())),
     ('date', date_pipeline, date_attrs),
-    ('bool', 'passthrough', bool_attrs)
+    ('bool', 'passthrough', bool_attrs),
 ])

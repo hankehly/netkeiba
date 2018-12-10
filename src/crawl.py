@@ -26,7 +26,7 @@ def main(opts):
     }
 
     process = CrawlerProcess({**get_project_settings(), **custom_settings})
-    process.crawl('database')
+    process.crawl('db')
     process.start()
 
 

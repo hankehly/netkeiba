@@ -7,10 +7,9 @@ from sklearn.externals import joblib
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 from sklearn.model_selection import StratifiedShuffleSplit
 
-from trainer.pipeline import full_pipeline
-
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
+from trainer.pipeline import full_pipeline
 from trainer.model import train_rand_forest_reg_random_search
 from src.utils import read_netkeiba
 
@@ -35,7 +34,7 @@ for train_idx, test_idx in sss.split(X, y):
     y_train, y_test = y[train_idx], y[test_idx]
 
 X_train_prep = full_pipeline.fit_transform(X_train)
-model = train_rand_forest_reg_random_search(X_train, y_train)
+model = train_rand_forest_reg_random_search(X_train_prep, y_train)
 
 predictions = model.predict(X_train_prep)
 

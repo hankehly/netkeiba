@@ -3,7 +3,7 @@ import os
 import random
 from itertools import chain
 
-from netkeiba.settings import PROJECT_ROOT
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 
 class UserAgentMiddleware(object):

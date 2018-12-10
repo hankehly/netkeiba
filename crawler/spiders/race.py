@@ -4,9 +4,9 @@ from datetime import datetime
 import scrapy
 from bs4 import BeautifulSoup
 
-from netkeiba.parsers.horse import HorseParser
-from netkeiba.parsers.jockey import JockeyParser
-from netkeiba.parsers.trainer import TrainerParser
+from crawler.parsers.horse import HorseParser
+from crawler.parsers.jockey_result import JockeyResultParser
+from crawler.parsers.trainer_result import TrainerResultParser
 
 RACETRACKS = {
     '札幌': 'sapporo',
@@ -144,11 +144,11 @@ class RaceSpider(scrapy.Spider):
                              callback=self.parse_trainer, meta=response.meta, dont_filter=True)
 
     def parse_trainer(self, response):
-        trainer_data = TrainerParser(response.body).parse()
+        trainer_data = TrainerResultParser(response.body).parse()
         response.meta['data'] = {**response.meta['data'], **trainer_data}
         yield scrapy.Request(response.urljoin(f"/jockey/result/{response.meta['data']['j_key']}"),
                              callback=self.parse_jockey, meta=response.meta, dont_filter=True)
 
     def parse_jockey(self, response):
-        jockey_data = JockeyParser(response.body).parse()
+        jockey_data = JockeyResultParser(response.body).parse()
         yield {**response.meta['data'], **jockey_data}

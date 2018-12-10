@@ -9,6 +9,8 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup, Comment
 
+from parsers.horse import HorseParser
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
 sys.path.insert(0, PROJECT_ROOT)
@@ -82,12 +84,17 @@ class Parser:
     TODO: Refactor duplicate Parser base classes
     TODO: Extract detailed parsing logic to netkeiba.parsers package
     """
+
     def __init__(self, persistor: Persistor):
         self.persistor = persistor
 
     def parse_item(self, item: dict):
-        handlers = {'race': self.parse_race_item, 'horse': self.parse_horse_item, 'jockey': self.parse_jockey_item,
-                    'trainer': self.parse_trainer_item}
+        handlers = {
+            'race': self.parse_race_item,
+            'horse': self.parse_horse_item,
+            'jockey_result': self.parse_jockey_result_item,
+            'trainer_result': self.parse_trainer_result_item
+        }
 
         handlers.get(item['item_type'], self.noop)(item)
 
@@ -97,7 +104,7 @@ class Parser:
     def str2int(self, value: str) -> int:
         return int(value.replace(',', ''))
 
-    def parse_trainer_item(self, item: dict):
+    def parse_trainer_result_item(self, item: dict):
         logger.debug(f"[Parser.parse_trainer_item] {item['id']}")
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
@@ -124,8 +131,8 @@ class Parser:
         except AttributeError as e:
             logger.error(f"{e} - {item['url']}")
 
-    def parse_jockey_item(self, item: dict):
-        logger.debug(f"[Parser.parse_jockey_item] {item['id']}")
+    def parse_jockey_result_item(self, item: dict):
+        logger.debug(f"[Parser.parse_jockey_result_item] {item['id']}")
 
         soup = BeautifulSoup(item['response_body'], 'html.parser')
         row = soup.select_one('.race_table_01 tr:nth-of-type(3)')
@@ -180,6 +187,9 @@ class Parser:
             data['sex'] = "'male'"
         elif 'セ' in soup.select_one('.horse_title .txt_01').string:
             data['sex'] = "'castrated'"
+
+
+        HorseParser(item['html']).save()
 
         self.persistor.create_or_update_item('horses', item['id'], **data)
 
