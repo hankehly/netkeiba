@@ -1,6 +1,11 @@
 import scrapy
 
 
+class WebPageItem(scrapy.Item):
+    url = scrapy.Field()
+    html = scrapy.Field()
+
+
 class PageItem(scrapy.Item):
     key = scrapy.Field()
     html = scrapy.Field()
