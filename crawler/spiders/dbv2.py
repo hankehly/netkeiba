@@ -17,7 +17,7 @@ class DBV2Spider(CrawlSpider):
     rules = (
         Rule(LinkExtractor(allow=[
             '/race/list/[0-9]+',
-            'pid=race_top&date=20181103'
+            'pid=race_top&date=[0-9]+'
         ]), process_links='process_date_links'),
 
         Rule(LinkExtractor(allow=[
