@@ -1,71 +1,58 @@
 import re
-from datetime import datetime
+from datetime import datetime, date, timedelta
+from typing import List
 
-import scrapy
+from scrapy.link import Link
+from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 
-from crawler.items import Race, Horse, JockeyResult, TrainerResult
+from crawler.items import WebPageItem
 
 
-class DataBaseSpider(scrapy.Spider):
-    name = 'db'
+class DBV2Spider(CrawlSpider):
+    name = 'dbv2'
     allowed_domains = ['db.netkeiba.com']
-    start_urls = ['http://db.netkeiba.com/?pid=race_top']
+    start_urls = ['https://db.netkeiba.com/?pid=race_top']
 
-    def parse(self, response):
-        min_race_date = datetime.strptime(self.settings.get('MIN_RACE_DATE'), '%Y-%m-%d').date()
+    rules = (
+        Rule(LinkExtractor(allow=['/race/list/[0-9]+', 'pid=race_top&date=[0-9]+']),
+             process_links='process_date_links'),
 
-        race_list_links = LinkExtractor(allow='/race/list/[0-9]+', restrict_css='.race_calendar') \
-            .extract_links(response)
+        Rule(LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list'), callback='parse_web_page_item',
+             follow=True),
 
-        for link in race_list_links:
-            race_date = datetime.strptime(re.search('/race/list/([0-9]+)', link.url).group(1), '%Y%m%d').date()
-            if race_date >= min_race_date:
-                yield scrapy.Request(link.url, callback=self.parse_race_list)
+        Rule(LinkExtractor(allow=[
+            '/horse/[0-9]+',
+            '/trainer/[0-9]+',
+            '/jockey/[0-9]+',
+        ], restrict_css='#db_race_detail .race_table_01'), callback='parse_web_page_item', follow=True),
+
+        Rule(LinkExtractor(allow=[
+            '/trainer/result/[0-9]+',
+            '/jockey/result/[0-9]+',
+            '/trainer/profile/[0-9]+',
+            '/jockey/profile/[0-9]+',
+        ], restrict_css='#horse_detail .db_detail_menu'), callback='parse_web_page_item')
+    )
+
+    def __init__(self, min_race_date=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if min_race_date:
+            self.min_race_date = datetime.strptime(min_race_date, '%Y%m%d').date()
+        else:
+            self.min_race_date = date.today() - timedelta(days=30)
+
+    def process_date_links(self, links: List[Link]):
+        follow_links = []
+        for link in links:
+            date_string = re.search('[0-9]{8}', link.url).group()
+            link_date = datetime.strptime(date_string, '%Y%m%d').date()
+            if link_date >= self.min_race_date:
+                follow_links.append(link)
             else:
-                self.logger.info(
-                    f'Skipping <{race_date}> races (minimum race date <{self.settings.get("MIN_RACE_DATE")}>)')
+                self.logger.info(f'Skipping url ({link.url}), {link_date} < {self.min_race_date}')
+        return follow_links
 
-        rev_links = LinkExtractor(restrict_css='.race_calendar .rev').extract_links(response)
-
-        if len(rev_links) > 1:
-            prev_page_link = rev_links[-1]
-            prev_page_date_str = re.search('date=([0-9]+)$', prev_page_link.url).group(1)
-            prev_page_date = datetime.strptime(prev_page_date_str, '%Y%m%d').date()
-            if prev_page_date >= min_race_date:
-                yield scrapy.Request(prev_page_link.url, callback=self.parse)
-            else:
-                self.logger.info(f'Reached minimum race date ({min_race_date})')
-
-    def parse_race_list(self, response):
-        race_links = LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list').extract_links(response)
-
-        for link in race_links:
-            yield scrapy.Request(link.url, callback=self.parse_race)
-
-    def parse_race(self, response):
-        race_key = re.search('[0-9]+', response.request.url).group()
-        yield Race(key=race_key, url=response.request.url, html=response.text)
-
-        for link in LinkExtractor(allow='/horse/[0-9]+', restrict_css='.race_table_01').extract_links(response):
-            yield scrapy.Request(link.url, callback=self.parse_horse)
-
-        for link in LinkExtractor(allow='/jockey/[0-9]+', restrict_css='.race_table_01').extract_links(response):
-            jockey_key = re.search('[0-9]+', link.url).group()
-            yield scrapy.Request(response.urljoin(f'/jockey/result/{jockey_key}'), callback=self.parse_jockey_result)
-
-        for link in LinkExtractor(allow='/trainer/[0-9]+', restrict_css='.race_table_01').extract_links(response):
-            trainer_key = re.search('[0-9]+', link.url).group()
-            yield scrapy.Request(response.urljoin(f'/trainer/result/{trainer_key}'), callback=self.parse_trainer_result)
-
-    def parse_horse(self, response):
-        horse_key = re.search('[0-9]+', response.request.url).group()
-        return Horse(key=horse_key, url=response.request.url, html=response.text)
-
-    def parse_jockey_result(self, response):
-        jockey_key = re.search('[0-9]+', response.request.url).group()
-        return JockeyResult(key=jockey_key, url=response.request.url, html=response.text)
-
-    def parse_trainer_result(self, response):
-        trainer_key = re.search('[0-9]+', response.request.url).group()
-        return TrainerResult(key=trainer_key, url=response.request.url, html=response.text)
+    def parse_web_page_item(self, response):
+        return WebPageItem(url=response.url, html=response.text)
