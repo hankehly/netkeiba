@@ -12,24 +12,27 @@ from crawler.items import WebPageItem
 class DBV2Spider(CrawlSpider):
     name = 'dbv2'
     allowed_domains = ['db.netkeiba.com']
-    start_urls = ['http://db.netkeiba.com/?pid=race_top']
+    start_urls = ['https://db.netkeiba.com/?pid=race_top']
 
     rules = (
-        Rule(LinkExtractor(allow=[
-            '/race/list/[0-9]+',
-            'pid=race_top&date=[0-9]+'
-        ]), process_links='process_date_links'),
+        Rule(LinkExtractor(allow=['/race/list/[0-9]+', 'pid=race_top&date=[0-9]+']),
+             process_links='process_date_links'),
+
+        Rule(LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list'), callback='parse_web_page_item',
+             follow=True),
 
         Rule(LinkExtractor(allow=[
-            '/race/[0-9]+',
             '/horse/[0-9]+',
             '/trainer/[0-9]+',
-            '/trainer/result/[0-9]+',
-            '/trainer/profile/[0-9]+',
             '/jockey/[0-9]+',
+        ], restrict_css='#db_race_detail .race_table_01'), callback='parse_web_page_item', follow=True),
+
+        Rule(LinkExtractor(allow=[
+            '/trainer/result/[0-9]+',
             '/jockey/result/[0-9]+',
+            '/trainer/profile/[0-9]+',
             '/jockey/profile/[0-9]+',
-        ]), callback='parse_web_page_item'),
+        ], restrict_css='#horse_detail .db_detail_menu'), callback='parse_web_page_item')
     )
 
     def __init__(self, min_race_date=None, *args, **kwargs):
@@ -49,7 +52,7 @@ class DBV2Spider(CrawlSpider):
                 follow_links.append(link)
             else:
                 self.logger.info(f'Skipping url ({link.url}), {link_date} < {self.min_race_date}')
-        return links
+        return follow_links
 
     def parse_web_page_item(self, response):
         return WebPageItem(url=response.url, html=response.text)
