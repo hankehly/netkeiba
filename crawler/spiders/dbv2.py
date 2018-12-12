@@ -1,3 +1,8 @@
+import re
+from datetime import datetime, date, timedelta
+from typing import List
+
+from scrapy.link import Link
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 
@@ -5,12 +10,15 @@ from crawler.items import WebPageItem
 
 
 class DBV2Spider(CrawlSpider):
-    name = 'example.com'
+    name = 'dbv2'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['http://db.netkeiba.com/?pid=race_top']
 
     rules = (
-        Rule(LinkExtractor(allow=['/race/list/[0-9]+'])),
+        Rule(LinkExtractor(allow=[
+            '/race/list/[0-9]+',
+            'pid=race_top&date=20181103'
+        ]), process_links='process_date_links'),
 
         Rule(LinkExtractor(allow=[
             '/race/[0-9]+',
@@ -21,35 +29,27 @@ class DBV2Spider(CrawlSpider):
             '/jockey/[0-9]+',
             '/jockey/result/[0-9]+',
             '/jockey/profile/[0-9]+',
-            'http://db.netkeiba.com//?pid=race_board&thread=race&id=201809050204'
-        ]), callback='parse'),
+        ]), callback='parse_web_page_item'),
     )
 
-    # You can also get a list of comments for a specific race via the following API
-    # curl 'https://bbs.netkeiba.com/?pid=api_get_comment_list&sort=1&key=201809050204&max_length=1000&limit=20&page=1&category_cd=race' | jq
-    #
-    # {
-    #     "status": "OK",
-    #     "data": {
-    #         "count": "56",
-    #         "list": [
-    #             {
-    #                 "comment_id": "56",
-    #                 "sns_user_id": "8531617",
-    #                 "avatar_url": "http://img.findfriends.jp/profile/17/8531617_4.jpg?746",
-    #                 "user_url": "http://user.netkeiba.com?pid=user_prof&id=8531617",
-    #                 "nickname": "ﾏｻｷﾝ☆",
-    #                 "comment": ">>54\nいま見ました\n単でしたね(T ^ T)",
-    #                 "like_count": "0",
-    #                 "is_hidden_comment": "0",
-    #                 "is_anonymous": "0",
-    #                 "is_update": "0",
-    #                 "datetime": "2018/12/2 12:10",
-    #                 "like_comment": "99",
-    #                 "hidden_comment": "99",
-    #                 "delete_comment": "0",
-    #                 "follow_tag": "<a href=\"https://regist.netkeiba.com/account?pid=login&service=s01\"><span><span class=\"Btn\"><span class=\"Icon Icon_Follow\"></span>フォローする</span></span></a>"
-    #             },
-    # you should also checkout keibalist because it looks easier to parse and has easy to read data-bunseki stuff
-    def parse(self, response):
+    def __init__(self, min_race_date=None, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if min_race_date:
+            self.min_race_date = datetime.strptime(min_race_date, '%Y%m%d').date()
+        else:
+            self.min_race_date = date.today() - timedelta(days=30)
+
+    def process_date_links(self, links: List[Link]):
+        follow_links = []
+        for link in links:
+            date_string = re.search('[0-9]{8}', link.url).group()
+            link_date = datetime.strptime(date_string, '%Y%m%d').date()
+            if link_date >= self.min_race_date:
+                follow_links.append(link)
+            else:
+                self.logger.info(f'Skipping url ({link.url}), {link_date} < {self.min_race_date}')
+        return links
+
+    def parse_web_page_item(self, response):
         return WebPageItem(url=response.url, html=response.text)
