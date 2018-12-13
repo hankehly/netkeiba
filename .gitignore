@@ -6,5 +6,4 @@ db.sqlite3
 venv/
 .idea/
 node_modules/
-output/*
 *.jl
