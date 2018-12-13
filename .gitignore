@@ -1,9 +1,10 @@
 __pycache__/
-*.log
 db.sqlite3
 .ipynb_checkpoints
 .env
 venv/
 .idea/
 node_modules/
-*.jl
+tmp/*
+log/*
+!.gitkeep
