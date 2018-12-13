@@ -29,7 +29,7 @@ class Command(BaseCommand):
         jobpath = os.path.join(jobdir, iso_timestamp)
         os.mkdir(jobpath)
 
-        pidfile = os.path.join(piddir, iso_timestamp)
+        pidfile = os.path.join(piddir, f'{iso_timestamp}.pid')
         with open(pidfile, 'w') as f:
             f.write(str(os.getpid()) + os.linesep)
 
