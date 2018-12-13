@@ -18,7 +18,10 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         jobdir = os.path.join(settings.TMP_DIR, 'crawls')
+        if not os.path.isdir(jobdir):
+            os.mkdir(jobdir)
 
+        piddir = os.path.join(settings.TMP_DIR, 'pids')
         if not os.path.isdir(jobdir):
             os.mkdir(jobdir)
 
@@ -26,8 +29,9 @@ class Command(BaseCommand):
         jobpath = os.path.join(jobdir, iso_timestamp)
         os.mkdir(jobpath)
 
-        # TODO: Where can you specify this?
-        # pidfile = os.path.join(settings.TMP_DIR, 'pids', iso_timestamp)
+        pidfile = os.path.join(piddir, iso_timestamp)
+        with open(pidfile, 'w') as f:
+            f.write(str(os.getpid()) + os.linesep)
 
         custom_settings = {
             'JOBDIR': jobpath,
