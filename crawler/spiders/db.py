@@ -39,9 +39,11 @@ class DBSpider(CrawlSpider):
         super().__init__(*args, **kwargs)
 
         if min_date:
-            self.min_date = datetime.strptime(min_date, '%Y%m%d').date()
+            self.min_date = datetime.strptime(min_date, '%Y-%m-%d').date()
         else:
             self.min_date = date.today() - timedelta(days=30)
+
+        self.logger.info(f'min_date set to {self.min_date}')
 
     def process_date_links(self, links: List[Link]):
         follow_links = []
