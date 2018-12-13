@@ -22,8 +22,8 @@ class Command(BaseCommand):
             os.mkdir(jobdir)
 
         piddir = os.path.join(settings.TMP_DIR, 'pids')
-        if not os.path.isdir(jobdir):
-            os.mkdir(jobdir)
+        if not os.path.isdir(piddir):
+            os.mkdir(piddir)
 
         iso_timestamp = datetime.now().isoformat(timespec='seconds')
         jobpath = os.path.join(jobdir, iso_timestamp)
