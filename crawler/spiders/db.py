@@ -35,23 +35,23 @@ class DBV2Spider(CrawlSpider):
         ], restrict_css='#horse_detail .db_detail_menu'), callback='parse_web_page_item')
     )
 
-    def __init__(self, min_race_date=None, *args, **kwargs):
+    def __init__(self, min_date=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if min_race_date:
-            self.min_race_date = datetime.strptime(min_race_date, '%Y%m%d').date()
+        if min_date:
+            self.min_date = datetime.strptime(min_date, '%Y%m%d').date()
         else:
-            self.min_race_date = date.today() - timedelta(days=30)
+            self.min_date = date.today() - timedelta(days=30)
 
     def process_date_links(self, links: List[Link]):
         follow_links = []
         for link in links:
             date_string = re.search('[0-9]{8}', link.url).group()
             link_date = datetime.strptime(date_string, '%Y%m%d').date()
-            if link_date >= self.min_race_date:
+            if link_date >= self.min_date:
                 follow_links.append(link)
             else:
-                self.logger.info(f'Skipping url ({link.url}), {link_date} < {self.min_race_date}')
+                self.logger.info(f'Skipping url ({link.url}), {link_date} < {self.min_date}')
         return follow_links
 
     def parse_web_page_item(self, response):
