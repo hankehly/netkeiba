@@ -30,7 +30,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-    'crawler.pipelines.PageTypePipeline': 300,
+    'crawler.pipelines.DjangoPipeline': 300,
 }
 
 RETRY_HTTP_CODES = [500, 502, 503, 504, 522, 524, 408, 302]
