@@ -9,8 +9,8 @@ from scrapy.linkextractors import LinkExtractor
 from crawler.items import WebPageItem
 
 
-class DBV2Spider(CrawlSpider):
-    name = 'dbv2'
+class DBSpider(CrawlSpider):
+    name = 'db'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['https://db.netkeiba.com/?pid=race_top']
 
