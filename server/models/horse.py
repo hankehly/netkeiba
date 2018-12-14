@@ -10,3 +10,6 @@ class Horse(BaseModel):
     birthday = models.DateField()
     sex = models.ForeignKey('HorseSex', on_delete=models.PROTECT)
     user_rating = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'horses'
