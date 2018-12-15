@@ -13,6 +13,7 @@ cycler==0.10.0
 decorator==4.3.0
 defusedxml==0.5.0
 Django==2.1.4
+django-crontab==0.7.1
 djangorestframework==3.9.0
 entrypoints==0.2.3
 hyperlink==18.0.0
