@@ -119,7 +119,8 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 CRONJOBS = [
-    ('0 8 * * *', 'server.cron.scrape')
+    # 8:00 JST
+    ('0 23 * * *', 'server.cron.scrape')
 ]
 
 CRONTAB_LOCK_JOBS = True
