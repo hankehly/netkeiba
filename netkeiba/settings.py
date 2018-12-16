@@ -10,6 +10,7 @@ TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 SECRET_KEY = os.environ['SECRET_KEY']
+MAILTO = os.environ.get('MAILTO', '')
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 
@@ -125,4 +126,4 @@ CRONJOBS = [
 
 CRONTAB_LOCK_JOBS = True
 
-CRONTAB_COMMAND_PREFIX = f"SECRET_KEY='{SECRET_KEY}'"
+CRONTAB_COMMAND_PREFIX = f"MAILTO={MAILTO} SECRET_KEY='{SECRET_KEY}'"
