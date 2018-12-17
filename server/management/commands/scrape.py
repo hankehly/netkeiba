@@ -4,7 +4,7 @@ from datetime import datetime
 from django.conf import settings
 from django.core.management import BaseCommand
 from scrapy.crawler import CrawlerProcess
-from scrapy.utils.project import get_project_settings
+from scrapy.settings import Settings
 
 from server.argtype import date_string
 
@@ -38,6 +38,11 @@ class Command(BaseCommand):
             'LOG_FILE': os.path.join(settings.LOG_DIR, f'{iso_timestamp}.log'),
         }
 
-        process = CrawlerProcess({**get_project_settings(), **custom_settings})
+        scrapy_settings = Settings()
+        os.environ['SCRAPY_SETTINGS_MODULE'] = 'crawler.settings'
+        settings_module_path = os.environ['SCRAPY_SETTINGS_MODULE']
+        scrapy_settings.setmodule(settings_module_path, priority='project')
+
+        process = CrawlerProcess({**scrapy_settings, **custom_settings})
         process.crawl('db', options.get('min_date'))
         process.start()
