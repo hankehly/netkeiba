@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('server', '0002_auto_20181214_0026'),
     ]
@@ -12,6 +11,21 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RenameField(
             model_name='coursetype',
+            old_name='key',
+            new_name='name',
+        ),
+        migrations.RenameField(
+            model_name='horsesex',
+            old_name='key',
+            new_name='name',
+        ),
+        migrations.RenameField(
+            model_name='impostcategory',
+            old_name='key',
+            new_name='name',
+        ),
+        migrations.RenameField(
+            model_name='weathercategory',
             old_name='key',
             new_name='name',
         ),

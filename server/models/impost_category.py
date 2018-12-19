@@ -7,7 +7,7 @@ class ImpostCategory(BaseModel):
     """
     負担重量 (馬齢|定量|別定|ハンデ)
     """
-    key = models.CharField(max_length=255)
+    name = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'impost_categories'

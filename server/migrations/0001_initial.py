@@ -5,7 +5,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -142,7 +141,8 @@ class Migration(migrations.Migration):
                 ('distance', models.PositiveSmallIntegerField()),
                 ('date', models.DateField()),
                 ('course_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.CourseType')),
-                ('impost_category', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.ImpostCategory')),
+                ('impost_category',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.ImpostCategory')),
             ],
             options={
                 'db_table': 'races',
