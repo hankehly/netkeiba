@@ -4,7 +4,14 @@ from django.db import migrations
 
 
 def load_impost_categories(apps, schema_editor):
-    pass
+    ImpostCategory = apps.get_model('server', 'ImpostCategory')
+
+    ImpostCategory.objects.bulk_create([
+        ImpostCategory(name='age_based'),
+        ImpostCategory(name='age_sex_based'),
+        ImpostCategory(name='decided_per_race'),
+        ImpostCategory(name='handicap'),
+    ])
 
 
 class Migration(migrations.Migration):

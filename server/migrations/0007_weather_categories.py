@@ -4,7 +4,14 @@ from django.db import migrations
 
 
 def load_weather_categories(apps, schema_editor):
-    pass
+    WeatherCategory = apps.get_model('server', 'WeatherCategory')
+
+    WeatherCategory.objects.bulk_create([
+        WeatherCategory(name='cloudy'),
+        WeatherCategory(name='sunny'),
+        WeatherCategory(name='rainy'),
+        WeatherCategory(name='snowy'),
+    ])
 
 
 class Migration(migrations.Migration):
