@@ -1,11 +1,21 @@
-from server.models.base import *
-from server.models.course_type import *
-from server.models.horse import *
-from server.models.horse_sex import *
-from server.models.impost_category import *
-from server.models.jockey import *
-from server.models.race import *
-from server.models.racetrack import *
-from server.models.trainer import *
-from server.models.weather_category import *
-from server.models.webpage import *
+from server.models.base import BaseModel
+from server.models.course_type import CourseType
+from server.models.horse import Horse
+from server.models.horse_sex import HorseSex
+from server.models.impost_category import ImpostCategory
+from server.models.jockey import Jockey
+from server.models.race import (
+    NonWinnerRegionalHorseRace,
+    WinnerRegionalHorseRace,
+    RegionalJockeyRace,
+    ForeignHorseRace,
+    ForeignTrainerHorseRace,
+    ApprenticeJockeyRace,
+    FemaleOnlyRace,
+    Race
+)
+from server.models.race_contender import RaceContender
+from server.models.racetrack import RaceTrack
+from server.models.trainer import Trainer
+from server.models.weather_category import WeatherCategory
+from server.models.webpage import WebPage
