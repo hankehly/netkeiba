@@ -16,6 +16,7 @@ from server.models.race import (
 )
 from server.models.race_contender import RaceContender
 from server.models.racetrack import RaceTrack
+from server.models.track_condition_category import TrackConditionCategory, DirtConditionCategory, TurfConditionCategory
 from server.models.trainer import Trainer
 from server.models.weather_category import WeatherCategory
 from server.models.webpage import WebPage

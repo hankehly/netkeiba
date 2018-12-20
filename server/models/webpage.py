@@ -7,7 +7,7 @@ from crawler.parsers.horse import HorseParser
 from crawler.parsers.jockey_result import JockeyResultParser
 from crawler.parsers.race import RaceParser
 from crawler.parsers.trainer_result import TrainerResultParser
-from parsers.noop import NoopParser
+from crawler.parsers.noop import NoopParser
 from server.models.base import BaseModel
 
 

@@ -140,9 +140,9 @@ class Migration(migrations.Migration):
                 ('key', models.CharField(max_length=255, unique=True)),
                 ('distance', models.PositiveSmallIntegerField()),
                 ('date', models.DateField()),
-                ('course_type', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.CourseType')),
+                ('course_type', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.CourseType')),
                 ('impost_category',
-                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.ImpostCategory')),
+                 models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.ImpostCategory')),
             ],
             options={
                 'db_table': 'races',
@@ -167,7 +167,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('race', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race')),
+                ('race', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race')),
             ],
             options={
                 'db_table': 'regional_jockey_races',
@@ -216,7 +216,7 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
                 ('updated_at', models.DateTimeField(auto_now=True)),
-                ('race', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race')),
+                ('race', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race')),
             ],
             options={
                 'db_table': 'winner_regional_horse_races',
@@ -225,41 +225,41 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='race',
             name='racetrack',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.RaceTrack'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.RaceTrack'),
         ),
         migrations.AddField(
             model_name='race',
             name='weather',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.WeatherCategory'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.WeatherCategory'),
         ),
         migrations.AddField(
             model_name='nonwinnerregionalhorserace',
             name='race',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race'),
         ),
         migrations.AddField(
             model_name='horse',
             name='sex',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.HorseSex'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.HorseSex'),
         ),
         migrations.AddField(
             model_name='foreigntrainerhorserace',
             name='race',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race'),
         ),
         migrations.AddField(
             model_name='foreignhorserace',
             name='race',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race'),
         ),
         migrations.AddField(
             model_name='femaleonlyrace',
             name='race',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race'),
         ),
         migrations.AddField(
             model_name='apprenticejockeyrace',
             name='race',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='server.Race'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race'),
         ),
     ]

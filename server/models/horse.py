@@ -8,7 +8,7 @@ class Horse(BaseModel):
     total_races = models.PositiveSmallIntegerField()
     total_wins = models.PositiveSmallIntegerField()
     birthday = models.DateField()
-    sex = models.ForeignKey('HorseSex', on_delete=models.PROTECT)
+    sex = models.ForeignKey('HorseSex', on_delete=models.CASCADE)
     user_rating = models.FloatField(blank=True, null=True)
 
     class Meta:

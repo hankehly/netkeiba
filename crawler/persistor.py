@@ -19,6 +19,11 @@ class Persistor:
 
 
 class DjangoPersistor(Persistor):
+    model_lookup_map = {
+        'racetrack': 'racetrack',
+        'course_type': 'course_type'
+    }
+
     def get(self, model_name=None, **kwargs) -> dict:
         try:
             record = apps.get_model('server', model_name).objects.get(kwargs)
