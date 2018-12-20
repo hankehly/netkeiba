@@ -26,26 +26,26 @@ class RaceParser(Parser):
         data = {'distance': distance, 'course_type_id': course_type_id, 'racetrack_id': racetrack_id}
 
         if '芝:良' in track_details[2]:
-            data['turf_condition'] = f"'good'"
+            data['turf_condition'] = 'good'
         elif '芝:稍重' in track_details[2]:
-            data['turf_condition'] = f"'slightly_heavy'"
+            data['turf_condition'] = 'slightly_heavy'
         elif '芝:重' in track_details[2]:
-            data['turf_condition'] = f"'heavy'"
+            data['turf_condition'] = 'heavy'
         elif '芝:不良' in track_details[2]:
-            data['turf_condition'] = f"'bad'"
+            data['turf_condition'] = 'bad'
 
         if 'ダート:良' in track_details[2]:
-            data['dirt_condition'] = f"'good'"
+            data['dirt_condition'] = 'good'
         elif 'ダート:稍重' in track_details[2]:
-            data['dirt_condition'] = f"'slightly_heavy'"
+            data['dirt_condition'] = 'slightly_heavy'
         elif 'ダート:重' in track_details[2]:
-            data['dirt_condition'] = f"'heavy'"
+            data['dirt_condition'] = 'heavy'
         elif 'ダート:不良' in track_details[2]:
-            data['dirt_condition'] = f"'bad'"
+            data['dirt_condition'] = 'bad'
 
         for key, val in WEATHER.items():
             if key in track_details[1]:
-                data['weather'] = f"'{val}'"
+                data['weather'] = val
 
         subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
             .replace(u'\xa0', u' ') \
@@ -54,7 +54,7 @@ class RaceParser(Parser):
 
         for key, val in IMPOST_CATEGORIES.items():
             if key in subtitle[-1]:
-                data['impost_category'] = f"'{val}'"
+                data['impost_category'] = val
 
         data['date'] = datetime.strptime(subtitle[0], '%Y年%m月%d日').strftime("'%Y-%m-%d'")
 
@@ -66,7 +66,9 @@ class RaceParser(Parser):
         data['is_apprentice_jockey_allowed'] = 1 if '見習騎手' in subtitle[-1] else 0
         data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
 
-        race_id = self._persistor.update_or_create('race', '{TODO: KEY}', **data)
+        race_url = self._soup.select_one('.race_place .active').get('href')
+        race_key = re.search('/race/([0-9]+)', race_url).group(1)
+        race = self._persistor.update_or_create('race', race_key, **data)
 
         for i, record in enumerate(self._soup.select('.race_table_01 tr')[1:], start=1):
             # (失) 失格 (http://www.jra.go.jp/judge/)
@@ -84,17 +86,17 @@ class RaceParser(Parser):
             if order_of_finish_lowered:
                 order_of_finish = re.search('[0-9]+', order_of_finish).group(0)
 
-            contender = {'race_id': race_id, 'order_of_finish': int(order_of_finish),
+            contender = {'race_id': race.get('id'), 'order_of_finish': int(order_of_finish),
                          'order_of_finish_lowered': order_of_finish_lowered}
 
             horse_key = re.search('/horse/([0-9]+)', record.select('td')[3].select_one('a').get('href')).group(1)
-            contender['horse_id'] = self._persistor.get_or_create('horses', horse_key).get('id')
+            contender['horse_id'] = self._persistor.get_or_create('horse', horse_key).get('id')
 
             jockey_key = re.search('/jockey/([0-9]+)', record.select('td')[6].select_one('a').get('href')).group(1)
-            contender['jockey_id'] = self._persistor.get_or_create('jockeys', jockey_key).get('id')
+            contender['jockey_id'] = self._persistor.get_or_create('jockey', jockey_key).get('id')
 
             trainer_key = re.search('/trainer/([0-9]+)', record.select('td')[18].select_one('a').get('href')).group(1)
-            contender['trainer_id'] = self._persistor.get_or_create('trainers', trainer_key).get('id')
+            contender['trainer_id'] = self._persistor.get_or_create('trainer', trainer_key).get('id')
 
             contender['post_position'] = int(record.select('td')[1].string)
 
