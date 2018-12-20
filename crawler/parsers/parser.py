@@ -1,8 +1,8 @@
 from bs4 import BeautifulSoup
 
-from crawler.persistor import Persistor
+from crawler.persistor import DjangoPersistor
 
-persistor = Persistor()
+persistor = DjangoPersistor()
 
 
 class Parser:
@@ -20,5 +20,5 @@ class Parser:
     def parse(self):
         raise NotImplementedError
 
-    def save(self):
+    def persist(self):
         raise NotImplementedError

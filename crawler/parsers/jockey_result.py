@@ -20,5 +20,5 @@ class JockeyResultParser(Parser):
             'career_earnings': self.str2float(row.select_one('td:nth-of-type(20)').string),
         }
 
-    def save(self):
+    def persist(self):
         pass

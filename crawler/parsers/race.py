@@ -110,5 +110,5 @@ class RaceParser(Parser):
             contender['horse_weight'] = int(horse_weight_search.group(1))
             contender['horse_weight_diff'] = int(horse_weight_search.group(2))
 
-    def save(self):
+    def persist(self):
         pass

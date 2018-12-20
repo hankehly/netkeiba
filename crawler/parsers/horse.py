@@ -39,5 +39,5 @@ class HorseParser(Parser):
             'user_rating': user_rating
         }
 
-    def save(self):
+    def persist(self):
         pass

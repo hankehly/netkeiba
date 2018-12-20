@@ -9,6 +9,17 @@ logger = logging.getLogger(__name__)
 
 class Persistor:
     def get(self, model_name=None, **kwargs) -> dict:
+        raise NotImplementedError
+
+    def get_or_create(self, model_name=None, defaults=None, **kwargs):
+        raise NotImplementedError
+
+    def update_or_create(self, model_name=None, defaults=None, **kwargs):
+        raise NotImplementedError
+
+
+class DjangoPersistor(Persistor):
+    def get(self, model_name=None, **kwargs) -> dict:
         try:
             record = apps.get_model('server', model_name).objects.get(kwargs)
         except (LookupError, MultipleObjectsReturned, ObjectDoesNotExist) as e:
