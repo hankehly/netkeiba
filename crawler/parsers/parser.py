@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 
-from persistor import Persistor
+from crawler.persistor import Persistor
 
 persistor = Persistor()
 

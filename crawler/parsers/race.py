@@ -2,7 +2,7 @@ import logging
 import re
 from datetime import datetime
 
-from constants import RACETRACKS, COURSE_TYPES, WEATHER, IMPOST_CATEGORIES
+from crawler.constants import RACETRACKS, COURSE_TYPES, WEATHER, IMPOST_CATEGORIES
 from crawler.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
