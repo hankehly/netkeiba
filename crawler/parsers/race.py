@@ -10,64 +10,27 @@ logger = logging.getLogger(__name__)
 
 class RaceParser(Parser):
     def parse(self):
-        racetrack_name = RACETRACKS.get(self._soup.select_one('.race_place .active').string)
-        racetrack_id = self._persistor.get('racetrack', name=racetrack_name).get('id')
-
-        track_details = self._soup.select_one('.mainrace_data p span').string \
-            .replace(u'\xa0', u'') \
-            .replace(' ', '') \
-            .split('/')
-
-        course_type_name = track_details[0][0].get(COURSE_TYPES)
-        course_type_id = self._persistor.get('course_type', name=course_type_name).get('id')
-
-        distance = int(re.search('([0-9]+)', track_details[0]).group(1))
+        distance = self._parse_distance()
+        course_type_id = self._parse_course_type_id()
+        racetrack_id = self._parse_racetrack_id()
 
         data = {'distance': distance, 'course_type_id': course_type_id, 'racetrack_id': racetrack_id}
 
-        if '芝:良' in track_details[2]:
-            data['turf_condition'] = 'good'
-        elif '芝:稍重' in track_details[2]:
-            data['turf_condition'] = 'slightly_heavy'
-        elif '芝:重' in track_details[2]:
-            data['turf_condition'] = 'heavy'
-        elif '芝:不良' in track_details[2]:
-            data['turf_condition'] = 'bad'
+        data['turf_condition'] = self._parse_turf_condition()
+        data['dirt_condition'] = self._parse_dirt_condition()
+        data['weather'] = self._parse_weather()
+        data['impost_category'] = self._parse_impost_category()
+        data['date'] = self._parse_date()
 
-        if 'ダート:良' in track_details[2]:
-            data['dirt_condition'] = 'good'
-        elif 'ダート:稍重' in track_details[2]:
-            data['dirt_condition'] = 'slightly_heavy'
-        elif 'ダート:重' in track_details[2]:
-            data['dirt_condition'] = 'heavy'
-        elif 'ダート:不良' in track_details[2]:
-            data['dirt_condition'] = 'bad'
+        data['is_non_winner_regional_horse_allowed'] = self._parse_is_non_winner_regional_horse_allowed()
+        data['is_winner_regional_horse_allowed'] = self._parse_is_winner_regional_horse_allowed()
+        data['is_regional_jockey_allowed'] = self._parse_is_regional_jockey_allowed()
+        data['is_foreign_horse_allowed'] = self._parse_is_foreign_horse_allowed()
+        data['is_foreign_horse_and_trainer_allowed'] = self._parse_is_foreign_horse_and_trainer_allowed()
+        data['is_apprentice_jockey_allowed'] = self._parse_is_apprentice_jockey_allowed()
+        data['is_female_only'] = self._parse_is_female_only()
 
-        for key, val in WEATHER.items():
-            if key in track_details[1]:
-                data['weather'] = val
-
-        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
-            .replace(u'\xa0', u' ') \
-            .replace('  ', ' ') \
-            .split(' ')
-
-        for key, val in IMPOST_CATEGORIES.items():
-            if key in subtitle[-1]:
-                data['impost_category'] = val
-
-        data['date'] = datetime.strptime(subtitle[0], '%Y年%m月%d日').strftime("'%Y-%m-%d'")
-
-        data['is_non_winner_regional_horse_allowed'] = 1 if '(指定)' in subtitle[-1] else 0
-        data['is_winner_regional_horse_allowed'] = 1 if '特指' in subtitle[-1] else 0
-        data['is_regional_jockey_allowed'] = 1 if '[指定]' in subtitle[-1] else 0
-        data['is_foreign_horse_allowed'] = 1 if '混' in subtitle[-1] else 0
-        data['is_foreign_horse_and_trainer_allowed'] = 1 if '国際' in subtitle[-1] else 0
-        data['is_apprentice_jockey_allowed'] = 1 if '見習騎手' in subtitle[-1] else 0
-        data['is_female_only'] = 1 if '牝' in subtitle[-1] else 0
-
-        race_url = self._soup.select_one('.race_place .active').get('href')
-        race_key = re.search('/race/([0-9]+)', race_url).group(1)
+        race_key = self._parse_race_key()
         race = self._persistor.update_or_create('race', race_key, **data)
 
         for i, record in enumerate(self._soup.select('.race_table_01 tr')[1:], start=1):
@@ -112,5 +75,156 @@ class RaceParser(Parser):
             contender['horse_weight'] = int(horse_weight_search.group(1))
             contender['horse_weight_diff'] = int(horse_weight_search.group(2))
 
+    def _parse_distance(self):
+        track_details = self._soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
+
+        return int(re.search('([0-9]+)', track_details[0]).group(1))
+
     def persist(self):
         pass
+
+    def _parse_course_type_id(self):
+        track_details = self._soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
+
+        course_type_name = track_details[0][0].get(COURSE_TYPES)
+        return self._persistor.get('course_type', name=course_type_name).get('id')
+
+    def _parse_racetrack_id(self):
+        racetrack_name = RACETRACKS.get(self._soup.select_one('.race_place .active').string)
+        return self._persistor.get('racetrack', name=racetrack_name).get('id')
+
+    def _parse_turf_condition(self):
+        track_details = self._soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
+
+        turf_condition = None
+        if '芝:良' in track_details[2]:
+            turf_condition = 'good'
+        elif '芝:稍重' in track_details[2]:
+            turf_condition = 'slightly_heavy'
+        elif '芝:重' in track_details[2]:
+            turf_condition = 'heavy'
+        elif '芝:不良' in track_details[2]:
+            turf_condition = 'bad'
+
+        return turf_condition
+
+    def _parse_dirt_condition(self):
+        track_details = self._soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
+
+        dirt_condition = None
+        if 'ダート:良' in track_details[2]:
+            dirt_condition = 'good'
+        elif 'ダート:稍重' in track_details[2]:
+            dirt_condition = 'slightly_heavy'
+        elif 'ダート:重' in track_details[2]:
+            dirt_condition = 'heavy'
+        elif 'ダート:不良' in track_details[2]:
+            dirt_condition = 'bad'
+
+        return dirt_condition
+
+    def _parse_weather(self):
+        track_details = self._soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
+
+        weather = None
+        for key, val in WEATHER.items():
+            if key in track_details[1]:
+                weather = val
+
+        return weather
+
+    def _parse_impost_category(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        impost_category = None
+        for key, val in IMPOST_CATEGORIES.items():
+            if key in subtitle[-1]:
+                impost_category = val
+
+        return impost_category
+
+    def _parse_date(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return datetime.strptime(subtitle[0], '%Y年%m月%d日').strftime("%Y-%m-%d")
+
+    def _parse_race_key(self):
+        race_url = self._soup.select_one('.race_place .active').get('href')
+        return re.search('/race/([0-9]+)', race_url).group(1)
+
+    def _parse_is_non_winner_regional_horse_allowed(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '(指定)' in subtitle[-1]
+
+    def _parse_is_winner_regional_horse_allowed(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '特指' in subtitle[-1]
+
+    def _parse_is_regional_jockey_allowed(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '[指定]' in subtitle[-1]
+
+    def _parse_is_foreign_horse_allowed(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '混' in subtitle[-1]
+
+    def _parse_is_foreign_horse_and_trainer_allowed(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '国際' in subtitle[-1]
+
+    def _parse_is_apprentice_jockey_allowed(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '見習騎手' in subtitle[-1]
+
+    def _parse_is_female_only(self):
+        subtitle = self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
+            .split(' ')
+
+        return '牝' in subtitle[-1]
