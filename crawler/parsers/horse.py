@@ -8,6 +8,7 @@ from crawler.parsers.parser import Parser
 
 class HorseParser(Parser):
     def parse(self):
+        key = self._parse_key()
         total_races = self._parse_total_races()
         total_wins = self._parse_total_wins()
         birthday = self._parse_birthday()
@@ -15,12 +16,21 @@ class HorseParser(Parser):
         user_rating = self._parse_user_rating()
 
         self.data = {
+            'key': key,
             'total_races': total_races,
             'total_wins': total_wins,
             'birthday': birthday,
             'sex': sex,
             'user_rating': user_rating
         }
+
+    def persist(self):
+        key = self.data.pop('key')
+        self._persistor.update_or_create('horse', defaults=self.data, key=key)
+
+    def _parse_key(self):
+        url = self._soup.head.select_one('link[rel=canonical]').get('href')
+        return re.search('/horse/([0-9]+)', url).group(1)
 
     def _parse_total_races(self):
         win_record_str = self._soup.select('.db_prof_table tr')[-3].select_one('td').contents[0]
@@ -54,6 +64,3 @@ class HorseParser(Parser):
                     child.extract()
             user_rating = float(self._soup.select_one('.horse_title .rate strong').string)
         return user_rating
-
-    def persist(self):
-        pass
