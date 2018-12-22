@@ -24,14 +24,24 @@ class Persistor:
 
 class DjangoPersistor(Persistor):
     _model_lookup_map = {
-        'racetrack': 'Racetrack',
+        'apprentice_jockey_race': 'ApprenticeJockeyRace',
         'course_type': 'CourseType',
-        'weather_category': 'WeatherCategory',
-        'race': 'Race',
+        'female_only_race': 'FemaleOnlyRace',
+        'foreign_horse_race': 'ForeignHorseRace',
+        'foreign_horse_and_trainer_race': 'ForeignTrainerHorseRace',
         'horse': 'Horse',
         'horse_sex': 'HorseSex',
+        'impost_category': 'ImpostCategory',
         'jockey': 'Jockey',
+        'non_winner_regional_horse_race': 'NonWinnerRegionalHorseRace',
+        'race': 'Race',
+        'racetrack': 'Racetrack',
+        'regional_jockey_race': 'RegionalJockeyRace',
         'trainer': 'Trainer',
+        'turf_condition_category': 'TurfConditionCategory',
+        'dirt_condition_category': 'DirtConditionCategory',
+        'weather_category': 'WeatherCategory',
+        'winner_regional_horse_race': 'WinnerRegionalHorseRace',
     }
 
     def get(self, model_key: str, **kwargs) -> Dict:
