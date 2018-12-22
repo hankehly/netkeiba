@@ -25,7 +25,7 @@ class Command(BaseCommand):
             one_week_ago = datetime.now(tz=pytz.timezone(TIME_ZONE)) - timedelta(weeks=1)
             queryset = WebPage.objects.filter(updated_at__gte=one_week_ago)
 
-        for page in queryset.iterator():
+        for page in queryset.order_by('-updated_at').iterator():
             print(f'Processing {page.url}')
             parser = page.get_parser()
             parser.parse()
