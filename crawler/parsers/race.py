@@ -11,6 +11,7 @@ logger = logging.getLogger(__name__)
 class RaceParser(Parser):
     def parse(self):
         self.data = {
+            'key': self._parse_key(),
             'distance': self._parse_distance(),
             'course_type_id': self._parse_course_type_id(),
             'racetrack_id': self._parse_racetrack_id(),
@@ -27,9 +28,6 @@ class RaceParser(Parser):
             'is_apprentice_jockey_allowed': self._parse_is_apprentice_jockey_allowed(),
             'is_female_only': self._parse_is_female_only()
         }
-
-        race_key = self._parse_race_key()
-        race = self._persistor.update_or_create('race', race_key, **data)
 
         contenders = []
         for i, record in enumerate(self._soup.select('.race_table_01 tr')[1:], start=1):
@@ -48,33 +46,26 @@ class RaceParser(Parser):
             if order_of_finish_lowered:
                 order_of_finish = re.search('[0-9]+', order_of_finish).group(0)
 
-            contender = {
-                'race_id': race.get('id'),
+            minutes, seconds = map(float, record.select('td')[7].string.split(':'))
+            horse_weight_search = re.search('([0-9]+)\(([+-]?[0-9]+)\)', record.select('td')[14].string)
+            horse_url = record.select('td')[3].select_one('a').get('href')
+            jockey_url = record.select('td')[6].select_one('a').get('href')
+            trainer_url = record.select('td')[18].select_one('a').get('href')
+
+            contenders.append({
                 'order_of_finish': int(order_of_finish),
                 'order_of_finish_lowered': order_of_finish_lowered,
                 'post_position': int(record.select('td')[1].string),
                 'weight_carried': float(record.select('td')[5].string),
                 'first_place_odds': float(record.select('td')[12].string),
-                'popularity': float(record.select('td')[13].string)
-            }
-
-            horse_key = re.search('/horse/([0-9]+)', record.select('td')[3].select_one('a').get('href')).group(1)
-            contender['horse_id'] = self._persistor.get_or_create('horse', horse_key).get('id')
-
-            jockey_key = re.search('/jockey/([0-9]+)', record.select('td')[6].select_one('a').get('href')).group(1)
-            contender['jockey_id'] = self._persistor.get_or_create('jockey', jockey_key).get('id')
-
-            trainer_key = re.search('/trainer/([0-9]+)', record.select('td')[18].select_one('a').get('href')).group(1)
-            contender['trainer_id'] = self._persistor.get_or_create('trainer', trainer_key).get('id')
-
-            minutes, seconds = map(float, record.select('td')[7].string.split(':'))
-            contender['finish_time'] = minutes * 60 + seconds
-
-            horse_weight_search = re.search('([0-9]+)\(([+-]?[0-9]+)\)', record.select('td')[14].string)
-            contender['horse_weight'] = int(horse_weight_search.group(1))
-            contender['horse_weight_diff'] = int(horse_weight_search.group(2))
-
-            contenders.append(contender)
+                'popularity': float(record.select('td')[13].string),
+                'horse_key': re.search('/horse/([0-9]+)', horse_url).group(1),
+                'jockey_key': re.search('/jockey/([0-9]+)', jockey_url).group(1),
+                'trainer_key': re.search('/trainer/([0-9]+)', trainer_url).group(1),
+                'finish_time': minutes * 60 + seconds,
+                'horse_weight': int(horse_weight_search.group(1)),
+                'horse_weight_diff': int(horse_weight_search.group(2))
+            })
 
         self.data['contenders'] = contenders
 
@@ -146,7 +137,7 @@ class RaceParser(Parser):
     def _parse_date(self):
         return datetime.strptime(self._subtitle[0], '%Y年%m月%d日').strftime("%Y-%m-%d")
 
-    def _parse_race_key(self):
+    def _parse_key(self):
         race_url = self._soup.select_one('.race_place .active').get('href')
         return re.search('/race/([0-9]+)', race_url).group(1)
 
