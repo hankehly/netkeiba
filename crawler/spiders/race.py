@@ -4,7 +4,7 @@ from datetime import datetime
 import scrapy
 from bs4 import BeautifulSoup
 
-from constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX
+from crawler.constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX
 from crawler.parsers.horse import HorseParser
 from crawler.parsers.jockey_result import JockeyResultParser
 from crawler.parsers.trainer_result import TrainerResultParser
