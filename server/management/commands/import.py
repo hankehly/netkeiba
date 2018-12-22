@@ -5,6 +5,7 @@ import pytz
 from django.core.management import BaseCommand
 
 from netkeiba.settings import TIME_ZONE
+from server.argtype import date_string
 from server.models import WebPage
 
 logger = logging.getLogger(__name__)
@@ -15,15 +16,15 @@ class Command(BaseCommand):
            'past 7 days is processed. '
 
     def add_arguments(self, parser):
-        parser.add_argument('-a', '--all', dest='all', action='store_true',
-                            help='Process all scraped HTML currently stored in WebPage table')
+        parser.add_argument('--min-date', dest='min_date', action=date_string,
+                            help='Process all scraped HTML from this date to present time (fmt: YYYY-MM-DD)')
 
     def handle(self, *args, **options):
-        if options['all']:
-            queryset = WebPage.objects.all()
+        if options['min_date']:
+            limit = datetime.strptime(options['since'], '%Y-%m-%d')
+            queryset = WebPage.objects.filter(updated_at__gte=limit)
         else:
-            one_week_ago = datetime.now(tz=pytz.timezone(TIME_ZONE)) - timedelta(weeks=1)
-            queryset = WebPage.objects.filter(updated_at__gte=one_week_ago)
+            queryset = WebPage.objects.all()
 
         for page in queryset.order_by('-updated_at').iterator():
             print(f'Processing {page.url}')
