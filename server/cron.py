@@ -1,7 +1,10 @@
 import logging
-from datetime import date, timedelta
+from datetime import timedelta, datetime
 
+import pytz
 from django.core.management import call_command
+
+from netkeiba.settings import TIME_ZONE
 
 logger = logging.getLogger(__name__)
 
@@ -17,4 +20,4 @@ def import_latest():
 
 
 def get_one_week_ago_date_str():
-    return (date.today() - timedelta(weeks=1)).strftime('%Y-%m-%d')
+    return (datetime.now(tz=pytz.timezone(TIME_ZONE)) - timedelta(weeks=1)).strftime('%Y-%m-%d')
