@@ -12,4 +12,5 @@ def scrape():
 
 
 def import_scraped_content():
-    call_command('import')
+    one_week_ago = (date.today() - timedelta(weeks=1)).strftime('%Y-%m-%d')
+    call_command('import', min_date=one_week_ago)
