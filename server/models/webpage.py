@@ -21,9 +21,9 @@ class WebPage(BaseModel):
     def get_parser(self) -> Parser:
         parser_lookup_table = [
             {'regex': '/horse/[0-9]+/', 'class': HorseParser},
-            {'regex': '/jockey/result/[0-9]+/', 'class': JockeyResultParser},
-            {'regex': '/race/[0-9]+/', 'class': RaceParser},
-            {'regex': '/trainer/result/[0-9]+/', 'class': TrainerResultParser},
+            # {'regex': '/jockey/result/[0-9]+/', 'class': JockeyResultParser},
+            # {'regex': '/race/[0-9]+/', 'class': RaceParser},
+            # {'regex': '/trainer/result/[0-9]+/', 'class': TrainerResultParser},
         ]
 
         parser_class = NoopParser
