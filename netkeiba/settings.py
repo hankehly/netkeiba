@@ -121,10 +121,10 @@ STATIC_URL = '/static/'
 
 CRONJOBS = [
     # 4:00 JST
-    ('0 19 * * *', 'server.cron.scrape'),
+    ('0 19 * * *', 'server.cron.scrape_latest'),
 
     # 6:00 JST
-    ('0 20 * * *', 'server.cron.import'),
+    ('0 20 * * *', 'server.cron.import_latest'),
 ]
 
 CRONTAB_LOCK_JOBS = True
