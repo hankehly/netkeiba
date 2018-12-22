@@ -10,7 +10,6 @@ TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 SECRET_KEY = os.environ['SECRET_KEY']
-MAILTO = os.environ.get('MAILTO', '')
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
 
@@ -130,3 +129,33 @@ CRONJOBS = [
 CRONTAB_LOCK_JOBS = True
 
 CRONTAB_COMMAND_PREFIX = f". {os.path.join(BASE_DIR, '.env')};"
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
+            'level': 'DEBUG',
+        },
+        'server_app': {
+            'backupCount': 10,
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(LOG_DIR, 'server.log'),
+            'level': 'DEBUG',
+            'maxBytes': 1024 * 1024 * 15,
+        },
+    },
+    'loggers': {
+        'server': {
+            'handlers': ['console', 'server_app'],
+            'level': 'DEBUG'
+        }
+    }
+}
