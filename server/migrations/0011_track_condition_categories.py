@@ -8,17 +8,17 @@ def load_track_condition_categories(apps, schema_editor):
     TurfConditionCategory = apps.get_model('server', 'TurfConditionCategory')
 
     DirtConditionCategory.objects.bulk_create([
-        DirtConditionCategory(name='cloudy'),
-        DirtConditionCategory(name='sunny'),
-        DirtConditionCategory(name='rainy'),
-        DirtConditionCategory(name='snowy'),
+        DirtConditionCategory(name='good'),
+        DirtConditionCategory(name='slightly_heavy'),
+        DirtConditionCategory(name='heavy'),
+        DirtConditionCategory(name='bad'),
     ])
 
     TurfConditionCategory.objects.bulk_create([
-        TurfConditionCategory(name='cloudy'),
-        TurfConditionCategory(name='sunny'),
-        TurfConditionCategory(name='rainy'),
-        TurfConditionCategory(name='snowy'),
+        TurfConditionCategory(name='good'),
+        TurfConditionCategory(name='slightly_heavy'),
+        TurfConditionCategory(name='heavy'),
+        TurfConditionCategory(name='bad'),
     ])
 
 
