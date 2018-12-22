@@ -13,8 +13,8 @@ class RaceParser(Parser):
         self.data = {
             'key': self._parse_key(),
             'distance': self._parse_distance(),
-            'course_type_id': self._parse_course_type_id(),
-            'racetrack_id': self._parse_racetrack_id(),
+            'course_type': self._parse_course_type(),
+            'racetrack': self._parse_racetrack(),
             'turf_condition': self._parse_turf_condition(),
             'dirt_condition': self._parse_dirt_condition(),
             'weather': self._parse_weather(),
@@ -70,7 +70,74 @@ class RaceParser(Parser):
         self.data['contenders'] = contenders
 
     def persist(self):
-        pass
+        race_key = self.data.get('key')
+        racetrack_id = self._persistor.get('racetrack', name=self.data.get('racetrack')).get('id')
+        course_type_id = self._persistor.get('course_type', name=self.data.get('course_type')).get('id')
+        turf_condition = self.data.get('turf_condition')
+        dirt_condition = self.data.get('dirt_condition')
+
+        if turf_condition:
+            turf_condition_id = self._persistor.get('turf_condition_category', name=turf_condition).get('id')
+        else:
+            turf_condition_id = None
+
+        if dirt_condition:
+            dirt_condition_id = self._persistor.get('dirt_condition_category', name=dirt_condition).get('id')
+        else:
+            dirt_condition_id = None
+
+        weather_category_id = self._persistor.get('weather_category', name=self.data.get('weather')).get('id')
+        impost_category_id = self._persistor.get('impost_category', name=self.data.get('impost_category')).get('id')
+        race = self._persistor.update_or_create('race', key=race_key, defaults={
+            'racetrack_id': racetrack_id,
+            'course_type_id': course_type_id,
+            'turf_condition_id': turf_condition_id,
+            'dirt_condition_id': dirt_condition_id,
+            'distance': self.data.get('distance'),
+            'weather_id': weather_category_id,
+            'impost_category_id': impost_category_id,
+            'date': self.data.get('date')
+        })
+
+        if self.data.get('is_non_winner_regional_horse_allowed'):
+            self._persistor.update_or_create('non_winner_regional_horse_race', race_id=race.get('id'))
+
+        if self.data.get('is_winner_regional_horse_allowed'):
+            self._persistor.update_or_create('winner_regional_horse_race', race_id=race.get('id'))
+
+        if self.data.get('is_regional_jockey_allowed'):
+            self._persistor.update_or_create('regional_jockey_race', race_id=race.get('id'))
+
+        if self.data.get('is_foreign_horse_allowed'):
+            self._persistor.update_or_create('foreign_horse_race', race_id=race.get('id'))
+
+        if self.data.get('is_foreign_horse_and_trainer_allowed'):
+            self._persistor.update_or_create('foreign_horse_and_trainer_race', race_id=race.get('id'))
+
+        if self.data.get('is_apprentice_jockey_allowed'):
+            self._persistor.update_or_create('apprentice_jockey_race', race_id=race.get('id'))
+
+        if self.data.get('is_female_only'):
+            self._persistor.update_or_create('female_only_race', race_id=race.get('id'))
+
+        for contender in self.data.get('contenders'):
+            horse = self._persistor.get_or_create('horse', key=contender.get('horse_key'))
+            jockey = self._persistor.get_or_create('jockey', key=contender.get('jockey_key'))
+            trainer = self._persistor.get_or_create('trainer', key=contender.get('trainer_key'))
+            defaults = {
+                'order_of_finish': contender.get('order_of_finish'),
+                'order_of_finish_lowered': contender.get('order_of_finish_lowered'),
+                'post_position': contender.get('post_position'),
+                'weight_carried': contender.get('weight_carried'),
+                'first_place_odds': contender.get('first_place_odds'),
+                'popularity': contender.get('popularity'),
+                'finish_time': contender.get('finish_time'),
+                'horse_weight': contender.get('horse_weight'),
+                'horse_weight_diff': contender.get('horse_weight_diff'),
+            }
+            self._persistor.update_or_create('race_contender', race_id=race.get('id'), horse_id=horse.get('id'),
+                                             jockey_id=jockey.get('id'), trainer_id=trainer.get('id'),
+                                             defaults=defaults)
 
     @property
     def _track_details(self):
@@ -84,13 +151,11 @@ class RaceParser(Parser):
     def _parse_distance(self):
         return int(re.search('([0-9]+)', self._track_details[0]).group(1))
 
-    def _parse_course_type_id(self):
-        course_type_name = self._track_details[0][0].get(COURSE_TYPES)
-        return self._persistor.get('course_type', name=course_type_name).get('id')
+    def _parse_course_type(self):
+        return COURSE_TYPES.get(self._track_details[0][0])
 
-    def _parse_racetrack_id(self):
-        racetrack_name = RACETRACKS.get(self._soup.select_one('.race_place .active').string)
-        return self._persistor.get('racetrack', name=racetrack_name).get('id')
+    def _parse_racetrack(self):
+        return RACETRACKS.get(self._soup.select_one('.race_place .active').string)
 
     def _parse_turf_condition(self):
         turf_condition = None
@@ -131,7 +196,6 @@ class RaceParser(Parser):
         for key, val in IMPOST_CATEGORIES.items():
             if key in self._subtitle[-1]:
                 impost_category = val
-
         return impost_category
 
     def _parse_date(self):
