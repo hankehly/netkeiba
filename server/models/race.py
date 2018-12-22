@@ -81,7 +81,6 @@ class FemaleOnlyRace(BaseModel):
 
 
 class Race(BaseModel):
-    url = models.URLField()
     key = models.CharField(max_length=255, unique=True)
     racetrack = models.ForeignKey('Racetrack', on_delete=models.CASCADE)
     impost_category = models.ForeignKey('ImpostCategory', on_delete=models.CASCADE)

@@ -35,6 +35,7 @@ class DjangoPersistor(Persistor):
         'jockey': 'Jockey',
         'non_winner_regional_horse_race': 'NonWinnerRegionalHorseRace',
         'race': 'Race',
+        'race_contender': 'RaceContender',
         'racetrack': 'Racetrack',
         'regional_jockey_race': 'RegionalJockeyRace',
         'trainer': 'Trainer',
@@ -57,14 +58,14 @@ class DjangoPersistor(Persistor):
     def get_or_create(self, model_key: str, defaults=None, **kwargs):
         model_name = self._model_lookup_map.get(model_key)
         record, _ = apps.get_model('server', model_name).objects.get_or_create(defaults=None, **kwargs)
-        return record
+        return model_to_dict(record)
 
     def update_or_create(self, model_key: str, defaults=None, **kwargs) -> Dict:
         model_name = self._model_lookup_map.get(model_key)
         record, _ = apps.get_model('server', model_name).objects.update_or_create(defaults=defaults, **kwargs)
-        return record
+        return model_to_dict(record)
 
     def all(self, model_key: str) -> List[Dict]:
         model_name = self._model_lookup_map.get(model_key)
         query_set = apps.get_model('server', model_name).objects.all()
-        return list(query_set)
+        return [model_to_dict(record) for record in query_set]
