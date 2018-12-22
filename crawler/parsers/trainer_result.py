@@ -1,3 +1,5 @@
+import re
+
 from crawler.parsers.parser import Parser
 
 
@@ -6,6 +8,7 @@ class TrainerResultParser(Parser):
         row = self._soup.select_one('.race_table_01 tr:nth-of-type(3)')
 
         self.data = {
+            'key': self._parse_key(),
             'career_1st_place_count': self.str2int(row.select_one('td:nth-of-type(3) a').string),
             'career_2nd_place_count': self.str2int(row.select_one('td:nth-of-type(4) a').string),
             'career_3rd_place_count': self.str2int(row.select_one('td:nth-of-type(5) a').string),
@@ -21,4 +24,8 @@ class TrainerResultParser(Parser):
         }
 
     def persist(self):
-        pass
+        self._persistor.update_or_create('trainer', key=self.data.get('key'))
+
+    def _parse_key(self):
+        url = self._soup.select_one('#horse_detail .db_detail_menu .active').get('href')
+        return re.search('/trainer/result/([0-9]+)', url).group(1)
