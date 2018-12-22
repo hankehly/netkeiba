@@ -25,8 +25,17 @@ class HorseParser(Parser):
         }
 
     def persist(self):
-        key = self.data.pop('key')
-        self._persistor.update_or_create('horse', defaults=self.data, key=key)
+        key = self.data.get('key')
+        sex_name = self.data.get('sex')
+        sex_id = self._persistor.get('horse_sex', name=sex_name).get('id')
+        defaults = {
+            'total_races': self.data.get('total_races'),
+            'total_wins': self.data.get('total_wins'),
+            'birthday': self.data.get('birthday'),
+            'user_rating': self.data.get('user_rating'),
+            'sex_id': sex_id
+        }
+        self._persistor.update_or_create('horse', defaults=defaults, key=key)
 
     def _parse_key(self):
         url = self._soup.head.select_one('link[rel=canonical]').get('href')
@@ -44,7 +53,7 @@ class HorseParser(Parser):
 
     def _parse_birthday(self):
         birthday_string = self._soup.select_one('.db_prof_table tr:nth-of-type(1) td').string
-        return datetime.strptime(birthday_string, '%Y年%m月%d日').strftime("%Y-%m-%d")
+        return datetime.strptime(birthday_string, '%Y年%m月%d日').strftime('%Y-%m-%d')
 
     def _parse_sex(self):
         sex = None

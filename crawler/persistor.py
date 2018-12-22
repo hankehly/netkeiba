@@ -29,6 +29,7 @@ class DjangoPersistor(Persistor):
         'weather_category': 'WeatherCategory',
         'race': 'Race',
         'horse': 'Horse',
+        'horse_sex': 'HorseSex',
         'jockey': 'Jockey',
         'trainer': 'Trainer',
     }
@@ -36,7 +37,7 @@ class DjangoPersistor(Persistor):
     def get(self, model_key: str, **kwargs) -> Dict:
         model_name = self._model_lookup_map.get(model_key)
         try:
-            record = apps.get_model('server', model_name).objects.get(kwargs)
+            record = apps.get_model('server', model_name).objects.get(**kwargs)
         except (LookupError, MultipleObjectsReturned, ObjectDoesNotExist) as e:
             logger.error(f'Error occurred during model lookup: {e}')
             raise e
