@@ -3,6 +3,7 @@ db.sqlite3
 .ipynb_checkpoints
 .env
 venv/
+venv-*
 .idea/
 node_modules/
 tmp/*

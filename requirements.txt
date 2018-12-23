@@ -16,6 +16,7 @@ Django==2.1.4
 django-crontab==0.7.1
 djangorestframework==3.9.0
 entrypoints==0.2.3
+fluent-logger==0.9.3
 hyperlink==18.0.0
 idna==2.8
 incremental==17.5.0
@@ -32,6 +33,7 @@ lxml==4.2.5
 MarkupSafe==1.1.0
 matplotlib==3.0.2
 mistune==0.8.4
+msgpack==0.6.0
 nbconvert==5.4.0
 nbformat==4.4.0
 notebook==5.7.2
