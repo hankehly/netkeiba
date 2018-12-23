@@ -7,7 +7,7 @@
         "recipe[td-agent::default]"
     ],
     "automatic": {
-        "ipaddress": ""
+        "ipaddress": "ubuntu_1804"
     },
     "default": {
         "nodejs": {
