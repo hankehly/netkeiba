@@ -8,3 +8,7 @@ node_modules/
 tmp/*
 log/*
 !.gitkeep
+/.bundle
+vendor/bundle
+vendor/cookbooks
+/cookbooks/
