@@ -12,3 +12,5 @@ log/*
 vendor/bundle
 vendor/cookbooks
 /cookbooks/
+Gemfile.lock
+Berksfile.lock
