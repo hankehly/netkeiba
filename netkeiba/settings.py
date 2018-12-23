@@ -9,6 +9,7 @@ TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
+# django.core.management.utils.get_random_secret_key
 SECRET_KEY = os.environ['SECRET_KEY']
 
 ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
@@ -133,6 +134,20 @@ CRONTAB_COMMAND_PREFIX = f". {os.path.join(BASE_DIR, '.env')};"
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'default': {
+            'format': '%(asctime)s %(levelname)-8s %(name)-15s %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+        'fluentfmt': {
+            '()': 'fluent.handler.FluentRecordFormatter',
+            'format': {
+                'level': '%(levelname)s',
+                'hostname': '%(hostname)s',
+                'where': '%(module)s.%(funcName)s',
+            }
+        }
+    },
     'filters': {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
@@ -143,6 +158,15 @@ LOGGING = {
             'class': 'logging.StreamHandler',
             'filters': ['require_debug_true'],
             'level': 'DEBUG',
+            'formatter': 'default',
+        },
+        'fluent': {
+            'class': 'fluent.handler.FluentHandler',
+            'host': 'localhost',
+            'port': 24224,
+            'tag': '',
+            'formatter': 'fluentfmt',
+            'level': 'DEBUG'
         },
         'server_app': {
             'backupCount': 10,
@@ -153,9 +177,10 @@ LOGGING = {
         },
     },
     'loggers': {
-        'server': {
-            'handlers': ['console', 'server_app'],
-            'level': 'DEBUG'
+        '': {
+            'handlers': ['console', 'fluent'],
+            'level': 'DEBUG',
+            'propagate': False
         }
     }
 }
