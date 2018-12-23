@@ -2,8 +2,8 @@
     "run_list": [
         "recipe[apt::default]",
         "recipe[build-essential::default]",
-        "recipe[locale::default]",
         "recipe[nodejs::default]",
+        "recipe[netkeiba::default]",
         "recipe[td-agent::default]"
     ],
     "automatic": {
