@@ -7,4 +7,3 @@ cookbook 'td-agent', '~> 3.0.3'
 cookbook 'nodejs', '~> 6.0.0', github: 'redguide/nodejs'
 cookbook 'netkeiba', path: 'site-cookbooks/netkeiba'
 cookbook 'pyenv', '~> 2.0.0',  github: 'darwin67/chef-pyenv'
-
