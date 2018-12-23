@@ -2,8 +2,7 @@ __pycache__/
 db.sqlite3
 .ipynb_checkpoints
 .env
-venv/
-venv-*
+.venv-3.6.7
 .idea/
 node_modules/
 tmp/*
@@ -15,3 +14,4 @@ vendor/cookbooks
 /cookbooks/
 Gemfile.lock
 Berksfile.lock
+
