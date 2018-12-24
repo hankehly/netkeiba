@@ -164,7 +164,7 @@ LOGGING = {
             'class': 'fluent.handler.FluentHandler',
             'host': 'localhost',
             'port': 24224,
-            'tag': '',
+            'tag': 'netkeiba.default',
             'formatter': 'fluentfmt',
             'level': 'DEBUG'
         },

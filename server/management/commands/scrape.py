@@ -3,8 +3,9 @@ from datetime import datetime
 
 from django.conf import settings
 from django.core.management import BaseCommand
-from scrapy.crawler import CrawlerProcess
+from scrapy.crawler import CrawlerRunner
 from scrapy.settings import Settings
+from twisted.internet import reactor
 
 from server.argtype import date_string
 
@@ -33,16 +34,14 @@ class Command(BaseCommand):
         with open(pidfile, 'w') as f:
             f.write(str(os.getpid()) + os.linesep)
 
-        custom_settings = {
-            'JOBDIR': jobpath,
-            'LOG_FILE': os.path.join(settings.LOG_DIR, f'{iso_timestamp}.log'),
-        }
+        custom_settings = {'JOBDIR': jobpath}
 
         scrapy_settings = Settings()
         os.environ['SCRAPY_SETTINGS_MODULE'] = 'crawler.settings'
         settings_module_path = os.environ['SCRAPY_SETTINGS_MODULE']
         scrapy_settings.setmodule(settings_module_path, priority='project')
 
-        process = CrawlerProcess({**scrapy_settings, **custom_settings})
-        process.crawl('db', options.get('min_date'))
-        process.start()
+        runner = CrawlerRunner({**scrapy_settings, **custom_settings})
+        d = runner.crawl('db', options.get('min_date'))
+        d.addBoth(lambda _: reactor.stop())
+        reactor.run()
