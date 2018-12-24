@@ -14,4 +14,4 @@ vendor/cookbooks
 /cookbooks/
 Gemfile.lock
 Berksfile.lock
-
+site-cookbooks/netkeiba/data_bags/*/*.json

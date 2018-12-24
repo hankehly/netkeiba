@@ -3,8 +3,8 @@
         "recipe[apt::default]",
         "recipe[build-essential::default]",
         "recipe[nodejs::default]",
-        "recipe[netkeiba::default]",
-        "recipe[td-agent::default]"
+        "recipe[td-agent::default]",
+        "recipe[netkeiba::default]"
     ],
     "automatic": {
         "ipaddress": "ubuntu_1804"
