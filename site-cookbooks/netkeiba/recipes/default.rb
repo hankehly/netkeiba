@@ -48,9 +48,9 @@ td_agent_match 'netkeiba_elasticsearch' do
   	tag 'netkeiba.**'
   	action :create
   	parameters({
-  		host: 'search-netkeiba-4d6zofgqpm4xaiwqqms725dowm.us-east-1.es.amazonaws.com',
-  		scheme: 'https',
-  		logstash_format: true
+  		hosts: 'https://search-netkeiba-4d6zofgqpm4xaiwqqms725dowm.us-east-1.es.amazonaws.com',
+  		logstash_format: true,
+  		index_name: 'netkeiba'
   	})
 end
 
