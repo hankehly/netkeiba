@@ -4,19 +4,13 @@
 #
 # Copyright:: 2018, The Authors, All Rights Reserved.
 
+include_recipe 'nodejs::default'
+
 python_version = '3.6.7'
 
 locale 'set locale' do
 	lang 'en_US.utf8'
 	lc_all 'en_US.utf8'
-end
-
-apt_repository 'name' do
-	components ['contrib']
-	distribution 'bionic'
-	key 'https://packages.treasuredata.com/GPG-KEY-td-agent'
-	uri 'http://packages.treasuredata.com/2.5/ubuntu/bionic/'
-	action :add
 end
 
 pyenv_system_install 'system'
@@ -30,17 +24,12 @@ end
 
 pyenv_pip 'awscli'
 
-directory '/var/log/fluentd' do
-  	owner 'td-agent'
-  	group 'td-agent'
-  	mode '0755'
-  	action :create
-end
+include_recipe 'td-agent::default'
 
 aws_access_key_id = data_bag_item('aws', 'credentials')['aws_access_key_id']
 aws_secret_access_key = data_bag_item('aws', 'credentials')['aws_secret_access_key']
 
-td_agent_match 'netkeiba' do
+td_agent_match 'netkeiba_s3' do
   	type 's3'
   	tag 'netkeiba.**'
   	action :create
@@ -54,3 +43,20 @@ td_agent_match 'netkeiba' do
   	})
 end
 
+td_agent_match 'netkeiba_elasticsearch' do
+  	type 'elasticsearch'
+  	tag 'netkeiba.**'
+  	action :create
+  	parameters({
+  		host: 'search-netkeiba-4d6zofgqpm4xaiwqqms725dowm.us-east-1.es.amazonaws.com',
+  		scheme: 'https',
+  		logstash_format: true
+  	})
+end
+
+directory '/var/log/fluentd' do
+  	owner 'td-agent'
+  	group 'td-agent'
+  	mode '0755'
+  	action :create
+end

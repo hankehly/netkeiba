@@ -2,20 +2,9 @@
     "run_list": [
         "recipe[apt::default]",
         "recipe[build-essential::default]",
-        "recipe[nodejs::default]",
-        "recipe[td-agent::default]",
         "recipe[netkeiba::default]"
     ],
     "automatic": {
         "ipaddress": "ubuntu_1804"
-    },
-    "default": {
-        "nodejs": {
-            "install_method": "binary",
-            "version": "10.14.2",
-            "binary": {
-                "checksum": "0552b0f6fc9c0cd078bbb794c876e2546ba63a1dfcf8e3c206387936696ca128"
-            }
-        }
     }
 }

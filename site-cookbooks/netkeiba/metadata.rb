@@ -8,3 +8,5 @@ version '0.1.0'
 chef_version '>= 13.0'
 
 depends 'pyenv', '~> 2.0.0'
+depends 'td-agent', '~> 3.0.3'
+depends 'nodejs', '~> 6.0.0'
