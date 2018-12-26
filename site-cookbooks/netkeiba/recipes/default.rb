@@ -50,7 +50,7 @@ td_agent_match 'netkeiba_elasticsearch' do
   	parameters({
   		hosts: 'https://search-netkeiba-4d6zofgqpm4xaiwqqms725dowm.us-east-1.es.amazonaws.com',
   		logstash_format: true,
-  		index_name: 'netkeiba'
+  		logstash_prefix: 'netkeiba'
   	})
 end
 
