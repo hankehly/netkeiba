@@ -43,17 +43,6 @@ td_agent_match 'netkeiba_s3' do
   	})
 end
 
-td_agent_match 'netkeiba_elasticsearch' do
-  	type 'elasticsearch'
-  	tag 'netkeiba.**'
-  	action :create
-  	parameters({
-  		hosts: 'https://search-netkeiba-4d6zofgqpm4xaiwqqms725dowm.us-east-1.es.amazonaws.com',
-  		logstash_format: true,
-  		logstash_prefix: 'netkeiba'
-  	})
-end
-
 directory '/var/log/fluentd' do
   	owner 'td-agent'
   	group 'td-agent'
