@@ -40,9 +40,10 @@ td_agent_match 'netkeiba_s3' do
   		aws_key_id: aws_access_key_id,
   		aws_sec_key: aws_secret_access_key,
   		s3_bucket: 'octo-waffle',
+  		s3_region: 'us-east-1',
   		path: 'netkeiba/log/',
   		buffer: [{
-  			type: 'file',
+  			'@type': 'file',
   			path: '/var/log/fluentd/buffer/netkeiba',
   			timekey_use_utc: true
   		}]
