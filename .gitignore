@@ -8,9 +8,12 @@ node_modules/
 tmp/*
 log/*
 !.gitkeep
-/.bundle
+.bundle
+.kitchen
 vendor/bundle
 vendor/cookbooks
+site-cookbooks/netkeiba/vendor/bundle
+site-cookbooks/netkeiba/vendor/cookbooks
 /cookbooks/
 Gemfile.lock
 Berksfile.lock
