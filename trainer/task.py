@@ -20,16 +20,16 @@ df = read_netkeiba()
 df['r_contender_count'] = df.groupby('r_id').c_id.count().loc[df.r_id].values
 df['c_norm_order_of_finish'] = 1.0 - (df.c_order_of_finish - 1) / (df.r_contender_count - 1)
 
-index_attrs = ['c_id', 'r_id', 'h_id', 'j_id', 't_id', 'r_key', 'r_url', 'h_key', 'h_url', 'j_key', 'j_url', 't_key',
-               't_url']
-
+index_attrs = ['c_id', 'r_id', 'h_id', 'j_id', 't_id', 'r_key', 'h_key', 'j_key', 't_key']
 label_attrs = ['c_norm_order_of_finish', 'c_order_of_finish', 'c_finish_time', 'c_order_of_finish_lowered']
 
 X = df.drop(columns=index_attrs + label_attrs)
 y = df.c_norm_order_of_finish
 
 sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-for train_idx, test_idx in sss.split(X, y):
+approx_y = round(y, 1)
+
+for train_idx, test_idx in sss.split(X, approx_y):
     X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
     y_train, y_test = y[train_idx], y[test_idx]
 

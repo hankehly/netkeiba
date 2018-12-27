@@ -33,19 +33,7 @@ num_attrs = [
     'c_weight_carried', 'c_post_position',
     'c_horse_weight', 'c_horse_weight_diff', 'c_popularity',
     'c_first_place_odds', 'r_distance', 'r_contender_count',
-    'h_total_races', 'h_total_wins', 'h_user_rating',
-    'j_career_1st_place_count', 'j_career_2nd_place_count',
-    'j_career_3rd_place_count', 'j_career_4th_place_or_below_count',
-    'j_career_turf_race_count', 'j_career_turf_win_count',
-    'j_career_dirt_race_count', 'j_career_dirt_win_count',
-    'j_career_1st_place_rate', 'j_career_1st_2nd_place_rate',
-    'j_career_any_place_rate', 'j_career_earnings',
-    't_career_1st_place_count', 't_career_2nd_place_count',
-    't_career_3rd_place_count', 't_career_4th_place_or_below_count',
-    't_career_turf_race_count', 't_career_turf_win_count',
-    't_career_dirt_race_count', 't_career_dirt_win_count',
-    't_career_1st_place_rate', 't_career_1st_2nd_place_rate',
-    't_career_any_place_rate', 't_career_earnings'
+    'h_total_races', 'h_total_wins', 'h_user_rating'
 ]
 
 
@@ -97,7 +85,6 @@ class CombinedNumericAttributesAdder(BaseEstimator, TransformerMixin):
 
 num_pipeline = Pipeline([
     ('imputer', SimpleImputer(strategy='median')),
-    ('num_attrs_adder', CombinedNumericAttributesAdder()),
     ('std_scaler', StandardScaler())
 ])
 
