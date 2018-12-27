@@ -44,7 +44,7 @@ td_agent_match 'netkeiba_s3' do
   		path: 'netkeiba/log/',
   		buffer: [{
   			'@type': 'file',
-  			path: '/var/log/fluentd/buffer/netkeiba',
+  			path: '/var/log/td-agent/buffer/netkeiba',
   			timekey_use_utc: true
   		}]
   	})
@@ -60,13 +60,6 @@ td_agent_match 'netkeiba_elasticsearch' do
   		logstash_format: true,
   		logstash_prefix: 'netkeiba'
   	})
-  	action :create
-end
-
-directory '/var/log/fluentd' do
-  	owner 'td-agent'
-  	group 'td-agent'
-  	mode '0755'
   	action :create
 end
 
