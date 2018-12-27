@@ -10,11 +10,8 @@ log/*
 !.gitkeep
 .bundle
 .kitchen
-vendor/bundle
-vendor/cookbooks
-site-cookbooks/netkeiba/vendor/bundle
-site-cookbooks/netkeiba/vendor/cookbooks
-/cookbooks/
+vendor/
+cookbooks/
 Gemfile.lock
 Berksfile.lock
-data_bags/*/*.json
+provision/data_bags/aws/credentials.json
