@@ -2,8 +2,10 @@
 # Cookbook:: netkeiba
 # Recipe:: default
 #
-# Copyright:: 2018, The Authors, All Rights Reserved.
+# Copyright:: 2018, hankehly, All Rights Reserved.
 
+include_recipe 'apt'
+include_recipe 'build-essential'
 include_recipe 'nodejs'
 
 python_version = '3.6.7'
@@ -51,3 +53,5 @@ directory '/var/log/fluentd' do
   	mode '0755'
   	action :create
 end
+
+include_recipe 'kibana::kibana6'
