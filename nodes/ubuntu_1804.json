@@ -1,8 +1,8 @@
 {
     "run_list": [
-        "recipe[apt::default]",
-        "recipe[build-essential::default]",
-        "recipe[netkeiba::default]"
+        "recipe[apt]",
+        "recipe[build-essential]",
+        "recipe[netkeiba]"
     ],
     "automatic": {
         "ipaddress": "ubuntu_1804"

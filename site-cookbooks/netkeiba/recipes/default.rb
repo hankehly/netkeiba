@@ -4,7 +4,7 @@
 #
 # Copyright:: 2018, The Authors, All Rights Reserved.
 
-include_recipe 'nodejs::default'
+include_recipe 'nodejs'
 
 python_version = '3.6.7'
 
@@ -24,7 +24,9 @@ end
 
 pyenv_pip 'awscli'
 
-include_recipe 'td-agent::default'
+include_recipe 'java'
+include_recipe 'elasticsearch'
+include_recipe 'td-agent'
 
 aws_access_key_id = data_bag_item('aws', 'credentials')['aws_access_key_id']
 aws_secret_access_key = data_bag_item('aws', 'credentials')['aws_secret_access_key']
