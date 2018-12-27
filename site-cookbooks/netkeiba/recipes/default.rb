@@ -36,15 +36,30 @@ aws_secret_access_key = data_bag_item('aws', 'credentials')['aws_secret_access_k
 td_agent_match 'netkeiba_s3' do
   	type 's3'
   	tag 'netkeiba.**'
-  	action :create
   	parameters({
   		aws_key_id: aws_access_key_id,
   		aws_sec_key: aws_secret_access_key,
   		s3_bucket: 'octo-waffle',
   		path: 'netkeiba/log/',
-  		buffer_path: '/var/log/fluentd/buffer/td',
-  		time_slice_format: '%Y%m%d%H'
+  		buffer: [{
+  			type: 'file',
+  			path: '/var/log/fluentd/buffer/netkeiba',
+  			timekey_use_utc: true
+  		}]
   	})
+  	action :create
+end
+
+td_agent_match 'netkeiba_elasticsearch' do
+  	type 'elasticsearch'
+  	tag 'netkeiba.**'
+  	parameters({
+  		host: 'localhost',
+  		port: 9200,
+  		logstash_format: true,
+  		logstash_prefix: 'netkeiba'
+  	})
+  	action :create
 end
 
 directory '/var/log/fluentd' do
