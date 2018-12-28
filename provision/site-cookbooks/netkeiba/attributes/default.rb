@@ -9,4 +9,12 @@ default['java']['jdk_version'] = '8'
 default['java']['install_flavor'] = 'oracle'
 default['java']['oracle']['accept_oracle_download_terms'] = true
 
+default['kibana']['version'] = 6
 default['kibana']['kibana6_version'] = '6.5.4'
+
+default['rsyslog']['server_ip'] = '127.0.0.1'
+default['rsyslog']['protocol'] = 'tcp'
+# ports below 1024 require root access to bind
+# so add a 0 to the end of the default port
+default['rsyslog']['port'] = '5140'
+default['rsyslog']['logs_to_forward'] = '*.*'

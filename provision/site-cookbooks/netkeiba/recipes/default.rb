@@ -29,6 +29,7 @@ end
 
 pyenv_pip 'awscli'
 
+include_recipe 'rsyslog::client'
 include_recipe 'java'
 include_recipe 'elasticsearch'
 include_recipe 'td-agent'
@@ -36,7 +37,17 @@ include_recipe 'td-agent'
 aws_access_key_id = data_bag_item('aws', 'credentials')['aws_access_key_id']
 aws_secret_access_key = data_bag_item('aws', 'credentials')['aws_secret_access_key']
 
-td_agent_match 'netkeiba_s3' do
+td_agent_source 'in_syslog' do
+	type 'syslog'
+	tag 'system'
+	parameters({
+		port: node['rsyslog']['port'],
+		bind: '0.0.0.0',
+		protocol_type: 'tcp'
+	})
+end
+
+td_agent_match 'netkeiba_out_s3' do
   	type 's3'
   	tag 'netkeiba.**'
   	parameters({
@@ -54,74 +65,16 @@ td_agent_match 'netkeiba_s3' do
   	action :create
 end
 
-td_agent_match 'netkeiba_elasticsearch' do
+td_agent_match 'out_elasticsearch' do
   	type 'elasticsearch'
-  	tag 'netkeiba.**'
+  	tag '{netkeiba.**,system.**,unattended-upgrades}'
   	parameters({
   		host: 'localhost',
   		port: 9200,
   		logstash_format: true,
-  		logstash_prefix: 'netkeiba'
+  		logstash_prefix: '${tag}'
   	})
   	action :create
 end
 
 include_recipe 'kibana::kibana6'
-
-package 'apt-transport-https'
-
-apt_repository 'beats' do
-	uri 'https://artifacts.elastic.co/packages/6.x/apt'
-    components ['stable', 'main']
-    key 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
-    notifies :run, 'execute[apt-get update]', :immediately
-end
-
-execute 'metricbeat_setup_dashboards' do
-	command 'metricbeat setup --dashboards'
-	action :nothing
-	notifies :run, 'execute[metricbeat_setup_logstash]', :immediately
-end
-
-execute 'metricbeat_setup_logstash' do
-	command <<-EOH
-		metricbeat setup -e \
-			-E output.logstash.enabled=false \
-			-E output.elasticsearch.hosts=['localhost:9200'] \
-			-E setup.kibana.host=localhost:5601
-	EOH
-	action :nothing
-end
-
-package 'metricbeat' do
-	notifies :run, 'execute[metricbeat_setup_dashboards]', :immediately
-end
-
-service 'metricbeat' do
-	action [:enable, :start]
-end
-
-execute 'filebeat_setup_dashboards' do
-	command 'filebeat setup --dashboards'
-	action :nothing
-	notifies :run, 'execute[filebeat_setup_logstash]', :immediately
-end
-
-execute 'filebeat_setup_logstash' do
-	command <<-EOH
-		filebeat setup -e \
-			-E output.logstash.enabled=false \
-			-E output.elasticsearch.hosts=['localhost:9200'] \
-			-E setup.kibana.host=localhost:5601
-	EOH
-	action :nothing
-end
-
-# Must change "enabled: false" -> "enabled: true" in /etc/filebeat/filebeat.yml
-package 'filebeat' do
-	notifies :run, 'execute[filebeat_setup_dashboards]', :immediately
-end
-
-service 'metricbeat' do
-	action [:enable, :start]
-end
