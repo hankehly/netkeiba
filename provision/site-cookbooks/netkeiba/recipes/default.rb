@@ -6,6 +6,9 @@
 
 include_recipe 'apt'
 include_recipe 'build-essential'
+
+package 'jq'
+
 include_recipe 'nodejs'
 
 python_version = '3.6.7'
@@ -64,3 +67,61 @@ td_agent_match 'netkeiba_elasticsearch' do
 end
 
 include_recipe 'kibana::kibana6'
+
+package 'apt-transport-https'
+
+apt_repository 'beats' do
+	uri 'https://artifacts.elastic.co/packages/6.x/apt'
+    components ['stable', 'main']
+    key 'https://artifacts.elastic.co/GPG-KEY-elasticsearch'
+    notifies :run, 'execute[apt-get update]', :immediately
+end
+
+execute 'metricbeat_setup_dashboards' do
+	command 'metricbeat setup --dashboards'
+	action :nothing
+	notifies :run, 'execute[metricbeat_setup_logstash]', :immediately
+end
+
+execute 'metricbeat_setup_logstash' do
+	command <<-EOH
+		metricbeat setup -e \
+			-E output.logstash.enabled=false \
+			-E output.elasticsearch.hosts=['localhost:9200'] \
+			-E setup.kibana.host=localhost:5601
+	EOH
+	action :nothing
+end
+
+package 'metricbeat' do
+	notifies :run, 'execute[metricbeat_setup_dashboards]', :immediately
+end
+
+service 'metricbeat' do
+	action [:enable, :start]
+end
+
+execute 'filebeat_setup_dashboards' do
+	command 'filebeat setup --dashboards'
+	action :nothing
+	notifies :run, 'execute[filebeat_setup_logstash]', :immediately
+end
+
+execute 'filebeat_setup_logstash' do
+	command <<-EOH
+		filebeat setup -e \
+			-E output.logstash.enabled=false \
+			-E output.elasticsearch.hosts=['localhost:9200'] \
+			-E setup.kibana.host=localhost:5601
+	EOH
+	action :nothing
+end
+
+# Must change "enabled: false" -> "enabled: true" in /etc/filebeat/filebeat.yml
+package 'filebeat' do
+	notifies :run, 'execute[filebeat_setup_dashboards]', :immediately
+end
+
+service 'metricbeat' do
+	action [:enable, :start]
+end

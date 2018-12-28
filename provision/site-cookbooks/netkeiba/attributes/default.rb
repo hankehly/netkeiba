@@ -8,3 +8,5 @@ default['nodejs']['binary']['checksum'] = '0552b0f6fc9c0cd078bbb794c876e2546ba63
 default['java']['jdk_version'] = '8'
 default['java']['install_flavor'] = 'oracle'
 default['java']['oracle']['accept_oracle_download_terms'] = true
+
+default['kibana']['kibana6_version'] = '6.5.4'
