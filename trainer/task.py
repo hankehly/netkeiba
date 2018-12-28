@@ -42,7 +42,7 @@ rmse = np.sqrt(mean_squared_error(y_train, predictions))
 mae = mean_absolute_error(y_train, predictions)
 
 timestamp = datetime.now().isoformat(timespec='minutes').replace(':', '')
-dirname = f'rand_forest_reg_{timestamp}'
+dirname = os.path.join(PROJECT_ROOT, 'tmp', 'models', f'rand_forest_reg_{timestamp}')
 os.mkdir(dirname)
 
 joblib.dump(model, os.path.join(dirname, 'model.joblib'))
