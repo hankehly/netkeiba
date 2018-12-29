@@ -35,8 +35,9 @@ class RaceParser(Parser):
             # (取) 出走取消 (http://jra.jp/faq/pop02/2_7.html)
             # (除) 競走除外 (http://jra.jp/faq/pop02/2_7.html)
             # (中) 競走中止 (http://jra.jp/faq/pop02/2_8.html)
+            # (再) 不明
             order_of_finish = record.select('td')[0].string
-            if order_of_finish in ['失', '取', '除', '中']:
+            if order_of_finish in ['失', '取', '除', '中', '再']:
                 logger.info(f'ignoring race_contender({i}) for reason({order_of_finish})')
                 continue
 
