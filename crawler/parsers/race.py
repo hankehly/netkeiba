@@ -131,6 +131,7 @@ class RaceParser(Parser):
             defaults = {
                 'order_of_finish': contender.get('order_of_finish'),
                 'order_of_finish_lowered': contender.get('order_of_finish_lowered'),
+                'did_remount': contender.get('did_remount'),
                 'post_position': contender.get('post_position'),
                 'weight_carried': contender.get('weight_carried'),
                 'first_place_odds': contender.get('first_place_odds'),
