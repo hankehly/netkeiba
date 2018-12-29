@@ -78,3 +78,16 @@ td_agent_match 'out_elasticsearch' do
 end
 
 include_recipe 'kibana::kibana6'
+
+apt_repository 'google-cloud-sdk' do
+    uri 'http://packages.cloud.google.com/apt'
+    distribution 'cloud-sdk-xenial'
+    components ['main']
+    key 'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
+    notifies :run, 'execute[apt-get update]', :immediately
+end
+
+apt_package 'google-cloud-sdk'
+
+# Perform manually
+# execute 'gcloud init'
