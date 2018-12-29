@@ -10,6 +10,7 @@ class RaceContender(BaseModel):
     trainer = models.ForeignKey('server.Trainer', on_delete=models.CASCADE)
     order_of_finish = models.PositiveSmallIntegerField()
     order_of_finish_lowered = models.BooleanField()
+    did_remount = models.BooleanField()
     post_position = models.PositiveSmallIntegerField()
     weight_carried = models.FloatField()
     finish_time = models.FloatField()

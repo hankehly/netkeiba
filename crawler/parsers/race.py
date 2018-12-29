@@ -35,16 +35,18 @@ class RaceParser(Parser):
             # (取) 出走取消 (http://jra.jp/faq/pop02/2_7.html)
             # (除) 競走除外 (http://jra.jp/faq/pop02/2_7.html)
             # (中) 競走中止 (http://jra.jp/faq/pop02/2_8.html)
-            # (再) 不明
             order_of_finish = record.select('td')[0].string
-            if order_of_finish in ['失', '取', '除', '中', '再']:
+            if order_of_finish in ['失', '取', '除', '中']:
                 logger.info(f'ignoring race_contender({i}) for reason({order_of_finish})')
                 continue
+
+            # 落馬した騎手が再度騎乗してレースを続けること
+            did_remount = '再' in order_of_finish
 
             # N(降) 降着 (http://www.jra.go.jp/judge/)
             order_of_finish_lowered = '降' in order_of_finish
 
-            if order_of_finish_lowered:
+            if order_of_finish_lowered or did_remount:
                 order_of_finish = re.search('[0-9]+', order_of_finish).group(0)
 
             minutes, seconds = map(float, record.select('td')[7].string.split(':'))
@@ -56,6 +58,7 @@ class RaceParser(Parser):
             contenders.append({
                 'order_of_finish': int(order_of_finish),
                 'order_of_finish_lowered': order_of_finish_lowered,
+                'did_remount': did_remount,
                 'post_position': int(record.select('td')[1].string),
                 'weight_carried': float(record.select('td')[5].string),
                 'first_place_odds': float(record.select('td')[12].string),
