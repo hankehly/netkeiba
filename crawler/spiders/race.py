@@ -12,7 +12,7 @@ from crawler.parsers.trainer_result import TrainerResultParser
 
 class RaceSpider(scrapy.Spider):
     """
-    scrapy crawl race -a race_url='https://race.netkeiba.com/?pid=race_old&id=xxx' -o xxx.csv
+    scrapy crawl race -a race_url='https://race.netkeiba.com/?pid=race_old&id=xxx' -o xxx.jl
     """
     name = 'race'
     allowed_domains = ['race.netkeiba.com', 'db.netkeiba.com']
@@ -24,44 +24,44 @@ class RaceSpider(scrapy.Spider):
     def parse(self, response):
         soup = BeautifulSoup(response.body, 'html.parser')
         contenders = soup.select_one('.race_table_old').select('tr.bml1')
-        r_contender_count = len(contenders)
+        contender_count = len(contenders)
 
-        r_racetrack = RACETRACKS.get(soup.select_one('.race_place a.active').text)
-        r_date = datetime.strptime(re.search('[0-9]{4}/[0-9]{2}/[0-9]{2}', soup.title.text).group(), '%Y/%m/%d').date()
+        racetrack = RACETRACKS.get(soup.select_one('.race_place a.active').text)
+        date = datetime.strptime(re.search('[0-9]{4}/[0-9]{2}/[0-9]{2}', soup.title.text).group(), '%Y/%m/%d').date()
         race_dist_type_data = soup.select_one('.racedata').select_one('p:nth-of-type(1)').text
         race_dist_type_search = re.search('(.)([0-9]+)m', race_dist_type_data)
-        r_course_type = COURSE_TYPES.get(race_dist_type_search.group(1))
-        r_distance = int(race_dist_type_search.group(2))
+        course_type = COURSE_TYPES.get(race_dist_type_search.group(1))
+        distance = int(race_dist_type_search.group(2))
 
         race_category_data = soup.select_one('.race_otherdata p:nth-of-type(2)').text
 
-        r_impost_category = ''
+        impost_category = ''
         for key, val in IMPOST_CATEGORIES.items():
             if key in race_category_data:
-                r_impost_category = val
+                impost_category = val
 
-        r_is_non_winner_regional_horse_allowed = 1 if '(指定)' in race_category_data else 0
-        r_is_winner_regional_horse_allowed = 1 if '特指' in race_category_data else 0
-        r_is_regional_jockey_allowed = 1 if '[指定]' in race_category_data else 0
-        r_is_foreign_horse_allowed = 1 if '混' in race_category_data else 0
-        r_is_foreign_horse_and_trainer_allowed = 1 if '国際' in race_category_data else 0
-        r_is_apprentice_jockey_allowed = 1 if '見習騎手' in race_category_data else 0
-        r_is_female_only = 1 if '牝' in race_category_data else 0
+        is_non_winner_regional_horse_allowed = 1 if '(指定)' in race_category_data else 0
+        is_winner_regional_horse_allowed = 1 if '特指' in race_category_data else 0
+        is_regional_jockey_allowed = 1 if '[指定]' in race_category_data else 0
+        is_foreign_horse_allowed = 1 if '混' in race_category_data else 0
+        is_foreign_horse_and_trainer_allowed = 1 if '国際' in race_category_data else 0
+        is_apprentice_jockey_allowed = 1 if '見習騎手' in race_category_data else 0
+        is_female_only = 1 if '牝' in race_category_data else 0
 
         race = {
-            'r_contender_count': r_contender_count,
-            'r_racetrack': r_racetrack,
-            'r_date': r_date,
-            'r_course_type': r_course_type,
-            'r_distance': r_distance,
-            'r_impost_category': r_impost_category,
-            'r_is_non_winner_regional_horse_allowed': r_is_non_winner_regional_horse_allowed,
-            'r_is_winner_regional_horse_allowed': r_is_winner_regional_horse_allowed,
-            'r_is_regional_jockey_allowed': r_is_regional_jockey_allowed,
-            'r_is_foreign_horse_allowed': r_is_foreign_horse_allowed,
-            'r_is_foreign_horse_and_trainer_allowed': r_is_foreign_horse_and_trainer_allowed,
-            'r_is_apprentice_jockey_allowed': r_is_apprentice_jockey_allowed,
-            'r_is_female_only': r_is_female_only,
+            'contender_count': contender_count,
+            'racetrack': racetrack,
+            'date': date,
+            'course_type': course_type,
+            'distance': distance,
+            'impost_category': impost_category,
+            'is_non_winner_regional_horse_allowed': is_non_winner_regional_horse_allowed,
+            'is_winner_regional_horse_allowed': is_winner_regional_horse_allowed,
+            'is_regional_jockey_allowed': is_regional_jockey_allowed,
+            'is_foreign_horse_allowed': is_foreign_horse_allowed,
+            'is_foreign_horse_and_trainer_allowed': is_foreign_horse_and_trainer_allowed,
+            'is_apprentice_jockey_allowed': is_apprentice_jockey_allowed,
+            'is_female_only': is_female_only,
         }
 
         for row in contenders:
@@ -95,22 +95,36 @@ class RaceSpider(scrapy.Spider):
                 }
             }
 
-            meta['data'] = {**meta['data'], **race}
+            race_data = self._prefix_keys(race, 'r_')
+            meta['data'] = {**meta['data'], **race_data}
 
             yield scrapy.Request(h_url, callback=self.parse_horse, meta=meta, dont_filter=True)
 
     def parse_horse(self, response):
-        horse_data = HorseParser(response.body).parse()
-        response.meta['data'] = {**response.meta['data'], **horse_data}
+        parser = HorseParser(response.body)
+        parser.parse()
+        data = self._prefix_keys(parser.data, 'h_')
+        response.meta['data'] = {**response.meta['data'], **data}
         yield scrapy.Request(response.urljoin(f"/trainer/result/{response.meta['data']['t_key']}"),
                              callback=self.parse_trainer, meta=response.meta, dont_filter=True)
 
     def parse_trainer(self, response):
-        trainer_data = TrainerResultParser(response.body).parse()
-        response.meta['data'] = {**response.meta['data'], **trainer_data}
+        parser = TrainerResultParser(response.body)
+        parser.parse()
+        data = self._prefix_keys(parser.data, 't_')
+        response.meta['data'] = {**response.meta['data'], **data}
         yield scrapy.Request(response.urljoin(f"/jockey/result/{response.meta['data']['j_key']}"),
                              callback=self.parse_jockey, meta=response.meta, dont_filter=True)
 
     def parse_jockey(self, response):
-        jockey_data = JockeyResultParser(response.body).parse()
-        yield {**response.meta['data'], **jockey_data}
+        parser = JockeyResultParser(response.body)
+        parser.parse()
+        data = self._prefix_keys(parser.data, 'j_')
+        yield {**response.meta['data'], **data}
+
+    def _prefix_keys(self, obj: dict, prefix: str):
+        acc = {}
+        for key, value in obj.items():
+            pref_key = ''.join([prefix, key])
+            acc[pref_key] = value
+        return acc
