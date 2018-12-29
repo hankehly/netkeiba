@@ -31,7 +31,7 @@ class Command(BaseCommand):
             logger.debug('processing all webpage records')
             queryset = WebPage.objects.all()
 
-        for page in queryset.order_by('-updated_at'):
+        for page in queryset.order_by('-updated_at').iterator():
             parser = page.get_parser()
             logger.debug(f'parsing {page.url} with {parser.__class__.__name__}')
             parser.parse()
