@@ -81,7 +81,7 @@ include_recipe 'kibana::kibana6'
 
 apt_repository 'google-cloud-sdk' do
     uri 'http://packages.cloud.google.com/apt'
-    distribution 'cloud-sdk-xenial'
+    distribution 'cloud-sdk-bionic'
     components ['main']
     key 'https://packages.cloud.google.com/apt/doc/apt-key.gpg'
     notifies :run, 'execute[apt-get update]', :immediately
