@@ -5,8 +5,9 @@ import pytz
 from django.core.management import BaseCommand
 
 from netkeiba.settings import TIME_ZONE
+from crawler.parsers.race import RaceParser
 from server.argtype import date_string
-from server.models import WebPage
+from server.models import WebPage, RaceContender
 
 logger = logging.getLogger(__name__)
 
@@ -24,15 +25,25 @@ class Command(BaseCommand):
 
         if options['min_date']:
             limit = datetime.strptime(options['min_date'], '%Y-%m-%d')
+            logger.debug(f'only processing webpages updated on or after {limit}')
             queryset = WebPage.objects.filter(updated_at__gte=limit)
         else:
+            logger.debug('processing all webpage records')
             queryset = WebPage.objects.all()
 
-        for page in queryset.order_by('-updated_at').iterator():
-            logger.debug(f'Processing {page.url}')
+        for page in queryset.order_by('-updated_at'):
             parser = page.get_parser()
+            logger.debug(f'parsing {page.url} with {parser.__class__.__name__}')
             parser.parse()
-            parser.persist()
+
+            if isinstance(parser, RaceParser):
+                pre_save_contender_count = RaceContender.objects.count()
+                parsed_contender_count = len(parser.data.get('contenders'))
+                parser.persist()
+                post_save_contender_count = RaceContender.objects.count()
+                logger.debug(f'parsed {parsed_contender_count} contenders (total: {pre_save_contender_count} -> {post_save_contender_count})')
+            else:
+                parser.persist()
 
         end_time = datetime.now(pytz.timezone(TIME_ZONE))
         duration = (end_time - start_time).seconds
