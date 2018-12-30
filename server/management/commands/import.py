@@ -39,6 +39,7 @@ class Command(BaseCommand):
             parser = page.get_parser()
 
             logger.debug(f'({i}/{page_count}) parsing {page.url} with {parser.__class__.__name__}')
+            parser.parse()
 
             try:
                 if isinstance(parser, RaceParser):
