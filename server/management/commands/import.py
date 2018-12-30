@@ -39,9 +39,10 @@ class Command(BaseCommand):
             parser = page.get_parser()
 
             logger.debug(f'({i}/{page_count}) parsing {page.url} with {parser.__class__.__name__}')
-            parser.parse()
 
             try:
+                parser.parse()
+
                 if isinstance(parser, RaceParser):
                     pre_save_contender_count = RaceContender.objects.count()
                     parsed_contender_count = len(parser.data.get('contenders'))
