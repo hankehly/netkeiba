@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 else:
                     parser.persist()
             except Exception as e:
-                logger.error(f'exception occurred during import for `{page.url}` -- {e}')
+                logger.exception(e)
                 exception_count += 1
             finally:
                 i += 1
