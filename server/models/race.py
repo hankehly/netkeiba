@@ -82,7 +82,7 @@ class FemaleOnlyRace(BaseModel):
 
 class Race(BaseModel):
     key = models.CharField(max_length=255, unique=True)
-    racetrack = models.ForeignKey('Racetrack', on_delete=models.CASCADE)
+    racetrack = models.ForeignKey('RaceTrack', on_delete=models.CASCADE)
     impost_category = models.ForeignKey('ImpostCategory', on_delete=models.CASCADE)
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     distance = models.PositiveSmallIntegerField()
