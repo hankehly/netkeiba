@@ -16,8 +16,8 @@ class RaceContender(BaseModel):
     finish_time = models.FloatField()
     first_place_odds = models.FloatField()
     popularity = models.PositiveSmallIntegerField()
-    horse_weight = models.FloatField()
-    horse_weight_diff = models.FloatField()
+    horse_weight = models.FloatField(null=True)
+    horse_weight_diff = models.FloatField(null=True)
 
     class Meta:
         db_table = 'race_contenders'

@@ -55,7 +55,7 @@ class RaceParser(Parser):
             jockey_url = record.select('td')[6].select_one('a').get('href')
             trainer_url = record.select('td')[18].select_one('a').get('href')
 
-            contenders.append({
+            contender = {
                 'order_of_finish': int(order_of_finish),
                 'order_of_finish_lowered': order_of_finish_lowered,
                 'did_remount': did_remount,
@@ -67,9 +67,13 @@ class RaceParser(Parser):
                 'jockey_key': re.search('/jockey/([0-9]+)', jockey_url).group(1),
                 'trainer_key': re.search('/trainer/([0-9]+)', trainer_url).group(1),
                 'finish_time': minutes * 60 + seconds,
-                'horse_weight': int(horse_weight_search.group(1)),
-                'horse_weight_diff': int(horse_weight_search.group(2))
-            })
+            }
+
+            if horse_weight_search:
+                contender['horse_weight'] = int(horse_weight_search.group(1))
+                contender['horse_weight_diff'] = int(horse_weight_search.group(2))
+
+            contenders.append(contender)
 
         self.data['contenders'] = contenders
 
