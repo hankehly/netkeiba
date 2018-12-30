@@ -18,9 +18,8 @@ np.random.seed(42)
 X, y = read_netkeiba()
 
 sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
-approx_y = round(y, 1)
 
-for train_idx, test_idx in sss.split(X, approx_y):
+for train_idx, test_idx in sss.split(X, y):
     X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
     y_train, y_test = y[train_idx], y[test_idx]
 

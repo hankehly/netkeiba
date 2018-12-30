@@ -20,10 +20,16 @@ def read_netkeiba():
         df = pd.DataFrame(rows, columns=cols)
 
         df['r_contender_count'] = df.groupby('r_id').c_id.count().loc[df.r_id].values
-        df['c_meters_per_second'] = df['c_finish_time'] / df['r_distance']
+        df['c_meters_per_second'] = (df['c_finish_time'] / df['r_distance']).round(6)
 
-        df['is_day'] = None
-        df['h_old_place'] = None
+        label_value_counts = df['c_meters_per_second'].value_counts()
+        stray_label_values = label_value_counts.index[label_value_counts < 2].values
+        stray_label_bool_mask = df['c_meters_per_second'].isin(stray_label_values)
+        stray_label_indices = df[stray_label_bool_mask].index
+        df.drop(stray_label_indices, inplace=True)
+
+        # df['is_day'] = None
+        # df['h_old_place'] = None
 
         index_attrs = ['c_id', 'r_id', 'h_id', 'j_id', 't_id', 'r_key', 'h_key', 'j_key', 't_key']
         label_attrs = ['c_order_of_finish', 'c_finish_time', 'c_order_of_finish_lowered', 'c_meters_per_second']
