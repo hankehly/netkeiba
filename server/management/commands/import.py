@@ -31,20 +31,30 @@ class Command(BaseCommand):
             logger.debug('processing all webpage records')
             queryset = WebPage.objects.all()
 
+        i = 1
+        exception_count = 0
+        page_count = queryset.count()
+
         for page in queryset.order_by('-updated_at').iterator():
             parser = page.get_parser()
-            logger.debug(f'parsing {page.url} with {parser.__class__.__name__}')
-            parser.parse()
 
-            if isinstance(parser, RaceParser):
-                pre_save_contender_count = RaceContender.objects.count()
-                parsed_contender_count = len(parser.data.get('contenders'))
-                parser.persist()
-                post_save_contender_count = RaceContender.objects.count()
-                logger.debug(f'parsed {parsed_contender_count} contenders (total: {pre_save_contender_count} -> {post_save_contender_count})')
-            else:
-                parser.persist()
+            logger.debug(f'({i}/{page_count}) parsing {page.url} with {parser.__class__.__name__}')
+
+            try:
+                if isinstance(parser, RaceParser):
+                    pre_save_contender_count = RaceContender.objects.count()
+                    parsed_contender_count = len(parser.data.get('contenders'))
+                    parser.persist()
+                    post_save_contender_count = RaceContender.objects.count()
+                    logger.debug(f'parsed {parsed_contender_count} contenders (total: {pre_save_contender_count} -> {post_save_contender_count})')
+                else:
+                    parser.persist()
+            except Exception as e:
+                logger.error(f'exception occurred during import for `{page.url}` -- {e}')
+                exception_count += 1
+            finally:
+                i += 1
 
         end_time = datetime.now(pytz.timezone(TIME_ZONE))
         duration = (end_time - start_time).seconds
-        logger.info(f'Finished import command at {end_time} ({duration} seconds)')
+        logger.info(f'Finished import command at {end_time} ({duration} seconds, {exception_count} exceptions)')
