@@ -51,4 +51,6 @@ class Command(BaseCommand):
             '--runtime-version', options['runtime_version'],
             '--python-version', options['python_version'],
             '--scale-tier', options['scale_tier'],
+            '--',
+            '--bucket-name', options['bucket_name']
         ], stderr=sys.stdout)

@@ -1,4 +1,5 @@
 import gzip
+import json
 import os
 import shutil
 import sqlite3
@@ -11,7 +12,6 @@ from sklearn.externals import joblib
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 DB_PATH = os.path.join(PROJECT_ROOT, 'db.sqlite3')
-BUCKET_NAME = os.environ.get('GCLOUD_BUCKET')
 
 
 def read_netkeiba():
@@ -52,7 +52,8 @@ def read_netkeiba():
 
 
 def download_latest_db():
-    gcs_backup_dir = os.path.join('gs://', BUCKET_NAME, 'data', 'db_backups')
+    bucket_name = _get_bucket_name()
+    gcs_backup_dir = os.path.join('gs://', bucket_name, 'data', 'db_backups')
     backups = subprocess.check_output(['gsutil', 'ls', gcs_backup_dir], stderr=sys.stdout).splitlines()
     backup_dirname = backups[-1].decode()
     gcs_model_path = os.path.join('gs://', backup_dirname, 'db.sqlite3.gz')
@@ -68,5 +69,25 @@ def upload_model(model):
     model_filename = 'model.joblib'
     joblib.dump(model, os.path.join(model_filename))
     timestamp = datetime.now().isoformat(timespec='minutes').replace(':', '')
-    gcs_model_path = os.path.join('gs://', BUCKET_NAME, 'ml-engine', 'models', timestamp, model_filename)
+    bucket_name = _get_bucket_name()
+    gcs_model_path = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp, model_filename)
     os.subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
+
+
+def _get_bucket_name():
+    env_bucket_name = os.environ.get('GCLOUD_BUCKET')
+
+    if not env_bucket_name:
+        tf_config = os.environ.get('TF_CONFIG')
+
+        if not tf_config:
+            raise ValueError('unable to infer bucket name: {}'.format(os.environ))
+
+        tf_config_json = json.loads(tf_config)
+        job_args = tf_config_json.get('job', {}).get('args')
+
+        if '--bucket-name' in job_args:
+            bucket_name_pos = job_args.index('--bucket-name') + 1
+            return job_args[bucket_name_pos]
+
+    return env_bucket_name
