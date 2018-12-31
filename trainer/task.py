@@ -21,7 +21,7 @@ sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
 
 for train_idx, test_idx in sss.split(X, y):
     X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
-    y_train, y_test = y[train_idx], y[test_idx]
+    y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
 
 X_train_prep = full_pipeline.fit_transform(X_train)
 model = train_rand_forest_reg_random_search(X_train_prep, y_train)
