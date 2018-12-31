@@ -1,12 +1,23 @@
+import gzip
 import os
+import shutil
 import sqlite3
+import subprocess
+import sys
+from datetime import datetime
 
 import pandas as pd
+from sklearn.externals import joblib
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+DB_PATH = os.path.join(PROJECT_ROOT, 'db.sqlite3')
+BUCKET_NAME = os.environ.get('GCLOUD_BUCKET')
 
 
 def read_netkeiba():
+    if not os.path.exists(DB_PATH):
+        download_latest_db()
+
     conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
     cur = conn.cursor()
 
@@ -38,3 +49,24 @@ def read_netkeiba():
         y = df['c_meters_per_second']
 
         return X, y
+
+
+def download_latest_db():
+    gcs_backup_dir = os.path.join('gs://', BUCKET_NAME, 'data', 'db_backups')
+    backups = subprocess.check_output(['gsutil', 'ls', gcs_backup_dir], stderr=sys.stdout).splitlines()
+    backup_dirname = backups[-1].decode()
+    gcs_model_path = os.path.join('gs://', backup_dirname, 'db.sqlite3.gz')
+    db_gzip_path = ''.join([DB_PATH, '.gz'])
+    os.subprocess.check_call(['gsutil', 'cp', gcs_model_path, db_gzip_path], stderr=sys.stdout)
+
+    with gzip.open(db_gzip_path, 'rb') as f_in:
+        with open(DB_PATH, 'wb') as f_out:
+            shutil.copyfileobj(f_in, f_out)
+
+
+def upload_model(model):
+    model_filename = 'model.joblib'
+    joblib.dump(model, os.path.join(model_filename))
+    timestamp = datetime.now().isoformat(timespec='minutes').replace(':', '')
+    gcs_model_path = os.path.join('gs://', BUCKET_NAME, 'ml-engine', 'models', timestamp, model_filename)
+    os.subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
