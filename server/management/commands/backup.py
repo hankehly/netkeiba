@@ -23,7 +23,7 @@ class Command(BaseCommand):
         bucket_name = os.environ.get('GCLOUD_BUCKET')
         ts_fmt = '%Y-%m-%dT%H%M%S'
         timestamp = datetime.now().strftime(ts_fmt)
-        gcs_netkeiba_data_dir = os.path.join('gs://', bucket_name, 'data', 'netkeiba')
+        gcs_netkeiba_data_dir = os.path.join('gs://', bucket_name, 'data', 'db_backups')
         gcs_backup_path = os.path.join(gcs_netkeiba_data_dir, timestamp, 'db.sqlite3.gz')
 
         db_path = settings.DATABASES['default']['NAME']
