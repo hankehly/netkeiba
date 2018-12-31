@@ -118,11 +118,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-CRONJOBS = [
-    # 4:00 JST
-    ('0 19 * * *', 'server.cron.process_latest'),
-]
-
 CRONTAB_LOCK_JOBS = True
 
 CRONTAB_COMMAND_PREFIX = f". {os.path.join(BASE_DIR, '.env')};"
