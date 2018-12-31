@@ -158,7 +158,7 @@ class RaceParser(Parser):
             .split(' ')
 
     def _parse_distance(self):
-        return int(re.search('([0-9]+)', self._track_details[0]).group(1))
+        return int(re.search('([0-9]+)m', self._track_details[0]).group(1))
 
     def _parse_course_type(self):
         return COURSE_TYPES.get(self._track_details[0][0])
