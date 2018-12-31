@@ -122,8 +122,8 @@ def download_latest_db():
 def upload_model(model):
     model_filename = 'model.joblib'
     joblib.dump(model, model_filename)
-    timestamp = datetime.now().isoformat(timespec='minutes').replace(':', '')
     bucket_name = _get_bucket_name()
+    timestamp = datetime.now().strftime('%Y-%m-%dT%H%M%S')
     gcs_model_path = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp, model_filename)
     subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
 
