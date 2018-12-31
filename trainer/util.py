@@ -58,7 +58,7 @@ def download_latest_db():
     backup_dirname = backups[-1].decode()
     gcs_model_path = os.path.join('gs://', backup_dirname, 'db.sqlite3.gz')
     db_gzip_path = ''.join([DB_PATH, '.gz'])
-    os.subprocess.check_call(['gsutil', 'cp', gcs_model_path, db_gzip_path], stderr=sys.stdout)
+    subprocess.check_call(['gsutil', 'cp', gcs_model_path, db_gzip_path], stderr=sys.stdout)
 
     with gzip.open(db_gzip_path, 'rb') as f_in:
         with open(DB_PATH, 'wb') as f_out:
@@ -71,14 +71,14 @@ def upload_model(model):
     timestamp = datetime.now().isoformat(timespec='minutes').replace(':', '')
     bucket_name = _get_bucket_name()
     gcs_model_path = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp, model_filename)
-    os.subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
+    subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
 
 
 def _get_bucket_name():
     env_bucket_name = os.environ.get('GCLOUD_BUCKET')
 
     if not env_bucket_name:
-        tf_config = os.environ.get('TF_CONFIG')
+        tf_config = os.environ.get('TF_CONFIG', {})
 
         if not tf_config:
             raise ValueError('unable to infer bucket name: {}'.format(os.environ))
