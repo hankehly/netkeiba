@@ -18,7 +18,7 @@ def train_rand_forest_reg_random_search(X_train_prep, y_train):
     rand_search = RandomizedSearchCV(rand_forest_reg, param_distributions=param_distributions, n_iter=25, cv=5,
                                      scoring='neg_mean_squared_error', random_state=42, verbose=5, n_jobs=-1)
     rand_search.fit(X_train_prep, y_train)
-    print(f'Training complete')
+    print('Training complete')
 
     return rand_search
 
@@ -34,6 +34,6 @@ def train_sgd_regressor_grid_search(X_train_prep, y_train):
     sgd_reg = SGDRegressor(random_state=42)
     grid_search = GridSearchCV(sgd_reg, param_grid, n_jobs=-1, verbose=5, cv=5)
     grid_search.fit(X_train_prep, y_train)
-    print(f'Training complete')
+    print('Training complete')
 
     return grid_search
