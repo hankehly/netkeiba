@@ -55,8 +55,8 @@ def download_latest_db():
     bucket_name = _get_bucket_name()
     gcs_backup_dir = os.path.join('gs://', bucket_name, 'data', 'db_backups')
     backups = subprocess.check_output(['gsutil', 'ls', gcs_backup_dir], stderr=sys.stdout).splitlines()
-    backup_dirname = backups[-1].decode()
-    gcs_model_path = os.path.join('gs://', backup_dirname, 'db.sqlite3.gz')
+    gcs_backup_dirname = backups[-1].decode()
+    gcs_model_path = os.path.join(gcs_backup_dirname, 'db.sqlite3.gz')
     db_gzip_path = ''.join([DB_PATH, '.gz'])
     subprocess.check_call(['gsutil', 'cp', gcs_model_path, db_gzip_path], stderr=sys.stdout)
 
