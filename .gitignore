@@ -1,5 +1,6 @@
 __pycache__/
 db.sqlite3
+db.sqlite3.gz
 .ipynb_checkpoints
 .env
 .venv-3.6.7
@@ -15,3 +16,4 @@ cookbooks/
 Gemfile.lock
 Berksfile.lock
 provision/data_bags/aws/credentials.json
+MANIFEST
