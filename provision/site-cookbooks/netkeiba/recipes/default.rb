@@ -47,25 +47,41 @@ td_agent_source 'in_syslog' do
 	})
 end
 
-td_agent_match 'netkeiba_out_s3' do
-  	type 's3'
-  	tag 'netkeiba.**'
-  	parameters({
-  		aws_key_id: aws_access_key_id,
-  		aws_sec_key: aws_secret_access_key,
-  		s3_bucket: 'octo-waffle',
-  		s3_region: 'us-east-1',
-  		path: 'netkeiba/log/',
-  		buffer: [{
-  			'@type': 'file',
-  			path: '/var/log/td-agent/buffer/netkeiba',
-  			timekey_use_utc: true
-  		}]
-  	})
+td_agent_match 'netkeiba.out_copy' do
+	type 'copy'
+	tag 'netkeiba.**'
+
+	parameters(
+		store: [{
+			'@type': 'elasticsearch',
+			host: 'localhost',
+  			port: 9200,
+  			logstash_format: true,
+  			logstash_prefix: '${tag}',
+  			buffer: [{
+  				'@type': 'file',
+  				path: '/var/log/td-agent/buffer/netkeiba/elasticsearch',
+  				timekey_use_utc: true
+  			}]
+		}, {
+			'@type': 's3',
+			aws_key_id: aws_access_key_id,
+  			aws_sec_key: aws_secret_access_key,
+  			s3_bucket: 'octo-waffle',
+  			s3_region: 'us-east-1',
+  			path: 'netkeiba/log/',
+  			buffer: [{
+  				'@type': 'file',
+  				path: '/var/log/td-agent/buffer/netkeiba/s3',
+  				timekey_use_utc: true
+  			}]
+		}]
+	)
+
   	action :create
 end
 
-td_agent_match 'out_elasticsearch' do
+td_agent_match 'syslog.out_elasticsearch' do
   	type 'elasticsearch'
   	tag '{netkeiba.**,system.**,unattended-upgrades}'
   	parameters({
