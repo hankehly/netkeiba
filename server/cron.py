@@ -14,3 +14,4 @@ def process_latest():
     call_command('scrape', min_date=one_week_ago)
     call_command('import', min_date=one_week_ago)
     call_command('backup')
+    call_command('submit')
