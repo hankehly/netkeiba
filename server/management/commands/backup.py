@@ -7,7 +7,7 @@ import sys
 from datetime import datetime
 
 from django.conf import settings
-from django.core.management import BaseCommand, CommandError
+from django.core.management import BaseCommand
 
 logger = logging.getLogger(__name__)
 
