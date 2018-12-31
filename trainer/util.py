@@ -21,7 +21,7 @@ def read_netkeiba():
     conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
     cur = conn.cursor()
 
-    with open(os.path.join(PROJECT_ROOT, 'src', 'select_all.sql'), 'r') as f:
+    with open(os.path.join(PROJECT_ROOT, 'trainer', 'select_all.sql'), 'r') as f:
         rows = cur.execute(f.read()).fetchall()
 
         # Get the column names of the last query. To remain compatible with the Python DB API,
