@@ -25,11 +25,12 @@ def lambda_handler(event, context):
 
     try:
         client.connect(hostname=hostname, username='ubuntu', pkey=pkey)
+        channel = client.get_transport().open_session()
 
         app_dir = '/home/ubuntu/src/netkeiba'
         command = f'. {app_dir}/.env; nohup {app_dir}/.venv-3.6.7/bin/python {app_dir}/manage.py pipeline --shutdown &'
 
-        client.exec_command(command)
+        channel.exec_command(command)
     except Exception as e:
         print(e)
     finally:
