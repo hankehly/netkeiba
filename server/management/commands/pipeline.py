@@ -1,5 +1,5 @@
-import os
 from datetime import datetime, timedelta
+from subprocess import call
 
 import pytz
 from django.conf import settings
@@ -22,4 +22,4 @@ class Command(BaseCommand):
         call_command('submit')
 
         if options['shutdown']:
-            os.system('sudo shutdown -h now')
+            call('sudo shutdown -h now', shell=True)
