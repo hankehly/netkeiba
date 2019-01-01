@@ -20,7 +20,7 @@ def train_rand_forest_reg_random_search(X_train_prep, y_train):
     rand_search.fit(X_train_prep, y_train)
     print('Training complete')
 
-    return rand_search
+    return rand_search.best_estimator_
 
 
 def train_sgd_regressor_grid_search(X_train_prep, y_train):
