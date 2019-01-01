@@ -2,14 +2,20 @@ import gzip
 import logging
 import os
 import shutil
-import subprocess
 import sys
 from datetime import datetime
+from subprocess import PIPE, STDOUT, Popen, check_output
 
 from django.conf import settings
 from django.core.management import BaseCommand
 
 logger = logging.getLogger(__name__)
+
+
+def log_proc_output(out):
+    with out:
+        for line in out:
+            logging.info(line)
 
 
 class Command(BaseCommand):
@@ -23,7 +29,7 @@ class Command(BaseCommand):
         bucket_name = os.environ.get('GCLOUD_BUCKET')
         ts_fmt = '%Y-%m-%dT%H%M%S'
         timestamp = datetime.now().strftime(ts_fmt)
-        gcs_netkeiba_data_dir = os.path.join('gs://', bucket_name, 'data', 'db_backups')
+        gcs_netkeiba_data_dir = os.path.join('gs://', bucket_name, 'testdata', 'db_backups')
         gcs_backup_path = os.path.join(gcs_netkeiba_data_dir, timestamp, 'db.sqlite3.gz')
 
         db_path = settings.DATABASES['default']['NAME']
@@ -33,9 +39,12 @@ class Command(BaseCommand):
             with gzip.open(db_gzip_path, 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
 
-        subprocess.check_call(['gsutil', 'cp', db_gzip_path, gcs_backup_path], stderr=sys.stdout)
+        cp_proc = Popen(['gsutil', 'cp', db_gzip_path, gcs_backup_path], stderr=STDOUT, stdout=PIPE)
+        log_proc_output(cp_proc.stdout)
 
-        backups = subprocess.check_output(['gsutil', 'ls', gcs_netkeiba_data_dir], stderr=sys.stdout).splitlines()
+        backups = check_output(['gsutil', 'ls', gcs_netkeiba_data_dir], stderr=sys.stdout).splitlines()
         keep_backups = options.get('keep_backups')
         for backup in backups[:-keep_backups]:
-            subprocess.check_call(['gsutil', 'rm', '-r', backup.decode()])
+            backup_path = backup.decode()
+            rm_proc = Popen(['gsutil', 'rm', '-r', backup_path], stderr=STDOUT, stdout=PIPE)
+            log_proc_output(rm_proc.stdout)
