@@ -1,4 +1,4 @@
-import subprocess
+import os
 from datetime import datetime, timedelta
 
 import pytz
@@ -22,4 +22,4 @@ class Command(BaseCommand):
         call_command('submit')
 
         if options['shutdown']:
-            subprocess.check_call(['sudo', 'shutdown', '-h ', 'now'])
+            os.system('sudo shutdown -h now')
