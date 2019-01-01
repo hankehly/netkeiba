@@ -7,8 +7,10 @@ import subprocess
 import sys
 from datetime import datetime
 
+import numpy as np
 import pandas as pd
 from sklearn.externals import joblib
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 DB_PATH = os.path.join(PROJECT_ROOT, 'db.sqlite3')
@@ -119,13 +121,27 @@ def download_latest_db():
             shutil.copyfileobj(f_in, f_out)
 
 
-def upload_model(model):
+def upload_model_with_results(model, X_test, y_test):
     model_filename = 'model.joblib'
+    timestamp = datetime.now().strftime('%Y-%m-%dT%H%M%S')
     joblib.dump(model, model_filename)
     bucket_name = _get_bucket_name()
-    timestamp = datetime.now().strftime('%Y-%m-%dT%H%M%S')
     gcs_model_path = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp, model_filename)
     subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
+
+    predictions = model.predict(X_test)
+    mse = mean_squared_error(y_test, predictions)
+    rmse = np.sqrt(mse)
+    mae = mean_absolute_error(y_test, predictions)
+
+    pd.DataFrame([[rmse, mae]], index=[timestamp], columns=['rmse', 'mae']).to_csv('results.csv')
+    subprocess.check_call(['gsutil', 'cp', 'results.csv', gcs_model_path], stderr=sys.stdout)
+
+    joblib.dump(X_test, 'X_test.joblib')
+    subprocess.check_call(['gsutil', 'cp', 'X_test.joblib', gcs_model_path], stderr=sys.stdout)
+
+    joblib.dump(y_test, 'y_test.joblib')
+    subprocess.check_call(['gsutil', 'cp', 'y_test.joblib', gcs_model_path], stderr=sys.stdout)
 
 
 def _get_bucket_name():

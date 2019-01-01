@@ -8,7 +8,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
 from trainer.pipeline import full_pipeline
 from trainer.model import train_rand_forest_reg_random_search
-from trainer.util import read_netkeiba, upload_model
+from trainer.util import read_netkeiba, upload_model_with_results
 
 np.random.seed(42)
 
@@ -22,4 +22,4 @@ for train_idx, test_idx in sss.split(X, y):
 
 X_train_prep = full_pipeline.fit_transform(X_train)
 model = train_rand_forest_reg_random_search(X_train_prep, y_train)
-upload_model(model)
+upload_model_with_results(model, X_test, y_test)
