@@ -50,7 +50,12 @@ class DBSpider(CrawlSpider):
         for link in links:
             date_string = re.search('[0-9]{8}', link.url).group()
             link_date = datetime.strptime(date_string, '%Y%m%d').date()
-            if link_date >= self.min_date:
+
+            is_race_top_page = 'pid=race_top' in link.url
+            is_valid_month = link_date.month >= self.min_date.month
+            is_valid_date = link_date >= self.min_date
+
+            if is_valid_date or (is_race_top_page and is_valid_month):
                 follow_links.append(link)
             else:
                 self.logger.info(f'Skipping url ({link.url}), {link_date} < {self.min_date}')
