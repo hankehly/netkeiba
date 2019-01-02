@@ -17,3 +17,4 @@ Gemfile.lock
 Berksfile.lock
 provision/data_bags/aws/credentials.json
 MANIFEST
+*.joblib
