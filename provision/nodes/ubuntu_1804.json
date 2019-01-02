@@ -3,6 +3,6 @@
         "recipe[netkeiba]"
     ],
     "automatic": {
-        "ipaddress": "ubuntu_1804"
+        "ipaddress": "netkeiba"
     }
 }
