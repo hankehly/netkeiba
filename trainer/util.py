@@ -129,7 +129,8 @@ def upload_model_with_results(model, X_test, y_test):
     timestamp = datetime.now().strftime('%Y-%m-%dT%H%M%S')
     joblib.dump(model, model_filename)
     bucket_name = _get_bucket_name()
-    gcs_model_path = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp, model_filename)
+    gcs_model_dir = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp)
+    gcs_model_path = os.path.join(gcs_model_dir, model_filename)
     subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
 
     X_test_prep = full_pipeline.fit_transform(X_test)
@@ -138,14 +139,20 @@ def upload_model_with_results(model, X_test, y_test):
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, predictions)
 
-    pd.DataFrame([[timestamp, rmse, mae]], columns=['timestamp', 'rmse', 'mae']).to_csv('results.csv')
-    subprocess.check_call(['gsutil', 'cp', 'results.csv', gcs_model_path], stderr=sys.stdout)
+    results_filename = 'results.csv'
+    pd.DataFrame([[timestamp, rmse, mae]], columns=['timestamp', 'rmse', 'mae']).to_csv(results_filename)
+    results_gcs_path = os.path.join(gcs_model_dir, results_filename)
+    subprocess.check_call(['gsutil', 'cp', results_filename, results_gcs_path], stderr=sys.stdout)
 
-    joblib.dump(X_test, 'X_test.joblib')
-    subprocess.check_call(['gsutil', 'cp', 'X_test.joblib', gcs_model_path], stderr=sys.stdout)
+    X_test_filename = 'X_test.joblib'
+    joblib.dump(X_test, X_test_filename)
+    X_test_gcs_path = os.path.join(gcs_model_dir, X_test_filename)
+    subprocess.check_call(['gsutil', 'cp', X_test_filename, X_test_gcs_path], stderr=sys.stdout)
 
-    joblib.dump(y_test, 'y_test.joblib')
-    subprocess.check_call(['gsutil', 'cp', 'y_test.joblib', gcs_model_path], stderr=sys.stdout)
+    y_test_filename = 'y_test.joblib'
+    joblib.dump(y_test, y_test_filename)
+    y_test_gcs_path = os.path.join(gcs_model_dir, y_test_filename)
+    subprocess.check_call(['gsutil', 'cp', y_test_filename, y_test_gcs_path], stderr=sys.stdout)
 
 
 def _get_bucket_name():
