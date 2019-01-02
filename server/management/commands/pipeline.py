@@ -31,8 +31,11 @@ class Command(BaseCommand):
             logger.info('user specified minimum date does not exist (defaulting to now - 1 week)')
             min_date = (start_dt - timedelta(weeks=1)).strftime('%Y-%m-%d')
 
-        call_command('scrape', min_date=min_date)
-        call_command('import', min_date=min_date)
+        scrapy_job_dirname = start_dt.strftime('%Y-%m-%dT%H%M%S')
+        logger.debug(f'Scrapy job dirname set to {scrapy_job_dirname}')
+
+        call_command('scrape', scrapy_job_dirname, min_date=min_date)
+        call_command('import', scrapy_job_dirname)
         call_command('backup')
         call_command('submit')
 

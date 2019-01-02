@@ -1,12 +1,13 @@
 import logging
+import os
 from datetime import datetime
 
 import pytz
-from django.core.management import BaseCommand
+from django.conf import settings
+from django.core.management import BaseCommand, CommandError
 
 from netkeiba.settings import TIME_ZONE
 from crawler.parsers.race import RaceParser
-from server.argtype import date_string
 from server.models import WebPage, RaceContender
 
 logger = logging.getLogger(__name__)
@@ -16,26 +17,26 @@ class Command(BaseCommand):
     help = 'Extract, clean and persist scraped netkeiba HTML'
 
     def add_arguments(self, parser):
-        parser.add_argument('-m', '--min-date', dest='min_date', type=date_string,
-                            help='Process all scraped HTML from this date to present (fmt: YYYY-MM-DD)')
+        parser.add_argument('scrapy-job-dirname', help='The name of the scrapy crawl jobdir')
 
     def handle(self, *args, **options):
         start_time = datetime.now(pytz.timezone(TIME_ZONE))
         logger.info(f'Started import command at {start_time}')
 
-        if options['min_date']:
-            limit = datetime.strptime(options['min_date'], '%Y-%m-%d')
-            logger.info(f'only processing webpages updated on or after {limit}')
-            queryset = WebPage.objects.filter(updated_at__gte=limit)
-        else:
-            logger.info('processing all webpage records')
-            queryset = WebPage.objects.all()
+        crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
+        requests_seen = os.path.join(crawls_dir, options['scrapy-job-dirname'], 'requests.seen')
+
+        if not os.path.exists(requests_seen):
+            raise CommandError('jobdir/requests.seen does not exist')
+
+        fingerprints = open(requests_seen).read().splitlines()
+        queryset = WebPage.objects.filter(fingerprint__in=fingerprints).order_by('-updated_at')
 
         i = 1
         exception_count = 0
         page_count = queryset.count()
 
-        for page in queryset.order_by('-updated_at').iterator():
+        for page in queryset.iterator():
             parser = page.get_parser()
 
             logger.debug(f'({i}/{page_count}) parsing {page.url} with {parser.__class__.__name__}')

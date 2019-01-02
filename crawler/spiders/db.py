@@ -5,6 +5,7 @@ from typing import List
 from scrapy.link import Link
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
+from scrapy.utils.request import request_fingerprint
 
 from crawler.items import WebPageItem
 
@@ -62,4 +63,5 @@ class DBSpider(CrawlSpider):
         return follow_links
 
     def parse_web_page_item(self, response):
-        return WebPageItem(url=response.url, html=response.text)
+        fingerprint = request_fingerprint(response.request)
+        return WebPageItem(url=response.url, html=response.text, fingerprint=fingerprint)

@@ -14,6 +14,7 @@ from server.models.base import BaseModel
 class WebPage(BaseModel):
     url = models.URLField(unique=True)
     html = models.TextField()
+    fingerprint = models.CharField(max_length=255)
 
     class Meta:
         db_table = 'webpages'
