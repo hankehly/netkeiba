@@ -13,6 +13,9 @@ from sklearn.externals import joblib
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, PROJECT_ROOT)
+from trainer.pipeline import full_pipeline
+
 DB_PATH = os.path.join(PROJECT_ROOT, 'db.sqlite3')
 
 SELECT_ALL = """
@@ -129,12 +132,13 @@ def upload_model_with_results(model, X_test, y_test):
     gcs_model_path = os.path.join('gs://', bucket_name, 'ml-engine', 'models', timestamp, model_filename)
     subprocess.check_call(['gsutil', 'cp', model_filename, gcs_model_path], stderr=sys.stdout)
 
-    predictions = model.predict(X_test)
+    X_test_prep = full_pipeline.fit_transform(X_test)
+    predictions = model.predict(X_test_prep)
     mse = mean_squared_error(y_test, predictions)
     rmse = np.sqrt(mse)
     mae = mean_absolute_error(y_test, predictions)
 
-    pd.DataFrame([[rmse, mae]], index=[timestamp], columns=['rmse', 'mae']).to_csv('results.csv')
+    pd.DataFrame([[timestamp, rmse, mae]], columns=['timestamp', 'rmse', 'mae']).to_csv('results.csv')
     subprocess.check_call(['gsutil', 'cp', 'results.csv', gcs_model_path], stderr=sys.stdout)
 
     joblib.dump(X_test, 'X_test.joblib')
