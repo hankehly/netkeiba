@@ -26,7 +26,7 @@ class Command(BaseCommand):
 
         if options['min_date']:
             logger.info(f"user specified minimum date is {options['min_date']}")
-            min_date = datetime.strptime(options['min_date'], '%Y-%m-%d')
+            min_date = options['min_date']
         else:
             logger.info('user specified minimum date does not exist (defaulting to now - 1 week)')
             min_date = (start_dt - timedelta(weeks=1)).strftime('%Y-%m-%d')
