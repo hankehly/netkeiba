@@ -26,12 +26,29 @@ def lambda_handler(event, context):
     try:
         client.connect(hostname=hostname, username='ubuntu', pkey=pkey)
         channel = client.get_transport().open_session()
-
-        app_dir = '/home/ubuntu/src/netkeiba'
-        command = f'. {app_dir}/.env; nohup {app_dir}/.venv-3.6.7/bin/python {app_dir}/manage.py pipeline --shutdown &'
-
+        command = _build_command_string(event.get('min_date'))
         channel.exec_command(command)
     except Exception as e:
         print(e)
     finally:
         client.close()
+
+
+def _build_command_string(min_date=None):
+    app_dir = '/home/ubuntu/src/netkeiba'
+    env_file = os.path.join(app_dir, '.env')
+    python_bin = os.path.join(app_dir, '.venv-3.6.7', 'bin', 'python')
+    manage_bin = os.path.join(app_dir, 'manage.py')
+
+    activate_env_command_args = ['.', env_file]
+    run_pipeline_command_args = ['nohup', python_bin, manage_bin, 'pipeline', '--shutdown']
+
+    if min_date:
+        run_pipeline_command_args.extend(['--min-date', min_date])
+
+    run_pipeline_command_args.append('&')
+
+    activate_env_command = ' '.join(activate_env_command_args)
+    run_pipeline_command = ' '.join(run_pipeline_command_args)
+
+    return '; '.join([activate_env_command, run_pipeline_command])
