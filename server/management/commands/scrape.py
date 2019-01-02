@@ -11,10 +11,10 @@ from server.argtype import date_string
 
 
 class Command(BaseCommand):
-    help = 'Start scrapy spider'
+    help = 'Start netkeiba db scrapy spider'
 
     def add_arguments(self, parser):
-        parser.add_argument('--min-date', dest='min_date', type=date_string,
+        parser.add_argument('-m', '--min-date', dest='min_date', type=date_string,
                             help='Scrape all races that come after this date (fmt: YYYY-MM-DD)')
 
     def handle(self, *args, **options):

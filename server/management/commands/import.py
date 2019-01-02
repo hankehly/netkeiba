@@ -13,10 +13,10 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Extract, clean and persist scraped HTML stored in WebPage model'
+    help = 'Extract, clean and persist scraped netkeiba HTML'
 
     def add_arguments(self, parser):
-        parser.add_argument('--min-date', dest='min_date', type=date_string,
+        parser.add_argument('-m', '--min-date', dest='min_date', type=date_string,
                             help='Process all scraped HTML from this date to present (fmt: YYYY-MM-DD)')
 
     def handle(self, *args, **options):
@@ -25,10 +25,10 @@ class Command(BaseCommand):
 
         if options['min_date']:
             limit = datetime.strptime(options['min_date'], '%Y-%m-%d')
-            logger.debug(f'only processing webpages updated on or after {limit}')
+            logger.info(f'only processing webpages updated on or after {limit}')
             queryset = WebPage.objects.filter(updated_at__gte=limit)
         else:
-            logger.debug('processing all webpage records')
+            logger.info('processing all webpage records')
             queryset = WebPage.objects.all()
 
         i = 1
@@ -48,7 +48,8 @@ class Command(BaseCommand):
                     parsed_contender_count = len(parser.data.get('contenders'))
                     parser.persist()
                     post_save_contender_count = RaceContender.objects.count()
-                    logger.debug(f'parsed {parsed_contender_count} contenders (total: {pre_save_contender_count} -> {post_save_contender_count})')
+                    logger.debug(
+                        f'parsed {parsed_contender_count} contenders (total: {pre_save_contender_count} -> {post_save_contender_count})')
                 else:
                     parser.persist()
             except Exception as e:

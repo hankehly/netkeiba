@@ -1,14 +1,18 @@
+import logging
 import os
 import subprocess
 import sys
 from datetime import datetime
 
+import pytz
 from django.conf import settings
 from django.core.management import BaseCommand
 
+logger = logging.getLogger(__name__)
+
 
 class Command(BaseCommand):
-    help = ''
+    help = 'Submit a training job to ml-engine'
 
     def add_arguments(self, parser):
         default_bucket_name = os.environ.get('GCLOUD_BUCKET')
@@ -32,16 +36,9 @@ class Command(BaseCommand):
         parser.add_argument('--scale-tier', default='BASIC', help='')
 
     def handle(self, *args, **options):
-        """
-        gcloud ml-engine jobs submit training ${JOB_NAME} \
-          --job-dir ${JOB_DIR} \
-          --package-path ${MLE_TRAINING_PACKAGE_PATH} \
-          --module-name ${MLE_MAIN_TRAINER_MODULE} \
-          --region ${MLE_REGION} \
-          --runtime-version=${MLE_RUNTIME_VERSION} \
-          --python-version=${MLE_PYTHON_VERSION} \
-          --scale-tier ${MLE_SCALE_TIER}
-        """
+        start_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
+        logger.info(f'Started submit command at {start_dt}')
+
         subprocess.check_call([
             'gcloud', 'ml-engine', 'jobs', 'submit', 'training', options['job_name'],
             '--job-dir', options['job_dir'],
@@ -54,3 +51,7 @@ class Command(BaseCommand):
             '--',
             '--bucket-name', options['bucket_name']
         ], stderr=sys.stdout)
+
+        finish_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
+        duration = (finish_dt - start_dt).seconds
+        logger.info(f'Finished submit command at {finish_dt} ({duration} seconds)')

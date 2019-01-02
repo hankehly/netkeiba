@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
-    help = 'Execute training pipeline (scrape, import, backup, submit)'
+    help = 'Execute the netkeiba training pipeline (scrape, import, backup, submit)'
 
     def add_arguments(self, parser):
         parser.add_argument('-s', '--shutdown', action='store_true', default=False,
@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         start_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
-        logger.info(f'started pipeline command at {start_dt}')
+        logger.info(f'Started pipeline command at {start_dt}')
 
         if options['min_date']:
             logger.info(f"user specified minimum date is {options['min_date']}")
