@@ -21,7 +21,7 @@ class Command(BaseCommand):
         parser.add_argument('--framework', default='scikit-learn', help='The ML framework used to train this version of the model (default: scikit-learn)')  # noqa
         parser.add_argument('--python-version', default='3.5', help='Version of Python used when creating the version (default: 3.5)')  # noqa
         parser.add_argument('--runtime-version', default='1.12', help='Google Cloud ML Engine runtime version for this job (default: 1.12)')  # noqa
-        parser.add_argument('--verbosity', default='warning', help='verbosity levels: debug, info, warning, error, critical, none (default: warning)')  # noqa
+        parser.add_argument('--gc-verbosity', default='warning', help='verbosity levels: debug, info, warning, error, critical, none (default: warning)')  # noqa
 
     def handle(self, *args, **options):
         start_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
@@ -42,7 +42,7 @@ class Command(BaseCommand):
             '--origin', origin,
             '--python-version', options['python_version'],
             '--runtime-version', options['runtime_version'],
-            '--verbosity', options['verbosity'],
+            '--verbosity', options['gc_verbosity'],
         ])
 
         if options['set_default']:
