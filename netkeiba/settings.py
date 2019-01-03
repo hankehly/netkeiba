@@ -156,12 +156,19 @@ LOGGING = {
             'port': 24224,
             'tag': 'netkeiba.default',
             'formatter': 'fluentfmt',
-            'level': 'DEBUG'
+            'level': 'DEBUG',
+        },
+        'dlog': {
+            'class': 'logging.FileHandler',
+            'filters': ['require_debug_true'],
+            'level': 'DEBUG',
+            'formatter': 'default',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
         },
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'fluent'],
+            'handlers': ['console', 'dlog'],
             'level': 'DEBUG',
             'propagate': False
         }
