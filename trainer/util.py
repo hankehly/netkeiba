@@ -31,6 +31,14 @@ SELECT_ALL = """
            c.horse_weight_diff                                           c_horse_weight_diff,
            c.popularity                                                  c_popularity,
            c.first_place_odds                                            c_first_place_odds,
+           (
+                SELECT _c.order_of_finish
+                FROM race_contenders _c
+                LEFT JOIN races _r ON _c.race_id = _r.id
+                WHERE _c.horse_id = c.horse_id AND _r.date < r.date
+                ORDER BY _r.date DESC
+                LIMIT 1
+           ) c_previous_order_of_finish,
         -- race
            r.id                                                          r_id,
            r.key                                                         r_key,
@@ -40,7 +48,7 @@ SELECT_ALL = """
            (SELECT name FROM racetracks WHERE id = r.racetrack_id)       r_racetrack,
            (SELECT name FROM course_types WHERE id = r.course_type_id)   r_course_type,
            (SELECT name FROM weather_categories WHERE id = r.weather_id) r_weather,
-    
+
            (SELECT name FROM dirt_condition_categories WHERE id = r.dirt_condition_id) r_dirt_condition,
            (SELECT name FROM turf_condition_categories WHERE id = r.turf_condition_id) r_turf_condition,
            (SELECT name FROM impost_categories WHERE id = r.impost_category_id)        r_impost_category,
@@ -67,12 +75,14 @@ SELECT_ALL = """
            t.id                                                          t_id,
            t.key                                                         t_key
     FROM race_contenders c
-           LEFT JOIN races r on c.race_id = r.id
-           LEFT JOIN horses h on c.horse_id = h.id
-           LEFT JOIN jockeys j on c.jockey_id = j.id
-           LEFT JOIN trainers t on c.trainer_id = t.id
+           LEFT JOIN races r ON c.race_id = r.id
+           LEFT JOIN horses h ON c.horse_id = h.id
+           LEFT JOIN jockeys j ON c.jockey_id = j.id
+           LEFT JOIN trainers t ON c.trainer_id = t.id
     ORDER BY c_id;
 """
+
+MISSING_NUMBER_PLACEHOLDER = 0
 
 
 def read_netkeiba():
@@ -80,12 +90,12 @@ def read_netkeiba():
         download_latest_db()
 
     conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
-    cur = conn.cursor()
-    rows = cur.execute(SELECT_ALL).fetchall()
+    c = conn.cursor()
+    rows = c.execute(SELECT_ALL).fetchall()
 
     # Get the column names of the last query. To remain compatible with the Python DB API,
     # it returns a 7-tuple for each column where the last six items of each tuple are None.
-    cols = [desc[0] for desc in cur.description]
+    cols = [desc[0] for desc in c.description]
 
     df = pd.DataFrame(rows, columns=cols)
 
@@ -98,13 +108,15 @@ def read_netkeiba():
     stray_label_indices = df[stray_label_bool_mask].index
     df.drop(stray_label_indices, inplace=True)
 
-    # df['is_day'] = None
-    # df['h_old_place'] = None
+    # TODO: df['is_day'] = None
+    # df['c_is_first_time_race'] = df['c_previous_order_of_finish'].isna()
+    df['c_previous_order_of_finish'].fillna(MISSING_NUMBER_PLACEHOLDER, inplace=True)
+    df['h_user_rating'].fillna(MISSING_NUMBER_PLACEHOLDER, inplace=True)  # ok
 
     index_attrs = ['c_id', 'r_id', 'h_id', 'j_id', 't_id', 'r_key', 'h_key', 'j_key', 't_key']
     label_attrs = ['c_order_of_finish', 'c_finish_time', 'c_order_of_finish_lowered', 'c_meters_per_second']
 
-    X = df.drop(columns=index_attrs + label_attrs)
+    X = df.drop(columns=label_attrs)
     y = df['c_meters_per_second']
 
     return X, y

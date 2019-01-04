@@ -84,7 +84,7 @@ class CombinedNumericAttributesAdder(BaseEstimator, TransformerMixin):
 
 
 num_pipeline = Pipeline([
-    ('imputer', SimpleImputer(strategy='median')),
+    ('imputer', SimpleImputer(strategy='mean')),
     ('std_scaler', StandardScaler())
 ])
 
@@ -98,25 +98,50 @@ cat_pipeline = Pipeline([
     ('one_hot', OneHotEncoder(sparse=False, handle_unknown='ignore', categories=list(cat_attr_categories.values())))
 ])
 
-important_features = [
-    'c_first_place_odds',
-    'c_popularity',
-    'r_impost_category',
-    'c_horse_weight',
-    'h_total_races',
-    'c_horse_weight_diff',
-    'r_contender_count',
-    'h_total_wins',
-    'c_post_position',
-    'r_distance',
-    'h_user_rating',
-    'h_sex',
-    'r_weather',
-]
-
 full_pipeline = ColumnTransformer([
     ('num', num_pipeline, num_attrs),
     ('cat', cat_pipeline, list(cat_attr_categories.keys())),
     ('date', date_pipeline, date_attrs),
     ('bool', 'passthrough', bool_attrs),
 ])
+
+# X.isna().any()
+# c_id                                      False
+# c_weight_carried                          False
+# c_post_position                           False
+# c_horse_weight                             True (1) (expected -- use MissingIndicator)
+# c_horse_weight_diff                        True (1) (expected -- use MissingIndicator)
+# c_popularity                              False
+# c_first_place_odds                        False
+# c_previous_order_of_finish                False
+# r_id                                      False
+# r_key                                     False
+# r_distance                                False
+# r_date                                    False
+# r_racetrack                               False
+# r_course_type                             False
+# r_weather                                 False
+# r_dirt_condition                           True (219519) (expected -- use MissingIndicator)
+# r_turf_condition                           True (216678) (expected -- use MissingIndicator)
+# r_impost_category                         False
+# r_is_non_winner_regional_horse_allowed    False
+# r_is_winner_regional_horse_allowed        False
+# r_is_regional_jockey_allowed              False
+# r_is_foreign_horse_allowed                False
+# r_is_foreign_horse_and_trainer_allowed    False
+# r_is_apprentice_jockey_allowed            False
+# r_is_female_only                          False
+# h_id                                      False
+# h_key                                     False
+# h_total_races                             False
+# h_total_wins                              False
+# h_sex                                     False
+# h_birthday                                False
+# h_user_rating                             False
+# j_id                                      False
+# j_key                                     False
+# t_id                                      False
+# t_key                                     False
+# r_contender_count                         False
+# dtype: bool
+

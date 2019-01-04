@@ -16,7 +16,11 @@ class RaceContender(BaseModel):
     finish_time = models.FloatField()
     first_place_odds = models.FloatField()
     popularity = models.PositiveSmallIntegerField()
+
+    # null when 計不
     horse_weight = models.FloatField(null=True)
+
+    # null when 計不
     horse_weight_diff = models.FloatField(null=True)
 
     class Meta:
