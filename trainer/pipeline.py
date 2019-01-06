@@ -11,6 +11,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 Numeric
 """
 
+# TODO: Add 'c_actual_weight' (c_weight_carried + c_horse_weight)
+# TODO: Add 'horse_class' or something similar (G1?) see chinese paper pg. 14
 required_numeric_attributes = [
     'c_first_place_odds',
     'c_popularity',
