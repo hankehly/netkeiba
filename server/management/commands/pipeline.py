@@ -37,7 +37,7 @@ class Command(BaseCommand):
         call_command('scrape', scrapy_job_dirname, min_date=min_date)
         call_command('import', scrapy_job_dirname)
         call_command('backup')
-        call_command('submit')
+        call_command('ml-engine_jobs_submit_training')
 
         finish_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
         duration = (finish_dt - start_dt).seconds
