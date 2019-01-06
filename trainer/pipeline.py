@@ -1,147 +1,204 @@
+import numpy as np
 import pandas as pd
 
-import numpy as np
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
+from sklearn.impute import MissingIndicator
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-cat_attr_categories = {
-    'r_racetrack': ['chukyo', 'fuma', 'hakodate', 'hanshin', 'kyoto', 'nakayama', 'niigata', 'ogura', 'sapporo',
-                    'tokyo'],
-    'r_course_type': ['dirt', 'obstacle', 'turf'],
-    'r_weather': ['cloudy', 'rainy', 'snowy', 'sunny'],
-    'h_sex': ['castrated', 'female', 'male'],
-    'r_impost_category': ['age_based', 'age_sex_based', 'decided_per_race', 'handicap'],
-    'r_dirt_condition': ['bad', 'good', 'heavy', 'slightly_heavy'],
-    'r_turf_condition': ['bad', 'good', 'heavy', 'slightly_heavy']
+"""
+Numeric
+"""
+
+required_numeric_attributes = [
+    'c_first_place_odds',
+    'c_popularity',
+    'c_post_position',
+    'c_weight_carried',
+    'h_total_races',
+    'h_total_wins',
+    'r_contender_count',
+    'r_distance',
+]
+
+nullable_numeric_attributes = [
+    'c_horse_weight',
+    'c_horse_weight_diff',
+    'c_previous_order_of_finish',
+    'h_user_rating'
+]
+
+
+class NullableNumericTransformer(BaseEstimator, TransformerMixin):
+
+    def __init__(self, c_horse_weight=None, c_horse_weight_diff=None, c_previous_order_of_finish=None,
+                 h_user_rating=None):
+        pass
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X, y=None):
+        null_rating_mask = X['h_user_rating'] == 0
+        null_indices = X[null_rating_mask].index
+        X.loc[null_indices, 'h_user_rating'] = np.nan
+
+        # Ensure number of MissingIndicator features stays constant by specifying
+        # features='all'. Variability in the number of columns causes a mismatch in
+        # feature names and actual features.
+        imputer_mask = MissingIndicator(features='all', sparse=False).fit_transform(X)
+
+        # Impute the values manually because each value is handled differently
+        mean_horse_weight = X['c_horse_weight'].mean()
+        X['c_horse_weight'] = X['c_horse_weight'].fillna(mean_horse_weight)
+
+        mean_horse_weight_diff = X['c_horse_weight_diff'].mean()
+        X['c_horse_weight_diff'] = X['c_horse_weight_diff'].fillna(mean_horse_weight_diff)
+
+        X['c_previous_order_of_finish'] = X['c_previous_order_of_finish'].fillna(0)
+        X['h_user_rating'] = X['h_user_rating'].fillna(0)
+
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
+
+        return np.c_[X_scaled, imputer_mask]
+
+    def get_feature_names(self):
+        imputer_mask_attr_names = [f'{attr}_is_null' for attr in nullable_numeric_attributes]
+        return nullable_numeric_attributes + imputer_mask_attr_names
+
+
+nullable_numeric_transformer = NullableNumericTransformer()
+
+"""
+Categorical
+"""
+
+cat_attr_opts = {
+    'h_sex': [
+        'castrated',
+        'female',
+        'male'
+    ],
+    'r_course_type': [
+        'dirt',
+        'obstacle',
+        'turf'
+    ],
+    'r_dirt_condition': [
+        'bad',
+        'good',
+        'heavy',
+        'slightly_heavy'
+    ],
+    'r_impost_category': [
+        'age_based',
+        'age_sex_based',
+        'decided_per_race',
+        'handicap'
+    ],
+    'r_racetrack': [
+        'chukyo',
+        'fuma',
+        'hakodate',
+        'hanshin',
+        'kyoto',
+        'nakayama',
+        'niigata',
+        'ogura',
+        'sapporo',
+        'tokyo'
+    ],
+    'r_turf_condition': [
+        'bad',
+        'good',
+        'heavy',
+        'slightly_heavy'
+    ],
+    'r_weather': [
+        'cloudy',
+        'rainy',
+        'snowy',
+        'sunny'
+    ],
 }
 
-bool_attrs = [
-    'r_is_non_winner_regional_horse_allowed', 'r_is_winner_regional_horse_allowed',
-    'r_is_regional_jockey_allowed', 'r_is_foreign_horse_allowed',
-    'r_is_foreign_horse_and_trainer_allowed', 'r_is_apprentice_jockey_allowed',
-    'r_is_female_only'
-]
+category_keys = list(cat_attr_opts.keys())
+category_values = list(cat_attr_opts.values())
+category_values_prefixed = [[f'{cat_key}_is_{value}' for value in cat_attr_opts[cat_key]] for cat_key in category_keys]
 
-date_attrs = [
-    'r_date', 'h_birthday'
-]
+one_hot_encoder = OneHotEncoder(sparse=False, handle_unknown='ignore', categories=category_values)
 
-num_attrs = [
-    'c_weight_carried', 'c_post_position',
-    'c_horse_weight', 'c_horse_weight_diff', 'c_popularity',
-    'c_first_place_odds', 'r_distance', 'r_contender_count',
-    'h_total_races', 'h_total_wins', 'h_user_rating'
+"""
+Date
+"""
+
+date_attributes = [
+    'h_birthday',
+    'r_date',
 ]
 
 
-class CombinedDateAttributesAdder(BaseEstimator, TransformerMixin):
+class HorseAgeAttributeAdder(BaseEstimator, TransformerMixin):
+    def __init__(self, h_birthday=None, r_date=None):
+        pass
+
     def fit(self, X, y=None):
         return self
 
     def transform(self, X, y=None):
         df = pd.DataFrame(X)
-        df['h_age_days'] = (pd.to_datetime(df['r_date']) - pd.to_datetime(df['h_birthday'])).dt.days
+        df['h_age_days'] = (pd.to_datetime(df['r_date']) - pd.to_datetime(df['h_birthday'])).dt.days.astype(float)
         return df.drop(columns=['r_date', 'h_birthday']).values
 
+    def get_feature_names(self):
+        return ['h_age_days']
 
-class CombinedNumericAttributesAdder(BaseEstimator, TransformerMixin):
-    def __init__(self):
-        # passing 'num_attrs' via init is preferable, but 'not found' errors occurs in pipeline
-        self.j_turf_wins_ix = num_attrs.index('j_career_turf_win_count')
-        self.j_turf_races_ix = num_attrs.index('j_career_turf_race_count')
-        self.j_dirt_wins_ix = num_attrs.index('j_career_dirt_win_count')
-        self.j_dirt_races_ix = num_attrs.index('j_career_dirt_race_count')
-        self.t_turf_wins_ix = num_attrs.index('t_career_turf_win_count')
-        self.t_turf_races_ix = num_attrs.index('t_career_turf_race_count')
-        self.t_dirt_wins_ix = num_attrs.index('t_career_dirt_win_count')
-        self.t_dirt_races_ix = num_attrs.index('t_career_dirt_race_count')
-        self.h_total_wins_ix = num_attrs.index('h_total_wins')
-        self.h_total_races_ix = num_attrs.index('h_total_races')
-
-    def fit(self, X, y=None):
-        return self
-
-    def transform(self, X, y=None):
-        j_turf_wins, j_turf_races = X[:, self.j_turf_wins_ix], X[:, self.j_turf_races_ix]
-        j_turf_win_rate = np.divide(j_turf_wins, j_turf_races, out=np.zeros_like(j_turf_wins), where=j_turf_wins != 0.)
-
-        j_dirt_wins, j_dirt_races = X[:, self.j_dirt_wins_ix], X[:, self.j_dirt_races_ix]
-        j_dirt_win_rate = np.divide(j_dirt_wins, j_dirt_races, out=np.zeros_like(j_dirt_wins), where=j_dirt_wins != 0.)
-
-        t_turf_wins, t_turf_races = X[:, self.t_turf_wins_ix], X[:, self.t_turf_races_ix]
-        t_turf_win_rate = np.divide(t_turf_wins, t_turf_races, out=np.zeros_like(t_turf_wins), where=t_turf_wins != 0.)
-
-        t_dirt_wins, t_dirt_races = X[:, self.t_dirt_wins_ix], X[:, self.t_dirt_races_ix]
-        t_dirt_win_rate = np.divide(t_dirt_wins, t_dirt_races, out=np.zeros_like(t_dirt_wins), where=t_dirt_wins != 0.)
-
-        h_wins, h_races = X[:, self.h_total_wins_ix], X[:, self.h_total_races_ix]
-        h_win_rate = np.divide(h_wins, h_races, out=np.zeros_like(h_wins), where=h_wins != 0.)
-
-        return np.c_[X, j_turf_win_rate, j_dirt_win_rate, t_turf_win_rate, t_dirt_win_rate, h_win_rate]
-
-
-num_pipeline = Pipeline([
-    ('imputer', SimpleImputer(strategy='mean')),
-    ('std_scaler', StandardScaler())
-])
 
 date_pipeline = Pipeline([
-    ('date_attrs_adder', CombinedDateAttributesAdder()),
-    ('imputer', SimpleImputer(strategy='median')),
-    ('std_scaler', StandardScaler())
+    ('horse_age_attribute_adder', HorseAgeAttributeAdder()),
+    ('standard_scaler', StandardScaler())
 ])
 
-cat_pipeline = Pipeline([
-    ('one_hot', OneHotEncoder(sparse=False, handle_unknown='ignore', categories=list(cat_attr_categories.values())))
-])
+"""
+Boolean
+"""
+
+# TODO: Add 'is_day' attribute
+bool_attrs = [
+    'r_is_apprentice_jockey_allowed',
+    'r_is_female_only',
+    'r_is_foreign_horse_allowed',
+    'r_is_foreign_horse_and_trainer_allowed',
+    'r_is_non_winner_regional_horse_allowed',
+    'r_is_regional_jockey_allowed',
+    'r_is_winner_regional_horse_allowed',
+]
 
 full_pipeline = ColumnTransformer([
-    ('num', num_pipeline, num_attrs),
-    ('cat', cat_pipeline, list(cat_attr_categories.keys())),
-    ('date', date_pipeline, date_attrs),
-    ('bool', 'passthrough', bool_attrs),
+    ('required_numeric', StandardScaler(), required_numeric_attributes),
+    ('nullable_numeric', nullable_numeric_transformer, nullable_numeric_attributes),
+    ('categorical', one_hot_encoder, category_keys),
+    ('date', date_pipeline, date_attributes),
+    ('boolean', 'passthrough', bool_attrs),
+], remainder='drop')
+
+# TODO: Implement get_feature_names() in all transformers
+# so that you can do the following by calling full_pipeline.get_feature_names()
+full_pipeline_feature_names = np.hstack([
+    # numeric
+    required_numeric_attributes,
+
+    # nullable numeric
+    nullable_numeric_transformer.get_feature_names(),
+
+    # categorical
+    np.hstack(category_values_prefixed),
+
+    # date
+    date_pipeline.named_steps['horse_age_attribute_adder'].get_feature_names(),
+
+    # boolean
+    bool_attrs
 ])
-
-# X.isna().any()
-# c_id                                      False
-# c_weight_carried                          False
-# c_post_position                           False
-# c_horse_weight                             True (1) (expected -- use MissingIndicator)
-# c_horse_weight_diff                        True (1) (expected -- use MissingIndicator)
-# c_popularity                              False
-# c_first_place_odds                        False
-# c_previous_order_of_finish                False
-# r_id                                      False
-# r_key                                     False
-# r_distance                                False
-# r_date                                    False
-# r_racetrack                               False
-# r_course_type                             False
-# r_weather                                 False
-# r_dirt_condition                           True (219519) (expected -- use MissingIndicator)
-# r_turf_condition                           True (216678) (expected -- use MissingIndicator)
-# r_impost_category                         False
-# r_is_non_winner_regional_horse_allowed    False
-# r_is_winner_regional_horse_allowed        False
-# r_is_regional_jockey_allowed              False
-# r_is_foreign_horse_allowed                False
-# r_is_foreign_horse_and_trainer_allowed    False
-# r_is_apprentice_jockey_allowed            False
-# r_is_female_only                          False
-# h_id                                      False
-# h_key                                     False
-# h_total_races                             False
-# h_total_wins                              False
-# h_sex                                     False
-# h_birthday                                False
-# h_user_rating                             False
-# j_id                                      False
-# j_key                                     False
-# t_id                                      False
-# t_key                                     False
-# r_contender_count                         False
-# dtype: bool
-

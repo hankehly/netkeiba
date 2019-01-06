@@ -8,7 +8,7 @@ from sklearn.externals import joblib
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
-from trainer.pipeline import full_pipeline, cat_attr_categories, bool_attrs, date_attrs, num_attrs
+from trainer.pipeline import full_pipeline, cat_attr_opts, bool_attrs, date_attributes, required_numeric_attributes
 
 
 def read_data(data_path) -> pd.DataFrame:
@@ -32,10 +32,10 @@ def read_data(data_path) -> pd.DataFrame:
     df['c_horse_weight_diff'] = 1
 
     return df[[
-        *cat_attr_categories.keys(),
+        *cat_attr_opts.keys(),
         *bool_attrs,
-        *date_attrs,
-        *num_attrs
+        *date_attributes,
+        *required_numeric_attributes
     ]]
 
 

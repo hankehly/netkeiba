@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 from sklearn.externals import joblib
 from sklearn.metrics import mean_squared_error, mean_absolute_error
+from sklearn.model_selection import StratifiedShuffleSplit
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 sys.path.insert(0, PROJECT_ROOT)
@@ -40,18 +41,17 @@ SELECT_ALL = """
                 LIMIT 1
            ) c_previous_order_of_finish,
         -- race
-           r.id                                                          r_id,
-           r.key                                                         r_key,
-           r.distance                                                    r_distance,
-           r.date                                                        r_date,
-    
-           (SELECT name FROM racetracks WHERE id = r.racetrack_id)       r_racetrack,
-           (SELECT name FROM course_types WHERE id = r.course_type_id)   r_course_type,
-           (SELECT name FROM weather_categories WHERE id = r.weather_id) r_weather,
-
-           (SELECT name FROM dirt_condition_categories WHERE id = r.dirt_condition_id) r_dirt_condition,
-           (SELECT name FROM turf_condition_categories WHERE id = r.turf_condition_id) r_turf_condition,
-           (SELECT name FROM impost_categories WHERE id = r.impost_category_id)        r_impost_category,
+           r.id                                                                                 r_id,
+           r.key                                                                                r_key,
+           r.distance                                                                           r_distance,
+           r.date                                                                               r_date,
+           (SELECT COUNT(_c.id) FROM race_contenders _c WHERE _c.race_id = r.id)                r_contender_count,
+           (SELECT name FROM racetracks WHERE id = r.racetrack_id)                              r_racetrack,
+           (SELECT name FROM course_types WHERE id = r.course_type_id)                          r_course_type,
+           (SELECT name FROM weather_categories WHERE id = r.weather_id)                        r_weather,
+           (SELECT name FROM dirt_condition_categories WHERE id = r.dirt_condition_id)          r_dirt_condition,
+           (SELECT name FROM turf_condition_categories WHERE id = r.turf_condition_id)          r_turf_condition,
+           (SELECT name FROM impost_categories WHERE id = r.impost_category_id)                 r_impost_category,
     
            (SELECT EXISTS(SELECT id FROM non_winner_regional_horse_races WHERE race_id = r.id)) r_is_non_winner_regional_horse_allowed,
            (SELECT EXISTS(SELECT id FROM winner_regional_horse_races WHERE race_id = r.id))     r_is_winner_regional_horse_allowed,
@@ -82,44 +82,48 @@ SELECT_ALL = """
     ORDER BY c_id;
 """
 
-MISSING_NUMBER_PLACEHOLDER = 0
-
 
 def read_netkeiba():
     if not os.path.exists(DB_PATH):
+        print(f'DB not found locally (missing {DB_PATH}). Downloading most recent backup now.')
         download_latest_db()
 
     conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
     c = conn.cursor()
     rows = c.execute(SELECT_ALL).fetchall()
-
-    # Get the column names of the last query. To remain compatible with the Python DB API,
-    # it returns a 7-tuple for each column where the last six items of each tuple are None.
     cols = [desc[0] for desc in c.description]
 
     df = pd.DataFrame(rows, columns=cols)
+    df['c_meters_per_second'] = (df['c_finish_time'] / df['r_distance'])
 
-    df['r_contender_count'] = df.groupby('r_id').c_id.count().loc[df.r_id].values
-    df['c_meters_per_second'] = (df['c_finish_time'] / df['r_distance']).round(6)
-
-    label_value_counts = df['c_meters_per_second'].value_counts()
-    stray_label_values = label_value_counts.index[label_value_counts < 2].values
-    stray_label_bool_mask = df['c_meters_per_second'].isin(stray_label_values)
-    stray_label_indices = df[stray_label_bool_mask].index
-    df.drop(stray_label_indices, inplace=True)
-
-    # TODO: df['is_day'] = None
-    # df['c_is_first_time_race'] = df['c_previous_order_of_finish'].isna()
-    df['c_previous_order_of_finish'].fillna(MISSING_NUMBER_PLACEHOLDER, inplace=True)
-    df['h_user_rating'].fillna(MISSING_NUMBER_PLACEHOLDER, inplace=True)  # ok
-
-    index_attrs = ['c_id', 'r_id', 'h_id', 'j_id', 't_id', 'r_key', 'h_key', 'j_key', 't_key']
-    label_attrs = ['c_order_of_finish', 'c_finish_time', 'c_order_of_finish_lowered', 'c_meters_per_second']
-
-    X = df.drop(columns=label_attrs)
+    X = df.drop(columns=['c_order_of_finish', 'c_finish_time', 'c_order_of_finish_lowered', 'c_meters_per_second'])
     y = df['c_meters_per_second']
 
     return X, y
+
+
+def split_train_test(X, y):
+    # prevent too many instances from being excluded from dataset during stratisfied shuffling split
+    # by rounding y to a value with less decimal places
+    y_rounded = y.round(3)
+
+    value_counts = y_rounded.value_counts()
+    unique_values = value_counts.index[value_counts < 2].values
+    unique_mask = y_rounded.isin(unique_values)
+    unique_indices = y_rounded[unique_mask].index
+
+    X.drop(unique_indices, inplace=True)
+    y.drop(unique_indices, inplace=True)
+    y_rounded.drop(unique_indices, inplace=True)
+
+    print(f'Dropped {len(unique_indices)} instances with unique labels')
+
+    sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+    for train_idx, test_idx in sss.split(X, y_rounded):
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
+    return X_train, X_test, y_train, y_test
 
 
 def download_latest_db():

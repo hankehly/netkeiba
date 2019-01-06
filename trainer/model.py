@@ -8,7 +8,7 @@ from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
 np.random.seed(42)
 
 
-def train_rand_forest_reg_random_search(X_train_prep, y_train):
+def train_random_forest_regressor_random_search(X_train_prep, y_train):
     param_distributions = {
         'n_estimators': randint(low=1, high=200),
         'max_features': randint(low=1, high=8),
