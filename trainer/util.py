@@ -85,7 +85,7 @@ SELECT_ALL = """
 
 def read_netkeiba():
     if not os.path.exists(DB_PATH):
-        print(f'DB not found locally (missing {DB_PATH}). Downloading most recent backup now.')
+        print('DB not found locally (missing {db_path}). Downloading most recent backup now.'.format(db_path=DB_PATH))
         download_latest_db()
 
     conn = sqlite3.connect(os.path.join(PROJECT_ROOT, 'db.sqlite3'))
@@ -116,7 +116,7 @@ def split_train_test(X, y):
     y.drop(unique_indices, inplace=True)
     y_rounded.drop(unique_indices, inplace=True)
 
-    print(f'Dropped {len(unique_indices)} instances with unique labels')
+    print('Dropped {num} instances with unique labels'.format(num=len(unique_indices)))
 
     sss = StratifiedShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
     for train_idx, test_idx in sss.split(X, y_rounded):

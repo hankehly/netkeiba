@@ -67,7 +67,7 @@ class NullableNumericTransformer(BaseEstimator, TransformerMixin):
         return np.c_[X_scaled, imputer_mask]
 
     def get_feature_names(self):
-        imputer_mask_attr_names = [f'{attr}_is_null' for attr in nullable_numeric_attributes]
+        imputer_mask_attr_names = ['{attr}_is_null'.format(attr=attr) for attr in nullable_numeric_attributes]
         return nullable_numeric_attributes + imputer_mask_attr_names
 
 
@@ -128,7 +128,7 @@ cat_attr_opts = {
 
 category_keys = list(cat_attr_opts.keys())
 category_values = list(cat_attr_opts.values())
-category_values_prefixed = [[f'{cat_key}_is_{value}' for value in cat_attr_opts[cat_key]] for cat_key in category_keys]
+category_values_prefixed = [['{cat_key}_is_{value}'.format(cat_key=cat_key, value=value) for value in cat_attr_opts[cat_key]] for cat_key in category_keys]
 
 one_hot_encoder = OneHotEncoder(sparse=False, handle_unknown='ignore', categories=category_values)
 
