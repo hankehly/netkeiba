@@ -3,11 +3,20 @@ from datetime import datetime
 
 import scrapy
 from bs4 import BeautifulSoup
+from django.db import connection
 
 from crawler.constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX
 from crawler.parsers.horse import HorseParser
 from crawler.parsers.jockey_result import JockeyResultParser
 from crawler.parsers.trainer_result import TrainerResultParser
+
+
+def _prefix_keys(obj: dict, prefix: str):
+    acc = {}
+    for key, value in obj.items():
+        pref_key = ''.join([prefix, key])
+        acc[pref_key] = value
+    return acc
 
 
 class RaceSpider(scrapy.Spider):
@@ -72,7 +81,7 @@ class RaceSpider(scrapy.Spider):
             c_weight_carried = float(row.select('td')[3].text)
 
             jockey_column = row.select('td')[4]
-            if jockey_column.select_one("a['href']"):
+            if jockey_column.select_one('a[href]'):
                 j_url = jockey_column.select_one('a').get('href')
                 j_key = re.search('/jockey/([0-9]+)', j_url).group(1)
             else:
@@ -83,6 +92,17 @@ class RaceSpider(scrapy.Spider):
             c_first_place_odds = float(row.select('td')[6].text)
             c_popularity = int(row.select('td')[7].text)
 
+            with connection.cursor() as cursor:
+                q = '''
+                    SELECT c.order_of_finish
+                    FROM race_contenders c
+                    LEFT JOIN races r ON c.race_id = r.id
+                    WHERE c.horse_key = %s AND r.date < %s
+                    ORDER BY r.date DESC
+                    LIMIT 1
+                '''
+                c_previous_order_of_finish = cursor.execute(q, [h_key, race['date']]).fetchone()
+
             meta = {
                 'data': {
                     'h_key': h_key,
@@ -91,11 +111,12 @@ class RaceSpider(scrapy.Spider):
                     't_key': t_key,
                     'c_first_place_odds': c_first_place_odds,
                     'c_popularity': c_popularity,
-                    'c_weight_carried': c_weight_carried
+                    'c_weight_carried': c_weight_carried,
+                    'c_previous_order_of_finish': c_previous_order_of_finish,
                 }
             }
 
-            race_data = self._prefix_keys(race, 'r_')
+            race_data = _prefix_keys(race, 'r_')
             meta['data'] = {**meta['data'], **race_data}
 
             yield scrapy.Request(h_url, callback=self.parse_horse, meta=meta, dont_filter=True)
@@ -103,7 +124,7 @@ class RaceSpider(scrapy.Spider):
     def parse_horse(self, response):
         parser = HorseParser(response.body)
         parser.parse()
-        data = self._prefix_keys(parser.data, 'h_')
+        data = _prefix_keys(parser.data, 'h_')
         response.meta['data'] = {**response.meta['data'], **data}
         yield scrapy.Request(response.urljoin(f"/trainer/result/{response.meta['data']['t_key']}"),
                              callback=self.parse_trainer, meta=response.meta, dont_filter=True)
@@ -111,7 +132,7 @@ class RaceSpider(scrapy.Spider):
     def parse_trainer(self, response):
         parser = TrainerResultParser(response.body)
         parser.parse()
-        data = self._prefix_keys(parser.data, 't_')
+        data = _prefix_keys(parser.data, 't_')
         response.meta['data'] = {**response.meta['data'], **data}
         yield scrapy.Request(response.urljoin(f"/jockey/result/{response.meta['data']['j_key']}"),
                              callback=self.parse_jockey, meta=response.meta, dont_filter=True)
@@ -119,12 +140,5 @@ class RaceSpider(scrapy.Spider):
     def parse_jockey(self, response):
         parser = JockeyResultParser(response.body)
         parser.parse()
-        data = self._prefix_keys(parser.data, 'j_')
+        data = _prefix_keys(parser.data, 'j_')
         yield {**response.meta['data'], **data}
-
-    def _prefix_keys(self, obj: dict, prefix: str):
-        acc = {}
-        for key, value in obj.items():
-            pref_key = ''.join([prefix, key])
-            acc[pref_key] = value
-        return acc
