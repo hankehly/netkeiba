@@ -107,8 +107,8 @@ class RaceSpider(scrapy.Spider):
                     ORDER BY r.date DESC
                     LIMIT 1
                 '''
-                cursor.execute(previous_order_of_finish_query, [h_key, race['date']])
-                c_previous_order_of_finish = cursor.fetchone()
+                result = cursor.execute(previous_order_of_finish_query, [h_key, race['date']]).fetchone()
+                c_previous_order_of_finish = result[0] if result else None
 
             meta = {
                 'data': {
