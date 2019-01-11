@@ -93,15 +93,22 @@ class RaceSpider(scrapy.Spider):
             c_popularity = int(row.select('td')[7].text)
 
             with connection.cursor() as cursor:
-                q = '''
+                previous_order_of_finish_query = '''
                     SELECT c.order_of_finish
                     FROM race_contenders c
-                    LEFT JOIN races r ON c.race_id = r.id
-                    WHERE c.horse_key = %s AND r.date < %s
+                           LEFT JOIN races r ON c.race_id = r.id
+                    WHERE c.horse_id = (
+                      SELECT id
+                      FROM horses
+                      WHERE key = %s
+                      LIMIT 1
+                    )
+                      AND r.date < %s
                     ORDER BY r.date DESC
                     LIMIT 1
                 '''
-                c_previous_order_of_finish = cursor.execute(q, [h_key, race['date']]).fetchone()
+                cursor.execute(previous_order_of_finish_query, [h_key, race['date']])
+                c_previous_order_of_finish = cursor.fetchone()
 
             meta = {
                 'data': {
