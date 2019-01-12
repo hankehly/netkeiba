@@ -24,10 +24,6 @@ def read_data(data_path) -> pd.DataFrame:
     else:
         raise ValueError(f'file extension ({ext}) unsupported')
 
-    # TODO: Manual input needed
-    df['r_dirt_condition'] = None
-    df['r_turf_condition'] = None
-
     attrs = np.hstack([
         category_keys,
         bool_attrs,
