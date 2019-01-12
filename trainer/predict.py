@@ -25,12 +25,8 @@ def read_data(data_path) -> pd.DataFrame:
         raise ValueError(f'file extension ({ext}) unsupported')
 
     # TODO: Manual input needed
-    df['r_weather'] = 'sunny'
-    df['c_post_position'] = df.index + 1
     df['r_dirt_condition'] = None
     df['r_turf_condition'] = None
-    df['c_horse_weight'] = 0
-    df['c_horse_weight_diff'] = 0
 
     attrs = np.hstack([
         category_keys,
