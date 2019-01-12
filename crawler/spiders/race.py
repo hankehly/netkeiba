@@ -5,7 +5,7 @@ import scrapy
 from bs4 import BeautifulSoup
 from django.db import connection
 
-from crawler.constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX
+from crawler.constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
 from crawler.parsers.horse import HorseParser
 from crawler.parsers.jockey_result import JockeyResultParser
 from crawler.parsers.trainer_result import TrainerResultParser
@@ -21,6 +21,20 @@ class TABLE_COL:
     WEIGHT = 8
     ODDS = 9
     POPULARITY = 10
+
+
+def _parse_track_details(soup):
+    return soup.select_one('.racedata').select_one('p:nth-of-type(2)').text \
+        .replace(u'\xa0', u'').replace(' ', '').split('/')
+
+
+def _parse_weather(soup):
+    track_details = _parse_track_details(soup)
+    weather = None
+    for key, val in WEATHER.items():
+        if key in track_details[0]:
+            weather = val
+    return weather
 
 
 def _parse_post_position(row):
@@ -133,6 +147,7 @@ class RaceSpider(scrapy.Spider):
         race_dist_type_search = re.search('(.)([0-9]+)m', race_dist_type_data)
         course_type = COURSE_TYPES.get(race_dist_type_search.group(1))
         distance = int(race_dist_type_search.group(2))
+        weather = _parse_weather(soup)
 
         race_category_data = soup.select_one('.race_otherdata p:nth-of-type(2)').text
 
@@ -155,6 +170,7 @@ class RaceSpider(scrapy.Spider):
             'date': date,
             'course_type': course_type,
             'distance': distance,
+            'weather': weather,
             'impost_category': impost_category,
             'is_non_winner_regional_horse_allowed': is_non_winner_regional_horse_allowed,
             'is_winner_regional_horse_allowed': is_winner_regional_horse_allowed,
