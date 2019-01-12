@@ -23,9 +23,29 @@ class TABLE_COL:
     POPULARITY = 10
 
 
+def _parse_racetrack(soup):
+    return RACETRACKS.get(soup.select_one('.race_place a.active').text)
+
+
+def _parse_date(soup):
+    return datetime.strptime(re.search('[0-9]{4}/[0-9]{2}/[0-9]{2}', soup.title.text).group(), '%Y/%m/%d').date()
+
+
 def _parse_track_details(soup):
     return soup.select_one('.racedata').select_one('p:nth-of-type(2)').text \
         .replace(u'\xa0', u'').replace(' ', '').split('/')
+
+
+def _parse_course_type(soup):
+    race_dist_type_data = soup.select_one('.racedata').select_one('p:nth-of-type(1)').text
+    race_dist_type_search = re.search('(.)([0-9]+)m', race_dist_type_data)
+    return COURSE_TYPES.get(race_dist_type_search.group(1))
+
+
+def _parse_distance(soup):
+    race_dist_type_data = soup.select_one('.racedata').select_one('p:nth-of-type(1)').text
+    race_dist_type_search = re.search('(.)([0-9]+)m', race_dist_type_data)
+    return int(race_dist_type_search.group(2))
 
 
 def _parse_weather(soup):
@@ -35,6 +55,42 @@ def _parse_weather(soup):
         if key in track_details[0]:
             weather = val
     return weather
+
+
+def _parse_track_condition(soup):
+    track_details = _parse_track_details(soup)
+    condition = None
+    if '良' in track_details[1]:
+        condition = 'good'
+    elif '稍重' in track_details[1]:
+        condition = 'slightly_heavy'
+    elif '重' in track_details[1]:
+        condition = 'heavy'
+    elif '不良' in track_details[1]:
+        condition = 'bad'
+    return condition
+
+
+def _parse_dirt_condition(soup):
+    course_type = _parse_course_type(soup)
+    if course_type == 'dirt':
+        return _parse_track_condition(soup)
+    return ''
+
+
+def _parse_turf_condition(soup):
+    course_type = _parse_course_type(soup)
+    if course_type == 'turf':
+        return _parse_track_condition(soup)
+    return ''
+
+
+def _parse_impost_category(soup):
+    race_category_data = soup.select_one('.race_otherdata p:nth-of-type(2)').text
+    for key, val in IMPOST_CATEGORIES.items():
+        if key in race_category_data:
+            return val
+    return ''
 
 
 def _parse_post_position(row):
@@ -140,22 +196,16 @@ class RaceSpider(scrapy.Spider):
         soup = BeautifulSoup(response.body, 'html.parser')
         contenders = soup.select_one('.race_table_old').select('tr.bml1')
         contender_count = len(contenders)
-
-        racetrack = RACETRACKS.get(soup.select_one('.race_place a.active').text)
-        date = datetime.strptime(re.search('[0-9]{4}/[0-9]{2}/[0-9]{2}', soup.title.text).group(), '%Y/%m/%d').date()
-        race_dist_type_data = soup.select_one('.racedata').select_one('p:nth-of-type(1)').text
-        race_dist_type_search = re.search('(.)([0-9]+)m', race_dist_type_data)
-        course_type = COURSE_TYPES.get(race_dist_type_search.group(1))
-        distance = int(race_dist_type_search.group(2))
+        racetrack = _parse_racetrack(soup)
+        date = _parse_date(soup)
+        course_type = _parse_course_type(soup)
+        distance = _parse_distance(soup)
         weather = _parse_weather(soup)
+        dirt_condition = _parse_dirt_condition(soup)
+        turf_condition = _parse_turf_condition(soup)
+        impost_category = _parse_impost_category(soup)
 
         race_category_data = soup.select_one('.race_otherdata p:nth-of-type(2)').text
-
-        impost_category = ''
-        for key, val in IMPOST_CATEGORIES.items():
-            if key in race_category_data:
-                impost_category = val
-
         is_non_winner_regional_horse_allowed = 1 if '(指定)' in race_category_data else 0
         is_winner_regional_horse_allowed = 1 if '特指' in race_category_data else 0
         is_regional_jockey_allowed = 1 if '[指定]' in race_category_data else 0
@@ -171,6 +221,8 @@ class RaceSpider(scrapy.Spider):
             'course_type': course_type,
             'distance': distance,
             'weather': weather,
+            'dirt_condition': dirt_condition,
+            'turf_condition': turf_condition,
             'impost_category': impost_category,
             'is_non_winner_regional_horse_allowed': is_non_winner_regional_horse_allowed,
             'is_winner_regional_horse_allowed': is_winner_regional_horse_allowed,
