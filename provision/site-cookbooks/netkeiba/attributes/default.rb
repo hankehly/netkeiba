@@ -1,3 +1,5 @@
+default['netkeiba']['python_version'] = '3.6.7'
+
 default['td_agent']['includes'] = true
 default['td_agent']['version'] = '3.2.1'
 
