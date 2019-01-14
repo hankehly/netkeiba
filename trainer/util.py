@@ -44,7 +44,7 @@ SELECT_ALL = """
            r.id                                                                                 r_id,
            r.key                                                                                r_key,
            r.distance                                                                           r_distance,
-           r.date                                                                               r_date,
+           r.datetime                                                                           r_datetime,
            (SELECT COUNT(_c.id) FROM race_contenders _c WHERE _c.race_id = r.id)                r_contender_count,
            (SELECT name FROM racetracks WHERE id = r.racetrack_id)                              r_racetrack,
            (SELECT name FROM course_types WHERE id = r.course_type_id)                          r_course_type,

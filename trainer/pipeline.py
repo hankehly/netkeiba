@@ -138,12 +138,12 @@ Date
 
 date_attributes = [
     'h_birthday',
-    'r_date',
+    'r_datetime',
 ]
 
 
 class HorseAgeAttributeAdder(BaseEstimator, TransformerMixin):
-    def __init__(self, h_birthday=None, r_date=None):
+    def __init__(self, h_birthday=None, r_datetime=None):
         pass
 
     def fit(self, X, y=None):
@@ -151,8 +151,8 @@ class HorseAgeAttributeAdder(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         df = pd.DataFrame(X)
-        df['h_age_days'] = (pd.to_datetime(df['r_date']) - pd.to_datetime(df['h_birthday'])).dt.days.astype(float)
-        return df.drop(columns=['r_date', 'h_birthday']).values
+        df['h_age_days'] = (pd.to_datetime(df['r_datetime']) - pd.to_datetime(df['h_birthday'])).dt.days.astype(float)
+        return df.drop(columns=['r_datetime', 'h_birthday']).values
 
     def get_feature_names(self):
         return ['h_age_days']
