@@ -86,7 +86,7 @@ class Race(BaseModel):
     impost_category = models.ForeignKey('ImpostCategory', on_delete=models.CASCADE)
     course_type = models.ForeignKey('CourseType', on_delete=models.CASCADE)
     distance = models.PositiveSmallIntegerField()
-    date = models.DateField()
+    datetime = models.DateTimeField(null=True)
     weather = models.ForeignKey('WeatherCategory', on_delete=models.CASCADE)
     turf_condition = models.ForeignKey('TurfConditionCategory', on_delete=models.CASCADE, null=True)
     dirt_condition = models.ForeignKey('DirtConditionCategory', on_delete=models.CASCADE, null=True)

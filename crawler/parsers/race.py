@@ -1,6 +1,8 @@
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, time
+
+import pytz
 
 from crawler.constants import RACETRACKS, COURSE_TYPES, WEATHER, IMPOST_CATEGORIES
 from crawler.parsers.parser import Parser
@@ -19,7 +21,7 @@ class RaceParser(Parser):
             'dirt_condition': self._parse_dirt_condition(),
             'weather': self._parse_weather(),
             'impost_category': self._parse_impost_category(),
-            'date': self._parse_date(),
+            'datetime': self._parse_datetime(),
             'is_non_winner_regional_horse_allowed': self._parse_is_non_winner_regional_horse_allowed(),
             'is_winner_regional_horse_allowed': self._parse_is_winner_regional_horse_allowed(),
             'is_regional_jockey_allowed': self._parse_is_regional_jockey_allowed(),
@@ -208,7 +210,19 @@ class RaceParser(Parser):
         return impost_category
 
     def _parse_date(self):
-        return datetime.strptime(self._subtitle[0], '%Y年%m月%d日').strftime("%Y-%m-%d")
+        return datetime.strptime(self._subtitle[0], '%Y年%m月%d日').date()
+
+    def _parse_time(self):
+        time_str = re.search('[0-9]{2}:[0-9]{2}', self._track_details[-1]).group()
+        hours, minutes = list(map(int, time_str.split(':')))
+        return time(hours, minutes)
+
+    def _parse_datetime(self):
+        race_date = self._parse_date()
+        race_time = self._parse_time()
+        jst = pytz.timezone('Asia/Tokyo')
+        dt = datetime.combine(race_date, race_time)
+        return jst.localize(dt)
 
     def _parse_key(self):
         race_url = self._soup.select_one('.race_place .active').get('href')
