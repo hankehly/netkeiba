@@ -1,6 +1,7 @@
 import re
-from datetime import datetime
+from datetime import datetime, time
 
+import pytz
 import scrapy
 from bs4 import BeautifulSoup
 from django.db import connection
@@ -27,8 +28,15 @@ def _parse_racetrack(soup):
     return RACETRACKS.get(soup.select_one('.race_place a.active').text)
 
 
-def _parse_date(soup):
-    return datetime.strptime(re.search('[0-9]{4}/[0-9]{2}/[0-9]{2}', soup.title.text).group(), '%Y/%m/%d').date()
+def _parse_datetime(soup):
+    race_date = datetime.strptime(re.search('[0-9]{4}/[0-9]{2}/[0-9]{2}', soup.title.text).group(), '%Y/%m/%d').date()
+    track_details = _parse_track_details(soup)
+    time_str = re.search('[0-9]{2}:[0-9]{2}', track_details[-1]).group()
+    hours, minutes = list(map(int, time_str.split(':')))
+    race_time = time(hours, minutes)
+    jst = pytz.timezone('Asia/Tokyo')
+    dt = datetime.combine(race_date, race_time)
+    return jst.localize(dt)
 
 
 def _parse_track_details(soup):
@@ -158,7 +166,7 @@ def _parse_popularity(row):
     return int(row.select('td')[TABLE_COL.POPULARITY].text)
 
 
-def _parse_previous_order_of_finish(row, date):
+def _parse_previous_order_of_finish(row, dt):
     h_key = _parse_horse_key(row)
     with connection.cursor() as cursor:
         previous_order_of_finish_query = '''
@@ -171,33 +179,30 @@ def _parse_previous_order_of_finish(row, date):
               WHERE key = %s
               LIMIT 1
             )
-              AND r.date < %s
-            ORDER BY r.date DESC
+              AND r.datetime < %s
+            ORDER BY r.datetime DESC
             LIMIT 1
         '''
-        result = cursor.execute(previous_order_of_finish_query, [h_key, date]).fetchone()
+        result = cursor.execute(previous_order_of_finish_query, [h_key, dt]).fetchone()
         return result[0] if result else None
 
 
 class RaceSpider(scrapy.Spider):
-    """
-    scrapy crawl race -a race_url='https://race.netkeiba.com/?pid=race_old&id=xxx' -o xxx.jl
-    """
-
     name = 'race'
 
     allowed_domains = ['race.netkeiba.com', 'db.netkeiba.com']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, race_url, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.start_urls = [kwargs.get('race_url')]
+        self.start_urls = [race_url]
+        self.logger.info(f'race_url set to {race_url}')
 
     def parse(self, response):
         soup = BeautifulSoup(response.body, 'html.parser')
         contenders = soup.select_one('.race_table_old').select('tr.bml1')
         contender_count = len(contenders)
         racetrack = _parse_racetrack(soup)
-        date = _parse_date(soup)
+        datetime = _parse_datetime(soup)
         course_type = _parse_course_type(soup)
         distance = _parse_distance(soup)
         weather = _parse_weather(soup)
@@ -217,7 +222,7 @@ class RaceSpider(scrapy.Spider):
         race = {
             'contender_count': contender_count,
             'racetrack': racetrack,
-            'date': date,
+            'datetime': datetime,
             'course_type': course_type,
             'distance': distance,
             'weather': weather,
@@ -243,7 +248,7 @@ class RaceSpider(scrapy.Spider):
             c_first_place_odds = _parse_odds(row)
             c_popularity = _parse_popularity(row)
             c_weight_carried = _parse_weight_carried(row)
-            c_previous_order_of_finish = _parse_previous_order_of_finish(row, race['date'])
+            c_previous_order_of_finish = _parse_previous_order_of_finish(row, race['datetime'])
             c_horse_weight = _parse_horse_weight(row)
             c_horse_weight_diff = _parse_horse_weight_diff(row)
 
