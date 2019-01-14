@@ -106,7 +106,7 @@ class RaceParser(Parser):
             'distance': self.data.get('distance'),
             'weather_id': weather_category_id,
             'impost_category_id': impost_category_id,
-            'date': self.data.get('date')
+            'datetime': self.data.get('datetime')
         })
 
         if self.data.get('is_non_winner_regional_horse_allowed'):
@@ -166,7 +166,7 @@ class RaceParser(Parser):
         return COURSE_TYPES.get(self._track_details[0][0])
 
     def _parse_racetrack(self):
-        racetrack_title = self._subtitle()[1]
+        racetrack_title = self._subtitle[1]
         for key, val in RACETRACKS.items():
             if re.search(key, racetrack_title):
                 return val

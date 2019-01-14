@@ -15,7 +15,6 @@ def is_race_url(url) -> bool:
 
 def fill_race_datetime(apps, schema_editor):
     WebPage = apps.get_model('server', 'WebPage')
-    Race = apps.get_model('server', 'Race')
     webpage_count = WebPage.objects.count()
     logger.info(f'total number of webpages: {webpage_count}')
     i = 0
@@ -23,14 +22,10 @@ def fill_race_datetime(apps, schema_editor):
         if is_race_url(page.url):
             parser = RaceParser(page.html)
             parser.parse()
-            race_key = parser.data.get('key')
-            race = Race.objects.get(key=race_key)
-            race_datetime = parser.data.get('datetime')
-            race.datetime = race_datetime
-            race.save(update_fields=['datetime'])
-            logger.info(f'({i}/{webpage_count}) race {race_key} datetime set to {race_datetime}')
+            parser.persist()
+            logger.info(f'({i}/{webpage_count}) processed {page.url}')
         else:
-            logger.info(f'({i}/{webpage_count}) skipped ({page.url} is not a race url)')
+            logger.info(f'({i}/{webpage_count}) skipped {page.url}')
         i += 1
 
 
