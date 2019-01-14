@@ -49,11 +49,11 @@ def scrape(url):
     d = runner.crawl('race', url)
     d.addBoth(lambda _: reactor.stop())
     reactor.run()
-    return json.load(open(feed_uri, 'r'))
+    return json.load(open(feed_uri, 'r')), feed_uri
 
 
 def main(url, model_path):
-    data = scrape(url)
+    data, feed_uri = scrape(url)
     X_train = read_data(data)
     X_out = X_train.copy()[['h_key', 'c_first_place_odds', 'c_popularity']]
     X_out['h_key'] = X_out['h_key'].astype(str)
