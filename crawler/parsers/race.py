@@ -166,7 +166,11 @@ class RaceParser(Parser):
         return COURSE_TYPES.get(self._track_details[0][0])
 
     def _parse_racetrack(self):
-        return RACETRACKS.get(self._soup.select_one('.race_place .active').string)
+        racetrack_title = self._subtitle()[1]
+        for key, val in RACETRACKS.items():
+            if re.search(key, racetrack_title):
+                return val
+        raise ValueError(f'Could not find racetrack name in "{racetrack_title}"')
 
     def _parse_turf_condition(self):
         turf_condition = None
@@ -225,7 +229,7 @@ class RaceParser(Parser):
         return jst.localize(dt)
 
     def _parse_key(self):
-        race_url = self._soup.select_one('.race_place .active').get('href')
+        race_url = self._soup.select_one('.race_num.fc .active').get('href')
         return re.search('/race/([0-9]+)', race_url).group(1)
 
     def _parse_is_non_winner_regional_horse_allowed(self):
