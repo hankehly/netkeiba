@@ -25,7 +25,7 @@ def _scrape_race(url):
     settings_module_path = os.environ['SCRAPY_SETTINGS_MODULE']
     scrapy_settings.setmodule(settings_module_path, priority='project')
 
-    race_key = re.search('id=c([0-9]+)', url).group(1)
+    race_key = re.search('[0-9]{12}', url).group()
     feed_filename = '.'.join([race_key, 'json'])
     feed_dir = os.path.join(settings.BASE_DIR, 'tmp', 'predict', 'data')
     feed_uri = os.path.join(feed_dir, feed_filename)
@@ -61,7 +61,7 @@ class Command(BaseCommand):
         if not os.path.isfile(model_path):
             raise CommandError(f'{model_path} does not exist')
 
-        race_key = re.search('id=c([0-9]+)', race_url).group(1)
+        race_key = re.search('[0-9]{12}', race_url).group()
         scraped_data = _scrape_race(race_url)
         df = pd.DataFrame(scraped_data)
 
