@@ -68,7 +68,7 @@ class Command(BaseCommand):
         X_train = df[prediction_keys]
         output_cols = ['c_post_position', 'c_horse_number', 'h_name', 'h_sex', 'c_weight_carried',
                        'j_key', 't_key', 'c_horse_weight', 'c_horse_weight_diff', 'c_first_place_odds']
-        X_out = df[output_cols]
+        X_out = df.copy()[output_cols]
 
         X_train_prep = full_pipeline.fit_transform(X_train)
         estimator = joblib.load(model_path)
