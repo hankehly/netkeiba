@@ -5,7 +5,7 @@ from django.db import models
 from crawler.parsers.parser import Parser
 from crawler.parsers.horse import HorseParser
 from crawler.parsers.jockey_result import JockeyResultParser
-from crawler.parsers.race import RaceParser
+from crawler.parsers.db_race import DBRaceParser
 from crawler.parsers.trainer_result import TrainerResultParser
 from crawler.parsers.noop import NoopParser
 from server.models.base import BaseModel
@@ -23,7 +23,7 @@ class WebPage(BaseModel):
         parser_lookup_table = [
             {'regex': '/horse/[0-9]+/', 'class': HorseParser},
             {'regex': '/jockey/result/[0-9]+/', 'class': JockeyResultParser},
-            {'regex': '/race/[0-9]+/', 'class': RaceParser},
+            {'regex': '/race/[0-9]+/', 'class': DBRaceParser},
             {'regex': '/trainer/result/[0-9]+/', 'class': TrainerResultParser},
         ]
 

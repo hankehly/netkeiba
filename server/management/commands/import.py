@@ -7,7 +7,7 @@ from django.conf import settings
 from django.core.management import BaseCommand, CommandError
 
 from netkeiba.settings import TIME_ZONE
-from crawler.parsers.race import RaceParser
+from crawler.parsers.db_race import DBRaceParser
 from server.models import WebPage, RaceContender
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ class Command(BaseCommand):
             try:
                 parser.parse()
 
-                if isinstance(parser, RaceParser):
+                if isinstance(parser, DBRaceParser):
                     pre_save_contender_count = RaceContender.objects.count()
                     parsed_contender_count = len(parser.data.get('contenders'))
                     parser.persist()

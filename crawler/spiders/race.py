@@ -14,6 +14,7 @@ from crawler.parsers.trainer_result import TrainerResultParser
 
 class TABLE_COL:
     POST_POS = 0
+    HORSE_NUM = 1
     HORSE = 3
     AGE_SEX = 4
     WEIGHT_CARRIED = 5
@@ -126,6 +127,10 @@ def _parse_horse_key(row):
     return re.search('/horse/([0-9]+)', h_url).group(1)
 
 
+def _parse_horse_number(row):
+    return int(row.select('td')[TABLE_COL.HORSE_NUM].string)
+
+
 def _prefix_keys(obj: dict, prefix: str):
     acc = {}
     for key, value in obj.items():
@@ -190,7 +195,7 @@ def _parse_previous_order_of_finish(row, dt):
 class RaceSpider(scrapy.Spider):
     name = 'race'
 
-    allowed_domains = ['race.netkeiba.com', 'db.netkeiba.com']
+    allowed_domains = ['db.netkeiba.com']
 
     def __init__(self, race_url, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -198,7 +203,7 @@ class RaceSpider(scrapy.Spider):
         self.logger.info(f'race_url set to {race_url}')
 
     def parse(self, response):
-        soup = BeautifulSoup(response.body, 'html.parser')
+        soup = BeautifulSoup(response.text, 'html.parser')
         contenders = soup.select_one('.race_table_old').select('tr.bml1')
         contender_count = len(contenders)
         racetrack = _parse_racetrack(soup)
@@ -251,6 +256,7 @@ class RaceSpider(scrapy.Spider):
             c_previous_order_of_finish = _parse_previous_order_of_finish(row, race['datetime'])
             c_horse_weight = _parse_horse_weight(row)
             c_horse_weight_diff = _parse_horse_weight_diff(row)
+            c_horse_number = _parse_horse_number(row)
 
             meta = {
                 'data': {
@@ -265,6 +271,7 @@ class RaceSpider(scrapy.Spider):
                     'c_previous_order_of_finish': c_previous_order_of_finish,
                     'c_horse_weight': c_horse_weight,
                     'c_horse_weight_diff': c_horse_weight_diff,
+                    'c_horse_number': c_horse_number,
                 }
             }
 

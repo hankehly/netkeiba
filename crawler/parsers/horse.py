@@ -14,6 +14,7 @@ class HorseParser(Parser):
         birthday = self._parse_birthday()
         sex = self._parse_sex()
         user_rating = self._parse_user_rating()
+        name = self._parse_name()
 
         self.data = {
             'key': key,
@@ -21,7 +22,8 @@ class HorseParser(Parser):
             'total_wins': total_wins,
             'birthday': birthday,
             'sex': sex,
-            'user_rating': user_rating
+            'user_rating': user_rating,
+            'name': name,
         }
 
     def persist(self):
@@ -73,3 +75,6 @@ class HorseParser(Parser):
                     child.extract()
             user_rating = float(self._soup.select_one('.horse_title .rate strong').string)
         return user_rating
+
+    def _parse_name(self):
+        return self._soup.select_one('.horse_title h1').string.strip()

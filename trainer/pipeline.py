@@ -204,3 +204,11 @@ full_pipeline_feature_names = np.hstack([
     # boolean
     bool_attrs
 ])
+
+prediction_keys = np.hstack([
+    category_keys,
+    bool_attrs,
+    date_attributes,
+    required_numeric_attributes,
+    nullable_numeric_attributes
+])

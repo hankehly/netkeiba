@@ -10,7 +10,7 @@ from crawler.parsers.parser import Parser
 logger = logging.getLogger(__name__)
 
 
-class RaceParser(Parser):
+class DBRaceParser(Parser):
     def parse(self):
         self.data = {
             'key': self._parse_key(),
