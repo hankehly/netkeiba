@@ -33,7 +33,7 @@ class Command(BaseCommand):
             's3://', settings.AWS_BUCKET, '/crawls/{name}/', job_timestamp, '/items.{chunk:07d}.jl.gz']
 
         custom_settings = {
-            'S3PIPELINE_MAX_CHUNK_SIZE': 20,
+            'S3PIPELINE_MAX_CHUNK_SIZE': 100,
             'JOBDIR': jobpath,
             'ITEM_PIPELINES': {'s3pipeline.S3Pipeline': 100},
             'S3PIPELINE_URL': ''.join(s3_pipeline_url_components),
