@@ -11,7 +11,13 @@ TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 # django.core.management.utils.get_random_secret_key
 SECRET_KEY = os.environ['SECRET_KEY']
 
-ENVIRONMENT = os.environ.get('ENVIRONMENT', 'development')
+ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
+
+AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
+
+AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
+
+AWS_BUCKET = os.getenv('AWS_BUCKET', '')
 
 DEBUG = ENVIRONMENT == 'development'
 
