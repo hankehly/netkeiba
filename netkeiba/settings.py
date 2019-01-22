@@ -171,10 +171,16 @@ LOGGING = {
             'formatter': 'default',
             'filename': os.path.join(BASE_DIR, 'debug.log'),
         },
+        'ilog': {
+            'class': 'logging.FileHandler',
+            'level': 'INFO',
+            'formatter': 'default',
+            'filename': os.path.join(BASE_DIR, 'info.log'),
+        },
     },
     'loggers': {
         '': {
-            'handlers': ['console', 'dlog'],
+            'handlers': ['console', 'dlog', 'ilog'],
             'level': 'DEBUG',
             'propagate': False
         }

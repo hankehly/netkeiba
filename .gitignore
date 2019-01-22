@@ -5,9 +5,7 @@ __pycache__/
 .env
 .venv-3.6.7
 .idea/
-node_modules/
 tmp/*
-log/*
 !.gitkeep
 .bundle
 .kitchen
@@ -18,3 +16,4 @@ Berksfile.lock
 provision/data_bags/aws/credentials.json
 MANIFEST
 *.joblib
+*.log
