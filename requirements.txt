@@ -8,7 +8,9 @@ bleach==3.0.2
 boto3==1.9.71
 botocore==1.12.74
 cachetools==3.0.0
+certifi==2018.11.29
 cffi==1.11.5
+chardet==3.0.4
 constantly==15.1.0
 cryptography==2.4.2
 cssselect==1.0.3
@@ -72,7 +74,6 @@ s3transfer==0.1.13
 scikit-learn==0.20.2
 scipy==1.2.0
 Scrapy==1.5.1
-scrapy-s3pipeline==0.2.0
 Send2Trash==1.5.0
 service-identity==18.1.0
 six==1.12.0
