@@ -1,14 +1,16 @@
 import csv
 import logging
 
+import boto3
 from boto3.dynamodb.conditions import Attr
 from botocore.exceptions import ClientError
 from django.core.management import BaseCommand
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 
-def upload_item(item):
+def upload_item(table, item):
     fp = item['fingerprint']
     url = item['url']
 
@@ -42,8 +44,12 @@ class Command(BaseCommand):
         parser.add_argument('csv_path', help='The absolute path to the CSV resource')
 
     def handle(self, *args, **options):
+        dynamodb = boto3.resource('dynamodb', region_name=settings.DYNAMODB_PIPELINE_REGION_NAME, aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
+                                  aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY)
+        table = dynamodb.Table(settings.DYNAMODB_PIPELINE_TABLE_NAME)
+
         with open(options['csv_path']) as f:
             reader = csv.DictReader(f)
 
             for item in reader:
-                upload_item(item)
+                upload_item(table, item)
