@@ -1,0 +1,10 @@
+version: '3'
+services:
+    db:
+        image: mysql:8.0.13
+        ports:
+            - '3306:3306'
+    batch:
+        build: .
+        depends_on:
+            - db
