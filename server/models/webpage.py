@@ -15,6 +15,7 @@ class WebPage(BaseModel):
     url = models.URLField(unique=True)
     html = models.TextField()
     fingerprint = models.CharField(max_length=255)
+    crawled_at = models.DateTimeField()
 
     class Meta:
         db_table = 'webpages'
@@ -34,3 +35,37 @@ class WebPage(BaseModel):
                 break
 
         return parser_class(self.html)
+
+
+# class DBHorseWebPageManager(models.Manager):
+#     def get_queryset(self):
+#         return super().get_queryset().filter(url__regex='')
+#
+#
+# class DBHorseWebPage(WebPage):
+#     objects = DBHorseWebPageManager()
+#
+#     class Meta:
+#         proxy = True
+#
+#     def parse(self):
+#         key = self._parse_key()
+#         total_races = self._parse_total_races()
+#         total_wins = self._parse_total_wins()
+#         birthday = self._parse_birthday()
+#         sex = self._parse_sex()
+#         user_rating = self._parse_user_rating()
+#         name = self._parse_name()
+#
+#         self.data = {
+#             'key': key,
+#             'total_races': total_races,
+#             'total_wins': total_wins,
+#             'birthday': birthday,
+#             'sex': sex,
+#             'user_rating': user_rating,
+#             'name': name,
+#         }
+#
+#     def persist(self):
+#         pass

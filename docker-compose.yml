@@ -11,6 +11,9 @@ services:
 
     # To run a management command:
     # docker-compose run batch /app/manage.py migrate
+    #
+    # To process a file on the local system
+    # docker-compose run -w /app -v ~/Downloads/test.csv:/app/test.csv django ./manage.py process ./file2.csv
     django:
         build: .
         env_file: .env
