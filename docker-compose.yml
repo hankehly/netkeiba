@@ -1,10 +1,20 @@
 version: '3'
 services:
+    # To start just the db in the background
+    # docker-compose up -d db
     db:
         image: mysql:8.0.13
+        command: mysqld --default-authentication-plugin=mysql_native_password
+        env_file: .env
         ports:
             - '3306:3306'
-    batch:
+
+    # To run a management command:
+    # docker-compose run batch /app/manage.py migrate
+    django:
         build: .
+        env_file: .env
+        volumes:
+          - .:/app
         depends_on:
             - db
