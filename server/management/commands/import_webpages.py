@@ -1,6 +1,9 @@
 import logging
 
+import dateutil.parser
 import pandas as pd
+import pytz
+from django.conf import settings
 from django.core.management import BaseCommand
 
 from server.models import WebPage
@@ -26,6 +29,8 @@ class Command(BaseCommand):
             self.logger.info(f'processing chunk {i}')
             for j, item in df.iterrows():
                 self.logger.debug(f'chunk: {i}, item: {j} <url: {item.url}, fingerprint: {item.fingerprint}>')
-                defaults = {'html': item.html, 'url': item.url, 'crawled_at': item.crawled_at}
+                tzinfo = pytz.timezone(settings.TIMEZONE)
+                crawled_at = dateutil.parser.isoparse(item.crawled_at).replace(tzinfo=tzinfo)
+                defaults = {'html': item.html, 'url': item.url, 'crawled_at': crawled_at}
                 WebPage.objects.update_or_create(fingerprint=item.fingerprint, defaults=defaults)
             i += 1
