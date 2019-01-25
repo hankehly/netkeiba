@@ -29,7 +29,7 @@ class Command(BaseCommand):
             self.logger.info(f'processing chunk {i}')
             for j, item in df.iterrows():
                 self.logger.debug(f'chunk: {i}, item: {j} <url: {item.url}, fingerprint: {item.fingerprint}>')
-                tzinfo = pytz.timezone(settings.TIMEZONE)
+                tzinfo = pytz.timezone(settings.TIME_ZONE)
                 crawled_at = dateutil.parser.isoparse(item.crawled_at).replace(tzinfo=tzinfo)
                 defaults = {'html': item.html, 'url': item.url, 'crawled_at': crawled_at}
                 WebPage.objects.update_or_create(fingerprint=item.fingerprint, defaults=defaults)
