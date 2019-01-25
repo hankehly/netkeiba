@@ -14,3 +14,6 @@ pyenv_plugin 'virtualenv' do
 end
 
 pyenv_pip 'awscli'
+
+package 'python3.6-dev'
+package 'libmysqlclient-dev'
