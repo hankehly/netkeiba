@@ -1,4 +1,4 @@
-from crawler.parsers.parser import Parser
+from server.parsers.parser import Parser
 
 
 class NoopParser(Parser):

@@ -5,7 +5,10 @@ from datetime import datetime, time
 import pytz
 
 from crawler.constants import RACETRACKS, COURSE_TYPES, WEATHER, IMPOST_CATEGORIES
-from crawler.parsers.parser import Parser
+from server.models import RaceTrack, CourseType, TurfConditionCategory, DirtConditionCategory, Race, WeatherCategory, \
+    ImpostCategory, NonWinnerRegionalHorseRace, WinnerRegionalHorseRace, RegionalJockeyRace, ForeignHorseRace, \
+    ForeignTrainerHorseRace, ApprenticeJockeyRace, Horse, Jockey, Trainer, RaceContender, FemaleOnlyRace
+from server.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
 
@@ -80,25 +83,26 @@ class DBRaceParser(Parser):
         self.data['contenders'] = contenders
 
     def persist(self):
+        # TODO: Create missing objects like turf condition category as you see them
         race_key = self.data.get('key')
-        racetrack_id = self._persistor.get('racetrack', name=self.data.get('racetrack')).get('id')
-        course_type_id = self._persistor.get('course_type', name=self.data.get('course_type')).get('id')
+        racetrack_id = RaceTrack.objects.get(name=self.data.get('racetrack')).id
+        course_type_id = CourseType.objects.get(name=self.data.get('course_type')).id
         turf_condition = self.data.get('turf_condition')
         dirt_condition = self.data.get('dirt_condition')
 
         if turf_condition:
-            turf_condition_id = self._persistor.get('turf_condition_category', name=turf_condition).get('id')
+            turf_condition_id = TurfConditionCategory.objects.get(name=turf_condition).id
         else:
             turf_condition_id = None
 
         if dirt_condition:
-            dirt_condition_id = self._persistor.get('dirt_condition_category', name=dirt_condition).get('id')
+            dirt_condition_id = DirtConditionCategory.objects.get(name=dirt_condition).id
         else:
             dirt_condition_id = None
 
-        weather_category_id = self._persistor.get('weather_category', name=self.data.get('weather')).get('id')
-        impost_category_id = self._persistor.get('impost_category', name=self.data.get('impost_category')).get('id')
-        race = self._persistor.update_or_create('race', key=race_key, defaults={
+        weather_category_id = WeatherCategory.objects.get(name=self.data.get('weather')).id
+        impost_category_id = ImpostCategory.objects.get(name=self.data.get('impost_category')).id
+        race, _ = Race.objects.update_or_create(key=race_key, defaults={
             'racetrack_id': racetrack_id,
             'course_type_id': course_type_id,
             'turf_condition_id': turf_condition_id,
@@ -110,30 +114,30 @@ class DBRaceParser(Parser):
         })
 
         if self.data.get('is_non_winner_regional_horse_allowed'):
-            self._persistor.update_or_create('non_winner_regional_horse_race', race_id=race.get('id'))
+            NonWinnerRegionalHorseRace.objects.update_or_create(race=race)
 
         if self.data.get('is_winner_regional_horse_allowed'):
-            self._persistor.update_or_create('winner_regional_horse_race', race_id=race.get('id'))
+            WinnerRegionalHorseRace.objects.update_or_create(race=race)
 
         if self.data.get('is_regional_jockey_allowed'):
-            self._persistor.update_or_create('regional_jockey_race', race_id=race.get('id'))
+            RegionalJockeyRace.objects.update_or_create(race=race)
 
         if self.data.get('is_foreign_horse_allowed'):
-            self._persistor.update_or_create('foreign_horse_race', race_id=race.get('id'))
+            ForeignHorseRace.objects.update_or_create(race=race)
 
         if self.data.get('is_foreign_horse_and_trainer_allowed'):
-            self._persistor.update_or_create('foreign_horse_and_trainer_race', race_id=race.get('id'))
+            ForeignTrainerHorseRace.objects.update_or_create(race=race)
 
         if self.data.get('is_apprentice_jockey_allowed'):
-            self._persistor.update_or_create('apprentice_jockey_race', race_id=race.get('id'))
+            ApprenticeJockeyRace.objects.update_or_create(race=race)
 
         if self.data.get('is_female_only'):
-            self._persistor.update_or_create('female_only_race', race_id=race.get('id'))
+            FemaleOnlyRace.objects.update_or_create(race=race)
 
         for contender in self.data.get('contenders'):
-            horse = self._persistor.get_or_create('horse', key=contender.get('horse_key'))
-            jockey = self._persistor.get_or_create('jockey', key=contender.get('jockey_key'))
-            trainer = self._persistor.get_or_create('trainer', key=contender.get('trainer_key'))
+            horse = Horse.objects.get_or_create(key=contender.get('horse_key'))
+            jockey = Jockey.objects.get_or_create(key=contender.get('jockey_key'))
+            trainer = Trainer.objects.get_or_create(key=contender.get('trainer_key'))
             defaults = {
                 'order_of_finish': contender.get('order_of_finish'),
                 'order_of_finish_lowered': contender.get('order_of_finish_lowered'),
@@ -146,9 +150,8 @@ class DBRaceParser(Parser):
                 'horse_weight': contender.get('horse_weight'),
                 'horse_weight_diff': contender.get('horse_weight_diff'),
             }
-            self._persistor.update_or_create('race_contender', race_id=race.get('id'), horse_id=horse.get('id'),
-                                             jockey_id=jockey.get('id'), trainer_id=trainer.get('id'),
-                                             defaults=defaults)
+            RaceContender.objects.update_or_create(race=race, horse_id=horse.id, jockey_id=jockey.id,
+                                                   trainer_id=trainer.id, defaults=defaults)
 
     @property
     def _track_details(self):

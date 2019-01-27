@@ -93,4 +93,4 @@ class Race(BaseModel):
 
     class Meta:
         db_table = 'races'
-        get_latest_by = '-date'
+        get_latest_by = '-datetime'

@@ -3,10 +3,11 @@ from datetime import datetime
 
 from bs4 import Comment
 
-from crawler.parsers.parser import Parser
+from server.models import Horse, HorseSex
+from server.parsers.parser import Parser
 
 
-class HorseParser(Parser):
+class DBHorseParser(Parser):
     def parse(self):
         key = self._parse_key()
         total_races = self._parse_total_races()
@@ -29,15 +30,15 @@ class HorseParser(Parser):
     def persist(self):
         key = self.data.get('key')
         sex_name = self.data.get('sex')
-        sex_id = self._persistor.get('horse_sex', name=sex_name).get('id')
+        sex_obj, _ = HorseSex.objects.get_or_create(name=sex_name)
         defaults = {
             'total_races': self.data.get('total_races'),
             'total_wins': self.data.get('total_wins'),
             'birthday': self.data.get('birthday'),
             'user_rating': self.data.get('user_rating'),
-            'sex_id': sex_id
+            'sex_id': sex_obj.id
         }
-        self._persistor.update_or_create('horse', defaults=defaults, key=key)
+        Horse.objects.update_or_create(key=key, defaults=defaults)
 
     def _parse_key(self):
         url = self._soup.head.select_one('link[rel=canonical]').get('href')
