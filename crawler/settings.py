@@ -30,7 +30,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-    'crawler.pipelines.DjangoPipeline': 300,
+    'crawler.pipelines.WebPagePipeline': 300,
 }
 
 RETRY_TIMES = 4

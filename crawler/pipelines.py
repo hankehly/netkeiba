@@ -1,13 +1,22 @@
-from crawler.items import WebPageItem
+import dateutil
+import pytz
+from django.conf import settings
+from django.db import IntegrityError
+
 from server.models.webpage import WebPage
 
 
-class DjangoPipeline:
+class WebPagePipeline:
     def process_item(self, item, spider):
-        if isinstance(item, WebPageItem):
-            WebPage.objects.update_or_create(fingerprint=item['fingerprint'], defaults={
-                'html': item['html'],
-                'url': item['url'],
-                'crawled_at': item['crawled_at']
-            })
+        tzinfo = pytz.timezone(settings.TIME_ZONE)
+        crawled_at = dateutil.parser.isoparse(item['crawled_at']).replace(tzinfo=tzinfo)
+        defaults = {'html': item['html'], 'url': item['url'], 'crawled_at': crawled_at}
+
+        try:
+            spider.logger.debug(f"insert <fingerprint: {item['fingerprint']}, url: {item['url']}>")
+            WebPage.objects.create(fingerprint=item.fingerprint, **defaults)
+        except IntegrityError:
+            spider.logger.debug(f"update <fingerprint: {item['fingerprint']}, url: {item['url']}>")
+            WebPage.objects.filter(fingerprint=item.fingerprint).update(**defaults)
+
         return item
