@@ -31,9 +31,9 @@ class DBRaceWebPageManager(models.Manager):
 
 
 class WebPage(BaseModel):
-    url = models.URLField(unique=True)
+    url = models.URLField()
     html = models.TextField()
-    fingerprint = models.CharField(max_length=255)
+    fingerprint = models.CharField(max_length=255, unique=True)
     crawled_at = models.DateTimeField()
 
     objects = models.Manager()
