@@ -38,18 +38,14 @@ class Command(BaseCommand):
             self.logger.info(f'processing chunk {i}')
             for j, item in df.iterrows():
                 crawled_at = dateutil.parser.isoparse(item.crawled_at).replace(tzinfo=tzinfo)
-                defaults = {'fingerprint': item.fingerprint, 'html': item.html, 'url': item.url, 'crawled_at': crawled_at}
+                defaults = {'html': item.html, 'url': item.url, 'crawled_at': crawled_at}
                 try:
-                    WebPage.objects.create(**defaults)
+                    WebPage.objects.create(fingerprint=item.fingerprint, **defaults)
                 except IntegrityError:
-                    self.logger.debug(f'chunk: {i}, item: {j} already exists <url: {item.url}, fingerprint: {item.fingerprint}>')
-                    page = WebPage.objects.get(fingerprint=item.fingerprint)
-                    page.url = item.url
-                    page.html = item.html
-                    page.crawled_at = crawled_at
-                    page.save()
+                    self.logger.info(f'chunk: {i}, item: {j} already exists <url: {item.url}, fingerprint: {item.fingerprint}>')
+                    WebPage.objects.filter(fingerprint=item.fingerprint).update(**defaults)
                 else:
-                    self.logger.debug(f'chunk: {i}, item: {j} <url: {item.url}, fingerprint: {item.fingerprint}>')
+                    self.logger.info(f'chunk: {i}, item: {j} <url: {item.url}, fingerprint: {item.fingerprint}>')
             i += 1
 
         end_time = datetime.now(tzinfo)
