@@ -15,7 +15,7 @@ HTML is stored inside a central database alongside its' urls and request fingerp
 ### Scraping & Importing
 
 The `server` package contains logic for parsing and importing unorganized webpage data into a database with a clean schema.
-The database table schema was built to facilitate easy data selection for model training; so it does not Rather than fully normalizing the schema by separating boolean / enum columns into separate tables.
+The database table schema was built to facilitate easy data selection for model training; so it does not go as far as normalizing boolean / enum columns into separate tables.
 
 ### Training & prediction
 
