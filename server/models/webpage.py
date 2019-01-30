@@ -1,17 +1,26 @@
 import re
 
 from django.db import models
+from scrapy import Request
+from scrapy.utils.request import request_fingerprint
 
 from server.models.base import BaseModel
 from server.parsers import Parser, DBHorseParser, DBRaceParser, NoopParser
 
 
 class WebPageManager(models.Manager):
-    url_regex = ''
+    url_regex = None
     parser_class = NoopParser
 
     def get_queryset(self):
-        return super().get_queryset().filter(url__regex=self.url_regex)
+        qs = super().get_queryset()
+        if self.url_regex:
+            qs = qs.filter(url__regex=self.url_regex)
+        return qs
+
+    def get_by_url(self, url):
+        fingerprint = request_fingerprint(Request(url))
+        return super().get_queryset().get(fingerprint=fingerprint)
 
 
 class DBHorseWebPageManager(WebPageManager):
@@ -22,7 +31,7 @@ class DBHorseWebPageManager(WebPageManager):
     parser_class = DBHorseParser
 
 
-class DBRaceWebPageManager(models.Manager):
+class DBRaceWebPageManager(WebPageManager):
     """
     Ex. https://db.netkeiba.com/race/201807040211/
     """
@@ -36,7 +45,7 @@ class WebPage(BaseModel):
     fingerprint = models.CharField(max_length=255, unique=True)
     crawled_at = models.DateTimeField()
 
-    objects = models.Manager()
+    objects = WebPageManager()
     db_horses = DBHorseWebPageManager()
     db_races = DBRaceWebPageManager()
 
