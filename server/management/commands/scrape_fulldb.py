@@ -30,8 +30,7 @@ class Command(BaseCommand):
             f.write(str(os.getpid()) + os.linesep)
 
         custom_settings = {
-            'JOBDIR': jobpath,
-            'ITEM_PIPELINES': {'crawler.pipelines.DynamoDBPipeline': 100},
+            'JOBDIR': jobpath
         }
 
         scrapy_settings = Settings()
