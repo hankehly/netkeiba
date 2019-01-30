@@ -12,26 +12,30 @@ from twisted.internet import reactor
 class Command(BaseCommand):
     help = ''
 
+    def add_arguments(self, parser):
+        parser.add_argument('--jobdir', help='The scrapy job dirname (for resuming paused crawls)')
+
     def handle(self, *args, **options):
-        crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
-        if not os.path.isdir(crawls_dir):
-            os.mkdir(crawls_dir)
+        jobdir = options.get('jobdir')
 
-        piddir = os.path.join(settings.TMP_DIR, 'pids')
-        if not os.path.isdir(piddir):
-            os.mkdir(piddir)
+        if not jobdir:
+            crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
+            if not os.path.isdir(crawls_dir):
+                os.mkdir(crawls_dir)
 
-        job_timestamp = datetime.now(tz=pytz.timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H%M%S')
-        jobpath = os.path.join(crawls_dir, job_timestamp)
-        os.mkdir(jobpath)
+            piddir = os.path.join(settings.TMP_DIR, 'pids')
+            if not os.path.isdir(piddir):
+                os.mkdir(piddir)
 
-        pidfile = os.path.join(piddir, f'{job_timestamp}.pid')
-        with open(pidfile, 'w') as f:
-            f.write(str(os.getpid()) + os.linesep)
+            job_timestamp = datetime.now(tz=pytz.timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H%M%S')
+            jobdir = os.path.join(crawls_dir, job_timestamp)
+            os.mkdir(jobdir)
 
-        custom_settings = {
-            'JOBDIR': jobpath
-        }
+            pidfile = os.path.join(piddir, f'{job_timestamp}.pid')
+            with open(pidfile, 'w') as f:
+                f.write(str(os.getpid()) + os.linesep)
+
+        custom_settings = {'JOBDIR': jobdir}
 
         scrapy_settings = Settings()
         os.environ['SCRAPY_SETTINGS_MODULE'] = 'crawler.settings'
