@@ -13,10 +13,11 @@ class WebPagePipeline:
         defaults = {'html': item['html'], 'url': item['url'], 'crawled_at': crawled_at}
 
         try:
-            spider.logger.debug(f"insert <fingerprint: {item['fingerprint']}, url: {item['url']}>")
-            WebPage.objects.create(fingerprint=item.fingerprint, **defaults)
+            WebPage.objects.create(fingerprint=item['fingerprint'], **defaults)
         except IntegrityError:
             spider.logger.debug(f"update <fingerprint: {item['fingerprint']}, url: {item['url']}>")
-            WebPage.objects.filter(fingerprint=item.fingerprint).update(**defaults)
+            WebPage.objects.filter(fingerprint=item['fingerprint']).update(**defaults)
+        else:
+            spider.logger.debug(f"insert <fingerprint: {item['fingerprint']}, url: {item['url']}>")
 
         return item

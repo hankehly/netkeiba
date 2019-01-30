@@ -7,9 +7,9 @@ from bs4 import BeautifulSoup
 from django.db import connection
 
 from crawler.constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
-from crawler.parsers.horse import HorseParser
-from crawler.parsers.jockey_result import JockeyResultParser
-from crawler.parsers.trainer_result import TrainerResultParser
+from server.parsers.db_horse import DBHorseParser
+from server.parsers.jockey_result import JockeyResultParser
+from server.parsers.trainer_result import TrainerResultParser
 
 
 class TABLE_COL:
@@ -281,7 +281,7 @@ class RaceSpider(scrapy.Spider):
             yield scrapy.Request(h_url, callback=self.parse_horse, meta=meta, dont_filter=True)
 
     def parse_horse(self, response):
-        parser = HorseParser(response.body)
+        parser = DBHorseParser(response.body)
         parser.parse()
         data = _prefix_keys(parser.data, 'h_')
         response.meta['data'] = {**response.meta['data'], **data}
