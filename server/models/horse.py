@@ -4,12 +4,20 @@ from server.models.base import BaseModel
 
 
 class Horse(BaseModel):
+    UNKNOWN = 'UNKNOWN'
+    MALE = 'ML'
+    FEMALE = 'FM'
+    CASTRATED = 'CT'
+    SEX_CHOICES = (
+        (MALE, 'male'),
+        (FEMALE, 'female'),
+        (CASTRATED, 'castrated'),
+        (UNKNOWN, 'unknown')
+    )
+
     key = models.CharField(max_length=255)
-    total_races = models.PositiveSmallIntegerField(null=True)
-    total_wins = models.PositiveSmallIntegerField(null=True)
-    birthday = models.DateField(null=True)
-    sex = models.ForeignKey('HorseSex', on_delete=models.CASCADE, null=True)
-    user_rating = models.FloatField(blank=True, null=True)
+    age = models.PositiveSmallIntegerField(null=True)
+    sex = models.CharField(max_length=255, choices=SEX_CHOICES, default=UNKNOWN)
     name = models.CharField(max_length=255, null=True)
 
     class Meta:
