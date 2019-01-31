@@ -6,6 +6,7 @@ from server.models.base import BaseModel
 class Race(BaseModel):
     UNKNOWN = 'UNKNOWN'
 
+    # TODO: Why do you have to shorten these? Wouldn't it be easier to know what they mean automatically?
     SAPPORO = 'SP'
     HAKODATE = 'HD'
     FUMA = 'FM'
@@ -31,16 +32,16 @@ class Race(BaseModel):
     )
 
     HORSE_AGE = 'HA'
-    WEIGHT_SEX = 'WS'
-    FIXED_WEIGHT = 'FW'
+    WEIGHT_FOR_AGE = 'WF'
+    SET_WEIGHT = 'SW'
     HANDICAP = 'HC'
     IMPOST_CATEGORY_CHOICES = (
         # [馬齢] 同一年齢の馬だけのレース
         (HORSE_AGE, 'horse_age'),
         # [定量] 別定のなかでも、馬の年齢と性別を基準に定められているレース
-        (WEIGHT_SEX, 'weight_sex'),
+        (WEIGHT_FOR_AGE, 'weight_for_age'),
         # [別定] そのレース毎に負担重量を決定する基準が設けられているレース
-        (FIXED_WEIGHT, 'fixed_weight'),
+        (SET_WEIGHT, 'set_weight'),
         # [ハンデ] 出走予定馬の実績や最近の状態などを考慮し
         # 各出走馬に勝つチャンスを与えるよう決められた重量を負担させるレース
         (HANDICAP, 'handicap'),
@@ -54,6 +55,28 @@ class Race(BaseModel):
         (DIRT, 'dirt'),
         (TURF, 'turf'),
         (OBSTACLE, 'obstacle'),
+        (UNKNOWN, 'unknown'),
+    )
+
+    G1 = 'G1'
+    G2 = 'G2'
+    G3 = 'G3'
+    OP = 'OP'
+    U1600 = 'U1600'
+    U1000 = 'U1000'
+    U500 = 'U500'
+    MAIDEN = 'MD'
+    UNRACED_MAIDEN = 'UMD'
+    CLASS_CHOICES = (
+        (G1, 'G1'),
+        (G2, 'G2'),
+        (G3, 'G3'),
+        (OP, 'open'),
+        (U1600, 'under_1600'),
+        (U1000, 'under_1000'),
+        (U500, 'under_500'),
+        (MAIDEN, 'maiden'),
+        (UNRACED_MAIDEN, 'unraced_maiden'),
         (UNKNOWN, 'unknown'),
     )
 
@@ -99,6 +122,7 @@ class Race(BaseModel):
     course_type = models.CharField(max_length=255, choices=COURSE_TYPE_CHOICES, default=UNKNOWN)
     distance = models.PositiveSmallIntegerField()
     number = models.PositiveSmallIntegerField()
+    race_class = models.CharField(max_length=255, choices=CLASS_CHOICES, default=UNKNOWN)
     datetime = models.DateTimeField(null=True)
     weather = models.CharField(max_length=255, choices=WEATHER_CHOICES, default=UNKNOWN)
     track_condition = models.CharField(max_length=255, choices=TRACK_CONDITION_CHOICES, default=UNKNOWN)

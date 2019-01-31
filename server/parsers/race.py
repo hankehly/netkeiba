@@ -3,26 +3,71 @@ import re
 from datetime import datetime, time
 
 import pytz
+from bs4 import Comment
 
-from crawler.constants import RACETRACKS, COURSE_TYPES, WEATHER, IMPOST_CATEGORIES
-from server.models import Race, Horse, Jockey, Trainer, RaceContender
+from server.models import Race, Horse
 from server.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
 
+RACETRACKS = {
+    '札幌': Race.SAPPORO,
+    '函館': Race.HAKODATE,
+    '福島': Race.FUMA,
+    '新潟': Race.NIIGATA,
+    '東京': Race.TOKYO,
+    '中山': Race.NAKAYAMA,
+    '中京': Race.CHUKYO,
+    '京都': Race.KYOTO,
+    '阪神': Race.HANSHIN,
+    '小倉': Race.OGURA
+}
 
-class DBRaceParser(Parser):
+WEATHER = {
+    '曇': Race.CLOUDY,
+    '晴': Race.SUNNY,
+    '小雨': Race.LIGHT_RAIN,
+    '雨': Race.RAINY,
+    '雪': Race.SNOWY
+}
+
+IMPOST_CATEGORIES = {
+    '馬齢': Race.HORSE_AGE,
+    '定量': Race.WEIGHT_SEX,
+    '別定': Race.SET_WEIGHT,
+    'ハンデ': Race.HANDICAP
+}
+
+COURSE_TYPES = {
+    '芝': Race.TURF,
+    'ダ': Race.DIRT,
+    '障': Race.OBSTACLE
+}
+
+HORSE_SEX = {
+    '牝': Horse.FEMALE,
+    '牡': Horse.MALE,
+    'セ': Horse.CASTRATED
+}
+
+RACE_CLASSES = {}
+
+
+class RaceParser(Parser):
     def parse(self):
         self.data = {
             'key': self._parse_key(),
-            'distance': self._parse_distance(),
-            'course_type': self._parse_course_type(),
             'racetrack': self._parse_racetrack(),
+            'impost_category': self._parse_impost_category(),
+            'course_type': self._parse_course_type(),
+            'distance': self._parse_distance(),
+            'number': self._parse_number(),
+            'race_class': self._parse_class(),
+            'datetime': self._parse_datetime(),
+            'weather': self._parse_weather(),
+
             'turf_condition': self._parse_turf_condition(),
             'dirt_condition': self._parse_dirt_condition(),
-            'weather': self._parse_weather(),
-            'impost_category': self._parse_impost_category(),
-            'datetime': self._parse_datetime(),
             'is_non_winner_regional_horse_allowed': self._parse_is_non_winner_regional_horse_allowed(),
             'is_winner_regional_horse_allowed': self._parse_is_winner_regional_horse_allowed(),
             'is_regional_jockey_allowed': self._parse_is_regional_jockey_allowed(),
@@ -161,18 +206,76 @@ class DBRaceParser(Parser):
         return self._soup.select_one('.mainrace_data .smalltxt').string.replace(u'\xa0', u' ').replace('  ', ' ') \
             .split(' ')
 
-    def _parse_distance(self):
-        return int(re.search('([0-9]+)m', self._track_details[0]).group(1))
-
-    def _parse_course_type(self):
-        return COURSE_TYPES.get(self._track_details[0][0])
+    def _parse_key(self):
+        race_url = self._soup.select_one('.race_num.fc .active').get('href')
+        return re.search('/race/([0-9]+)', race_url).group(1)
 
     def _parse_racetrack(self):
-        racetrack_title = self._subtitle[1]
+        string = self._subtitle[1]
+        match = None
         for key, val in RACETRACKS.items():
-            if re.search(key, racetrack_title):
-                return val
-        raise ValueError(f'Could not find racetrack name in "{racetrack_title}"')
+            if re.search(key, string):
+                match = val
+                break
+        return match
+
+    def _parse_impost_category(self):
+        string = self._subtitle[-1]
+        match = None
+        for key, val in IMPOST_CATEGORIES.items():
+            if key in string:
+                match = val
+                break
+        return match
+
+    def _parse_course_type(self):
+        string = self._track_details[0][0]
+        return COURSE_TYPES.get(string)
+
+    def _parse_distance(self):
+        string = self._track_details[0]
+        match = re.search('([0-9]+)m', string).group(1)
+        return int(match)
+
+    def _parse_number(self):
+        string = self._soup.select_one('.mainrace_data .racedata dt').string.strip()
+        return int(string.split(' ')[0])
+
+    def _parse_class(self):
+        string = self._soup.select_one('.mainrace_data h1')
+        for child in string.children:
+            if isinstance(child, Comment):
+                child.extract()
+        match = None
+        for key, val in RACE_CLASSES.items():
+            if key in string:
+                match = val
+                break
+        return match
+
+    def _parse_datetime(self):
+        race_date = self._parse_date()
+        race_time = self._parse_time()
+        jst = pytz.timezone('Asia/Tokyo')
+        dt = datetime.combine(race_date, race_time)
+        return jst.localize(dt)
+
+    def _parse_date(self):
+        return datetime.strptime(self._subtitle[0], '%Y年%m月%d日').date()
+
+    def _parse_time(self):
+        time_str = re.search('[0-9]{2}:[0-9]{2}', self._track_details[-1]).group()
+        hours, minutes = list(map(int, time_str.split(':')))
+        return time(hours, minutes)
+
+    def _parse_weather(self):
+        string = self._track_details[1]
+        match = None
+        for key, val in WEATHER.items():
+            if key in string:
+                match = val
+                break
+        return match
 
     def _parse_turf_condition(self):
         turf_condition = None
@@ -199,40 +302,6 @@ class DBRaceParser(Parser):
             dirt_condition = 'bad'
 
         return dirt_condition
-
-    def _parse_weather(self):
-        weather = None
-        for key, val in WEATHER.items():
-            if key in self._track_details[1]:
-                weather = val
-
-        return weather
-
-    def _parse_impost_category(self):
-        impost_category = None
-        for key, val in IMPOST_CATEGORIES.items():
-            if key in self._subtitle[-1]:
-                impost_category = val
-        return impost_category
-
-    def _parse_date(self):
-        return datetime.strptime(self._subtitle[0], '%Y年%m月%d日').date()
-
-    def _parse_time(self):
-        time_str = re.search('[0-9]{2}:[0-9]{2}', self._track_details[-1]).group()
-        hours, minutes = list(map(int, time_str.split(':')))
-        return time(hours, minutes)
-
-    def _parse_datetime(self):
-        race_date = self._parse_date()
-        race_time = self._parse_time()
-        jst = pytz.timezone('Asia/Tokyo')
-        dt = datetime.combine(race_date, race_time)
-        return jst.localize(dt)
-
-    def _parse_key(self):
-        race_url = self._soup.select_one('.race_num.fc .active').get('href')
-        return re.search('/race/([0-9]+)', race_url).group(1)
 
     def _parse_is_non_winner_regional_horse_allowed(self):
         return '(指定)' in self._subtitle[-1]

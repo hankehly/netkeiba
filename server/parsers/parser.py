@@ -6,12 +6,6 @@ class Parser:
         self._soup = BeautifulSoup(html, 'html.parser')
         self.data = None
 
-    def str2float(self, value: str) -> float:
-        return float(value.replace(',', ''))
-
-    def str2int(self, value: str) -> int:
-        return int(value.replace(',', ''))
-
     def parse(self):
         raise NotImplementedError
 

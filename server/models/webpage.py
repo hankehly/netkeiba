@@ -5,7 +5,7 @@ from scrapy import Request
 from scrapy.utils.request import request_fingerprint
 
 from server.models.base import BaseModel
-from server.parsers import Parser, DBHorseParser, DBRaceParser, NoopParser
+from server.parsers import Parser, RaceParser, NoopParser
 
 
 class WebPageManager(models.Manager):
@@ -23,20 +23,12 @@ class WebPageManager(models.Manager):
         return super().get_queryset().get(fingerprint=fingerprint)
 
 
-class DBHorseWebPageManager(WebPageManager):
-    """
-    Ex. https://db.netkeiba.com/horse/2015104189/
-    """
-    url_regex = '/horse/[0-9]+/'
-    parser_class = DBHorseParser
-
-
-class DBRaceWebPageManager(WebPageManager):
+class RaceWebPageManager(WebPageManager):
     """
     Ex. https://db.netkeiba.com/race/201807040211/
     """
     url_regex = '/race/[0-9]+/'
-    parser_class = DBRaceParser
+    parser_class = RaceParser
 
 
 class WebPage(BaseModel):
@@ -46,8 +38,7 @@ class WebPage(BaseModel):
     crawled_at = models.DateTimeField()
 
     objects = WebPageManager()
-    db_horses = DBHorseWebPageManager()
-    db_races = DBRaceWebPageManager()
+    db_races = RaceWebPageManager()
 
     class Meta:
         db_table = 'webpages'
