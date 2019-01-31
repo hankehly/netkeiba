@@ -3,7 +3,7 @@ from datetime import datetime
 
 from bs4 import Comment
 
-from server.models import Horse, HorseSex
+from server.models import Horse
 from server.parsers.parser import Parser
 
 
@@ -28,17 +28,18 @@ class DBHorseParser(Parser):
         }
 
     def persist(self):
-        key = self.data.get('key')
-        sex_name = self.data.get('sex')
-        sex_obj, _ = HorseSex.objects.get_or_create(name=sex_name)
-        defaults = {
-            'total_races': self.data.get('total_races'),
-            'total_wins': self.data.get('total_wins'),
-            'birthday': self.data.get('birthday'),
-            'user_rating': self.data.get('user_rating'),
-            'sex_id': sex_obj.id
-        }
-        Horse.objects.update_or_create(key=key, defaults=defaults)
+        # key = self.data.get('key')
+        # sex_name = self.data.get('sex')
+        # sex_obj, _ = HorseSex.objects.get_or_create(name=sex_name)
+        # defaults = {
+        #     'total_races': self.data.get('total_races'),
+        #     'total_wins': self.data.get('total_wins'),
+        #     'birthday': self.data.get('birthday'),
+        #     'user_rating': self.data.get('user_rating'),
+        #     'sex_id': sex_obj.id
+        # }
+        # Horse.objects.update_or_create(key=key, defaults=defaults)
+        pass
 
     def _parse_key(self):
         url = self._soup.head.select_one('link[rel=canonical]').get('href')

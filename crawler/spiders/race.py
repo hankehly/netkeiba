@@ -7,9 +7,6 @@ from bs4 import BeautifulSoup
 from django.db import connection
 
 from crawler.constants import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
-from server.parsers.db_horse import DBHorseParser
-from server.parsers.jockey_result import JockeyResultParser
-from server.parsers.trainer_result import TrainerResultParser
 
 
 class TABLE_COL:
@@ -277,27 +274,4 @@ class RaceSpider(scrapy.Spider):
 
             race_data = _prefix_keys(race, 'r_')
             meta['data'] = {**meta['data'], **race_data}
-
-            yield scrapy.Request(h_url, callback=self.parse_horse, meta=meta, dont_filter=True)
-
-    def parse_horse(self, response):
-        parser = DBHorseParser(response.body)
-        parser.parse()
-        data = _prefix_keys(parser.data, 'h_')
-        response.meta['data'] = {**response.meta['data'], **data}
-        yield scrapy.Request(response.urljoin(f"/trainer/result/{response.meta['data']['t_key']}"),
-                             callback=self.parse_trainer, meta=response.meta, dont_filter=True)
-
-    def parse_trainer(self, response):
-        parser = TrainerResultParser(response.body)
-        parser.parse()
-        data = _prefix_keys(parser.data, 't_')
-        response.meta['data'] = {**response.meta['data'], **data}
-        yield scrapy.Request(response.urljoin(f"/jockey/result/{response.meta['data']['j_key']}"),
-                             callback=self.parse_jockey, meta=response.meta, dont_filter=True)
-
-    def parse_jockey(self, response):
-        parser = JockeyResultParser(response.body)
-        parser.parse()
-        data = _prefix_keys(parser.data, 'j_')
-        yield {**response.meta['data'], **data}
+            yield {**meta['data'], **race_data}

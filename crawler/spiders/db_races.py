@@ -21,30 +21,40 @@ class DBRaceSpider(CrawlSpider):
              follow=True),
     )
 
-    def __init__(self, min_date=None, *args, **kwargs):
+    def __init__(self, min_date=None, max_date=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if min_date:
             self.min_date = datetime.strptime(min_date, '%Y-%m-%d').date()
         else:
-            self.min_date = date.today() - timedelta(days=30)
+            self.min_date = date(1970, 1, 1)
 
-        self.logger.info(f'min_date set to {self.min_date}')
+        if max_date:
+            self.max_date = datetime.strptime(max_date, '%Y-%m-%d').date()
+            start_url = self.start_urls[0]
+            max_date_str = self.max_date.strftime('%Y%m%d')
+            self.start_urls = ['&date='.join([start_url, max_date_str])]
+        else:
+            self.max_date = date.today()
+
+        self.logger.info(f'<min_date: {self.min_date}, max_date: {self.max_date}, start_url: {self.start_urls[0]}>')
 
     def process_date_links(self, links: List[Link]):
         follow_links = []
+
         for link in links:
             date_string = re.search('[0-9]{8}', link.url).group()
             link_date = datetime.strptime(date_string, '%Y%m%d').date()
 
-            is_date_above_limit = link_date >= self.min_date
+            is_date_in_range = self.min_date <= link_date <= self.max_date
             is_race_top_page = 'pid=race_top' in link.url
             is_month_above_limit = link_date.month >= self.min_date.month
 
-            if is_date_above_limit or (is_race_top_page and is_month_above_limit):
+            if is_date_in_range or (is_race_top_page and is_month_above_limit):
                 follow_links.append(link)
             else:
-                self.logger.info(f'skipping url ({link.url}), {link_date} < {self.min_date}')
+                self.logger.info(f'skipping ({link.url}), ({self.min_date} <= {link_date} <= {self.max_date}) is False')
+
         return follow_links
 
     def parse_web_page_item(self, response):

@@ -16,7 +16,9 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--min-date', dest='min_date', type=date_string,
-                            help='Scrape all races that come after this date (fmt: YYYY-MM-DD)')
+                            help='Scrape all races that come on or after this date (fmt: YYYY-MM-DD)')
+        parser.add_argument('--max-date', dest='max_date', type=date_string,
+                            help='Scrape all races that come on or before this date (fmt: YYYY-MM-DD)')
 
     def handle(self, *args, **options):
         crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
@@ -43,6 +45,6 @@ class Command(BaseCommand):
         scrapy_settings.setmodule(settings_module_path, priority='project')
 
         runner = CrawlerRunner({**scrapy_settings, **custom_settings})
-        d = runner.crawl('db_race', options.get('min_date'))
+        d = runner.crawl('db_race', options.get('min_date'), options.get('max_date'))
         d.addBoth(lambda _: reactor.stop())
         reactor.run()
