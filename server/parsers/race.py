@@ -33,7 +33,7 @@ WEATHER = {
 
 IMPOST_CATEGORIES = {
     '馬齢': Race.HORSE_AGE,
-    '定量': Race.WEIGHT_SEX,
+    '定量': Race.WEIGHT_FOR_AGE,
     '別定': Race.SET_WEIGHT,
     'ハンデ': Race.HANDICAP
 }
@@ -50,7 +50,14 @@ HORSE_SEX = {
     'セ': Horse.CASTRATED
 }
 
-RACE_CLASSES = {}
+RACE_CLASSES = {
+    'オープン': Race.OPEN,
+    '1600万下': Race.U1600,
+    '1000万下': Race.U1000,
+    '500万下': Race.U500,
+    '未勝利': Race.MAIDEN,
+    '新馬': Race.UNRACED_MAIDEN,
+}
 
 
 class RaceParser(Parser):
@@ -63,11 +70,12 @@ class RaceParser(Parser):
             'distance': self._parse_distance(),
             'number': self._parse_number(),
             'race_class': self._parse_class(),
+            'grade': self._parse_grade(),
             'datetime': self._parse_datetime(),
             'weather': self._parse_weather(),
+            'track_condition': self._parse_track_condition(),
+            'direction': self._parse_direction(),
 
-            'turf_condition': self._parse_turf_condition(),
-            'dirt_condition': self._parse_dirt_condition(),
             'is_non_winner_regional_horse_allowed': self._parse_is_non_winner_regional_horse_allowed(),
             'is_winner_regional_horse_allowed': self._parse_is_winner_regional_horse_allowed(),
             'is_regional_jockey_allowed': self._parse_is_regional_jockey_allowed(),
@@ -242,14 +250,23 @@ class RaceParser(Parser):
         return int(string.split(' ')[0])
 
     def _parse_class(self):
-        string = self._soup.select_one('.mainrace_data h1')
-        for child in string.children:
-            if isinstance(child, Comment):
-                child.extract()
+        string = self._subtitle[-2]
         match = None
         for key, val in RACE_CLASSES.items():
             if key in string:
                 match = val
+                break
+        return match
+
+    def _parse_grade(self):
+        string = self._soup.select_one('.mainrace_data h1')
+        for child in string.children:
+            if isinstance(child, Comment):
+                child.extract()
+        match = Race.NOT_APPLICABLE
+        for grade in [Race.G1, Race.G2, Race.G3]:
+            if grade in string:
+                match = grade
                 break
         return match
 
@@ -277,31 +294,21 @@ class RaceParser(Parser):
                 break
         return match
 
-    def _parse_turf_condition(self):
-        turf_condition = None
-        if '芝:良' in self._track_details[2]:
-            turf_condition = 'good'
-        elif '芝:稍重' in self._track_details[2]:
-            turf_condition = 'slightly_heavy'
-        elif '芝:重' in self._track_details[2]:
-            turf_condition = 'heavy'
-        elif '芝:不良' in self._track_details[2]:
-            turf_condition = 'bad'
+    def _parse_track_condition(self):
+        string = self._track_details[2]
+        match = None
+        if '不良' in string:
+            match = Race.BAD
+        elif '良' in string:
+            match = Race.GOOD
+        elif '稍重' in string:
+            match = Race.SLIGHTLY_HEAVY
+        elif '重' in string:
+            match = Race.HEAVY
+        return match
 
-        return turf_condition
-
-    def _parse_dirt_condition(self):
-        dirt_condition = None
-        if 'ダート:良' in self._track_details[2]:
-            dirt_condition = 'good'
-        elif 'ダート:稍重' in self._track_details[2]:
-            dirt_condition = 'slightly_heavy'
-        elif 'ダート:重' in self._track_details[2]:
-            dirt_condition = 'heavy'
-        elif 'ダート:不良' in self._track_details[2]:
-            dirt_condition = 'bad'
-
-        return dirt_condition
+    def _parse_direction(self):
+        pass
 
     def _parse_is_non_winner_regional_horse_allowed(self):
         return '(指定)' in self._subtitle[-1]

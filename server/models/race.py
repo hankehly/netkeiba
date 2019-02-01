@@ -6,7 +6,6 @@ from server.models.base import BaseModel
 class Race(BaseModel):
     UNKNOWN = 'UNKNOWN'
 
-    # TODO: Why do you have to shorten these? Wouldn't it be easier to know what they mean automatically?
     SAPPORO = 'SP'
     HAKODATE = 'HD'
     FUMA = 'FM'
@@ -18,17 +17,17 @@ class Race(BaseModel):
     HANSHIN = 'HS'
     OGURA = 'OG'
     RACETRACK_CHOICES = (
-        (SAPPORO, 'sapporo'),
-        (HAKODATE, 'hakodate'),
-        (FUMA, 'fuma'),
-        (NIIGATA, 'niigata'),
-        (TOKYO, 'tokyo'),
-        (NAKAYAMA, 'nakayama'),
-        (CHUKYO, 'chukyo'),
-        (KYOTO, 'kyoto'),
-        (HANSHIN, 'hanshin'),
-        (OGURA, 'ogura'),
-        (UNKNOWN, 'unknown'),
+        (SAPPORO, 'Sapporo'),
+        (HAKODATE, 'Hakodate'),
+        (FUMA, 'Fuma'),
+        (NIIGATA, 'Niigata'),
+        (TOKYO, 'Tokyo'),
+        (NAKAYAMA, 'Nakayama'),
+        (CHUKYO, 'Chukyo'),
+        (KYOTO, 'Kyoto'),
+        (HANSHIN, 'Hanshin'),
+        (OGURA, 'Ogura'),
+        (UNKNOWN, 'Unknown'),
     )
 
     HORSE_AGE = 'HA'
@@ -37,47 +36,52 @@ class Race(BaseModel):
     HANDICAP = 'HC'
     IMPOST_CATEGORY_CHOICES = (
         # [馬齢] 同一年齢の馬だけのレース
-        (HORSE_AGE, 'horse_age'),
+        (HORSE_AGE, 'Horse age'),
         # [定量] 別定のなかでも、馬の年齢と性別を基準に定められているレース
-        (WEIGHT_FOR_AGE, 'weight_for_age'),
+        (WEIGHT_FOR_AGE, 'Weight for age'),
         # [別定] そのレース毎に負担重量を決定する基準が設けられているレース
-        (SET_WEIGHT, 'set_weight'),
+        (SET_WEIGHT, 'Set weight'),
         # [ハンデ] 出走予定馬の実績や最近の状態などを考慮し
         # 各出走馬に勝つチャンスを与えるよう決められた重量を負担させるレース
-        (HANDICAP, 'handicap'),
-        (UNKNOWN, 'unknown'),
+        (HANDICAP, 'Handicap'),
+        (UNKNOWN, 'Unknown'),
     )
 
-    DIRT = 'DT'
+    DIRT = 'DI'
     TURF = 'TF'
     OBSTACLE = 'OB'
     COURSE_TYPE_CHOICES = (
-        (DIRT, 'dirt'),
-        (TURF, 'turf'),
-        (OBSTACLE, 'obstacle'),
-        (UNKNOWN, 'unknown'),
+        (DIRT, 'Dirt'),
+        (TURF, 'Turf'),
+        (OBSTACLE, 'Obstacle'),
+        (UNKNOWN, 'Unknown'),
     )
 
     G1 = 'G1'
     G2 = 'G2'
     G3 = 'G3'
-    OP = 'OP'
+    NOT_APPLICABLE = 'NA'
+    GRADE_CHOICES = (
+        (G1, 'G1'),
+        (G2, 'G2'),
+        (G3, 'G3'),
+        (NOT_APPLICABLE, 'Not applicable'),
+    )
+
+    OPEN = 'OP'
     U1600 = 'U1600'
     U1000 = 'U1000'
     U500 = 'U500'
     MAIDEN = 'MD'
     UNRACED_MAIDEN = 'UMD'
-    CLASS_CHOICES = (
-        (G1, 'G1'),
-        (G2, 'G2'),
-        (G3, 'G3'),
-        (OP, 'open'),
-        (U1600, 'under_1600'),
-        (U1000, 'under_1000'),
-        (U500, 'under_500'),
-        (MAIDEN, 'maiden'),
-        (UNRACED_MAIDEN, 'unraced_maiden'),
-        (UNKNOWN, 'unknown'),
+    RACE_CLASS_CHOICES = (
+        (OPEN, 'Open'),
+        (U1600, 'Under 1600'),
+        (U1000, 'Under 1000'),
+        (U500, 'Under 500'),
+        (MAIDEN, 'Maiden'),
+        (UNRACED_MAIDEN, 'Unraced Maiden'),
+        (UNKNOWN, 'Unknown'),
     )
 
     CLOUDY = 'CD'
@@ -86,12 +90,12 @@ class Race(BaseModel):
     SUNNY = 'SN'
     SNOWY = 'SW'
     WEATHER_CHOICES = (
-        (CLOUDY, 'cloudy'),
-        (RAINY, 'rainy'),
-        (LIGHT_RAIN, 'light_rain'),
-        (SUNNY, 'sunny'),
-        (SNOWY, 'snowy'),
-        (UNKNOWN, 'unknown'),
+        (CLOUDY, 'Cloudy'),
+        (RAINY, 'Rainy'),
+        (LIGHT_RAIN, 'Light rain'),
+        (SUNNY, 'Sunny'),
+        (SNOWY, 'Snowy'),
+        (UNKNOWN, 'Unknown'),
     )
 
     SLIGHTLY_HEAVY = 'SH'
@@ -99,21 +103,22 @@ class Race(BaseModel):
     GOOD = 'GD'
     BAD = 'BD'
     TRACK_CONDITION_CHOICES = (
-        (SLIGHTLY_HEAVY, 'slightly_heavy'),
-        (HEAVY, 'heavy'),
-        (GOOD, 'good'),
-        (BAD, 'bad'),
-        (UNKNOWN, 'unknown'),
+        (SLIGHTLY_HEAVY, 'Slightly heavy'),
+        (HEAVY, 'Heavy'),
+        (GOOD, 'Good'),
+        (BAD, 'Bad'),
+        (UNKNOWN, 'Unknown'),
     )
 
     LEFT = 'LF'
     RIGHT = 'RI'
     STRAIGHT = 'ST'
+    # TODO: Do you need 外? ("直線", "右","左","外")
     DIRECTION_CHOICES = (
-        (LEFT, 'left'),
-        (RIGHT, 'right'),
-        (STRAIGHT, 'straight'),
-        (UNKNOWN, 'unknown'),
+        (LEFT, 'Left'),
+        (RIGHT, 'Right'),
+        (STRAIGHT, 'Straight'),
+        (UNKNOWN, 'Unknown'),
     )
 
     key = models.CharField(max_length=255, unique=True)
@@ -122,8 +127,9 @@ class Race(BaseModel):
     course_type = models.CharField(max_length=255, choices=COURSE_TYPE_CHOICES, default=UNKNOWN)
     distance = models.PositiveSmallIntegerField()
     number = models.PositiveSmallIntegerField()
-    race_class = models.CharField(max_length=255, choices=CLASS_CHOICES, default=UNKNOWN)
-    datetime = models.DateTimeField(null=True)
+    race_class = models.CharField(max_length=255, choices=RACE_CLASS_CHOICES, default=UNKNOWN)
+    grade = models.CharField(max_length=255, choices=GRADE_CHOICES)
+    datetime = models.DateTimeField()
     weather = models.CharField(max_length=255, choices=WEATHER_CHOICES, default=UNKNOWN)
     track_condition = models.CharField(max_length=255, choices=TRACK_CONDITION_CHOICES, default=UNKNOWN)
     direction = models.CharField(max_length=255, choices=DIRECTION_CHOICES, default=UNKNOWN)
