@@ -26,6 +26,7 @@ class RaceContender(BaseModel):
     horse = models.ForeignKey('server.Horse', on_delete=models.CASCADE)
     jockey = models.ForeignKey('server.Jockey', on_delete=models.CASCADE)
     trainer = models.ForeignKey('server.Trainer', on_delete=models.CASCADE)
+    owner = models.ForeignKey('server.Owner', on_delete=models.CASCADE)
     order_of_finish = models.PositiveSmallIntegerField()
     order_of_finish_lowered = models.BooleanField()
     disqualified = models.BooleanField()
