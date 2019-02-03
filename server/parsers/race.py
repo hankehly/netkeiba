@@ -5,7 +5,7 @@ from datetime import datetime, time
 import pytz
 from bs4 import Comment
 
-from server.models import Race, Horse
+from server.models import Race, Horse, RaceContender
 from server.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
@@ -38,9 +38,15 @@ IMPOST_CATEGORIES = {
     'ハンデ': Race.HANDICAP
 }
 
-COURSE_TYPES = {
+SURFACES = {
     '芝': Race.TURF,
     'ダ': Race.DIRT,
+}
+
+COURSE_TYPES = {
+    '左': Race.LEFT,
+    '右': Race.RIGHT,
+    '直線': Race.STRAIGHT,
     '障': Race.OBSTACLE
 }
 
@@ -59,6 +65,15 @@ RACE_CLASSES = {
     '新馬': Race.UNRACED_MAIDEN,
 }
 
+POSITION_STATES = {
+    '失': RaceContender.DISQUALIFIED,
+    '取': RaceContender.CANCELLED,
+    '除': RaceContender.CANCELLED,
+    '再': RaceContender.REMOUNT,
+    '中': RaceContender.NO_FINISH,
+    '降': RaceContender.POSITION_LOWERED,
+}
+
 
 class RaceParser(Parser):
     def parse(self):
@@ -66,7 +81,8 @@ class RaceParser(Parser):
             'key': self._parse_key(),
             'racetrack': self._parse_racetrack(),
             'impost_category': self._parse_impost_category(),
-            'course_type': self._parse_course_type(),
+            'surface': self._parse_surface(),
+            'course': self._parse_course(),
             'distance': self._parse_distance(),
             'number': self._parse_number(),
             'race_class': self._parse_class(),
@@ -74,27 +90,23 @@ class RaceParser(Parser):
             'datetime': self._parse_datetime(),
             'weather': self._parse_weather(),
             'track_condition': self._parse_track_condition(),
-            'direction': self._parse_direction(),
-
-            'is_non_winner_regional_horse_allowed': self._parse_is_non_winner_regional_horse_allowed(),
-            'is_winner_regional_horse_allowed': self._parse_is_winner_regional_horse_allowed(),
-            'is_regional_jockey_allowed': self._parse_is_regional_jockey_allowed(),
-            'is_foreign_horse_allowed': self._parse_is_foreign_horse_allowed(),
-            'is_foreign_horse_and_trainer_allowed': self._parse_is_foreign_horse_and_trainer_allowed(),
-            'is_apprentice_jockey_allowed': self._parse_is_apprentice_jockey_allowed(),
-            'is_female_only': self._parse_is_female_only()
+            'is_outside_racetrack': self._parse_is_outside_racetrack(),
+            'is_regional_maiden_race': self._parse_is_regional_maiden_race(),
+            'is_winner_regional_horse_race': self._parse_is_winner_regional_horse_race(),
+            'is_regional_jockey_race': self._parse_is_regional_jockey_race(),
+            'is_foreign_horse_race': self._parse_is_foreign_horse_race(),
+            'is_foreign_trainer_horse_race': self._parse_is_foreign_trainer_horse_race(),
+            'is_apprentice_jockey_race': self._parse_is_apprentice_jockey_race(),
+            'is_female_only_race': self._parse_is_female_only_race()
         }
 
         contenders = []
-        for i, record in enumerate(self._soup.select('.race_table_01 tr')[1:], start=1):
-            # (失) 失格 (http://www.jra.go.jp/judge/)
-            # (取) 出走取消 (http://jra.jp/faq/pop02/2_7.html)
-            # (除) 競走除外 (http://jra.jp/faq/pop02/2_7.html)
-            # (中) 競走中止 (http://jra.jp/faq/pop02/2_8.html)
+        table_rows = self._soup.select('.race_table_01 tr')[1:]
+        for i, record in enumerate(table_rows, start=1):
             order_of_finish = record.select('td')[0].string
+
             if order_of_finish in ['失', '取', '除', '中']:
-                logger.info(f'ignoring race_contender({i}) for reason({order_of_finish})')
-                continue
+                pass
 
             # 落馬した騎手が再度騎乗してレースを続けること
             did_remount = '再' in order_of_finish
@@ -136,6 +148,7 @@ class RaceParser(Parser):
     def persist(self):
         pass
         # TODO: Create missing objects like turf condition category as you see them
+        # TODO: horse_number
         # race_key = self.data.get('key')
         # racetrack_id = RaceTrack.objects.get(name=self.data.get('racetrack')).id
         # course_type_id = CourseType.objects.get(name=self.data.get('course_type')).id
@@ -165,27 +178,6 @@ class RaceParser(Parser):
         #     'datetime': self.data.get('datetime')
         # })
         #
-        # if self.data.get('is_non_winner_regional_horse_allowed'):
-        #     NonWinnerRegionalHorseRace.objects.update_or_create(race=race)
-        #
-        # if self.data.get('is_winner_regional_horse_allowed'):
-        #     WinnerRegionalHorseRace.objects.update_or_create(race=race)
-        #
-        # if self.data.get('is_regional_jockey_allowed'):
-        #     RegionalJockeyRace.objects.update_or_create(race=race)
-        #
-        # if self.data.get('is_foreign_horse_allowed'):
-        #     ForeignHorseRace.objects.update_or_create(race=race)
-        #
-        # if self.data.get('is_foreign_horse_and_trainer_allowed'):
-        #     ForeignTrainerHorseRace.objects.update_or_create(race=race)
-        #
-        # if self.data.get('is_apprentice_jockey_allowed'):
-        #     ApprenticeJockeyRace.objects.update_or_create(race=race)
-        #
-        # if self.data.get('is_female_only'):
-        #     FemaleOnlyRace.objects.update_or_create(race=race)
-        #
         # for contender in self.data.get('contenders'):
         #     horse = Horse.objects.get_or_create(key=contender.get('horse_key'))
         #     jockey = Jockey.objects.get_or_create(key=contender.get('jockey_key'))
@@ -207,11 +199,16 @@ class RaceParser(Parser):
 
     @property
     def _track_details(self):
-        return self._soup.select_one('.mainrace_data p span').string.replace(u'\xa0', u'').replace(' ', '').split('/')
+        return self._soup.select_one('.mainrace_data p span').string \
+            .replace(u'\xa0', u'') \
+            .replace(' ', '') \
+            .split('/')
 
     @property
     def _subtitle(self):
-        return self._soup.select_one('.mainrace_data .smalltxt').string.replace(u'\xa0', u' ').replace('  ', ' ') \
+        return self._soup.select_one('.mainrace_data .smalltxt').string \
+            .replace(u'\xa0', u' ') \
+            .replace('  ', ' ') \
             .split(' ')
 
     def _parse_key(self):
@@ -236,9 +233,16 @@ class RaceParser(Parser):
                 break
         return match
 
-    def _parse_course_type(self):
+    def _parse_surface(self):
+        string = self._track_details[0][0]
+        return SURFACES.get(string)
+
+    def _parse_course(self):
         string = self._track_details[0][0]
         return COURSE_TYPES.get(string)
+
+    def _parse_is_outside_racetrack(self):
+        return '外' in self._track_details[0][0]
 
     def _parse_distance(self):
         string = self._track_details[0]
@@ -307,26 +311,23 @@ class RaceParser(Parser):
             match = Race.HEAVY
         return match
 
-    def _parse_direction(self):
-        pass
-
-    def _parse_is_non_winner_regional_horse_allowed(self):
+    def _parse_is_regional_maiden_race(self):
         return '(指定)' in self._subtitle[-1]
 
-    def _parse_is_winner_regional_horse_allowed(self):
+    def _parse_is_winner_regional_horse_race(self):
         return '特指' in self._subtitle[-1]
 
-    def _parse_is_regional_jockey_allowed(self):
+    def _parse_is_regional_jockey_race(self):
         return '[指定]' in self._subtitle[-1]
 
-    def _parse_is_foreign_horse_allowed(self):
+    def _parse_is_foreign_horse_race(self):
         return '混' in self._subtitle[-1]
 
-    def _parse_is_foreign_horse_and_trainer_allowed(self):
+    def _parse_is_foreign_trainer_horse_race(self):
         return '国際' in self._subtitle[-1]
 
-    def _parse_is_apprentice_jockey_allowed(self):
+    def _parse_is_apprentice_jockey_race(self):
         return '見習騎手' in self._subtitle[-1]
 
-    def _parse_is_female_only(self):
+    def _parse_is_female_only_race(self):
         return '牝' in self._subtitle[-1]

@@ -47,13 +47,11 @@ class Race(BaseModel):
         (UNKNOWN, 'Unknown'),
     )
 
-    DIRT = 'DI'
-    TURF = 'TF'
-    OBSTACLE = 'OB'
-    COURSE_TYPE_CHOICES = (
+    DIRT = 'DIRT'
+    TURF = 'TURF'
+    SURFACE_CHOICES = (
         (DIRT, 'Dirt'),
         (TURF, 'Turf'),
-        (OBSTACLE, 'Obstacle'),
         (UNKNOWN, 'Unknown'),
     )
 
@@ -110,21 +108,23 @@ class Race(BaseModel):
         (UNKNOWN, 'Unknown'),
     )
 
-    LEFT = 'LF'
-    RIGHT = 'RI'
-    STRAIGHT = 'ST'
-    # TODO: Do you need 外? ("直線", "右","左","外")
-    DIRECTION_CHOICES = (
+    STRAIGHT = 'STRAIGHT'
+    LEFT = 'LEFT'
+    RIGHT = 'RIGHT'
+    OBSTACLE = 'OBSTACLE'
+    COURSE_CHOICES = (
         (LEFT, 'Left'),
         (RIGHT, 'Right'),
         (STRAIGHT, 'Straight'),
+        (OBSTACLE, 'Obstacle'),
         (UNKNOWN, 'Unknown'),
     )
 
     key = models.CharField(max_length=255, unique=True)
     racetrack = models.CharField(max_length=255, choices=RACETRACK_CHOICES, default=UNKNOWN)
     impost_category = models.CharField(max_length=255, choices=IMPOST_CATEGORY_CHOICES, default=UNKNOWN)
-    course_type = models.CharField(max_length=255, choices=COURSE_TYPE_CHOICES, default=UNKNOWN)
+    surface = models.CharField(max_length=255, choices=SURFACE_CHOICES, default=UNKNOWN)
+    course = models.CharField(max_length=255, choices=COURSE_CHOICES, default=UNKNOWN)
     distance = models.PositiveSmallIntegerField()
     number = models.PositiveSmallIntegerField()
     race_class = models.CharField(max_length=255, choices=RACE_CLASS_CHOICES, default=UNKNOWN)
@@ -132,28 +132,30 @@ class Race(BaseModel):
     datetime = models.DateTimeField()
     weather = models.CharField(max_length=255, choices=WEATHER_CHOICES, default=UNKNOWN)
     track_condition = models.CharField(max_length=255, choices=TRACK_CONDITION_CHOICES, default=UNKNOWN)
-    direction = models.CharField(max_length=255, choices=DIRECTION_CHOICES, default=UNKNOWN)
+
+    # 外枠か
+    is_outside_racetrack = models.BooleanField()
 
     # (指定) [地]が出走できるレースで、かつ地方競馬所属の騎手が騎乗できる(特指)以外のレース
-    is_non_winner_regional_horse_race = models.BooleanField(default=False)
+    is_regional_maiden_race = models.BooleanField()
 
     # (特指) JRAが認定した地方競馬の競走で第1着となった[地]が出走できるレースで、かつ地方競馬所属の騎手が騎乗できるレース
-    is_winner_regional_horse_race = models.BooleanField(default=False)
+    is_winner_regional_horse_race = models.BooleanField()
 
     # [指定] 地方競馬所属の騎手が騎乗できるレース
-    is_regional_jockey_race = models.BooleanField(default=False)
+    is_regional_jockey_race = models.BooleanField()
 
-    # (混合) 内国産馬にマル外が混合して出走できるレース
-    is_foreign_horse_race = models.BooleanField(default=False)
+    # (混) 内国産馬にマル外が混合して出走できるレース
+    is_foreign_horse_race = models.BooleanField()
 
     # (国際) 内国産馬に(外)および[外]が混合して出走できるレース
-    is_foreign_trainer_horse_race = models.BooleanField(default=False)
+    is_foreign_trainer_horse_race = models.BooleanField()
 
     # (見習騎手) 若手騎手が騎乗できるレース
-    is_apprentice_jockey_race = models.BooleanField(default=False)
+    is_apprentice_jockey_race = models.BooleanField()
 
     # (牝) 牝馬しか出走できないレース
-    is_female_only_race = models.BooleanField(default=False)
+    is_female_only_race = models.BooleanField()
 
     class Meta:
         db_table = 'races'

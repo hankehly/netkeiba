@@ -6,7 +6,7 @@ import scrapy
 from bs4 import BeautifulSoup
 from django.db import connection
 
-from server.parsers.race import RACETRACKS, COURSE_TYPES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
+from server.parsers.race import RACETRACKS, SURFACES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
 
 
 class TABLE_COL:
@@ -45,7 +45,7 @@ def _parse_track_details(soup):
 def _parse_course_type(soup):
     race_dist_type_data = soup.select_one('.racedata').select_one('p:nth-of-type(1)').text
     race_dist_type_search = re.search('(.)([0-9]+)m', race_dist_type_data)
-    return COURSE_TYPES.get(race_dist_type_search.group(1))
+    return SURFACES.get(race_dist_type_search.group(1))
 
 
 def _parse_distance(soup):

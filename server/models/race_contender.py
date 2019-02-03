@@ -7,19 +7,30 @@ class RaceContender(BaseModel):
     UNKNOWN = 'UNKNOWN'
 
     OK = 'OK'
-    DISQUALIFIED = 'DQ'  # 失
-    CANCELLED = 'CL'  # 取|除
-    REMOUNT = 'RM'  # 再
-    DID_NOT_FINISH = 'DNF'  # 中
-    POSITION_LOWERED = 'PL'  # 降
+    DISQUALIFIED = 'DISQUALIFIED'  # 失
+    CANCELLED = 'CANCELLED'  # 取|除
+    REMOUNT = 'REMOUNT'  # 再
+    NO_FINISH = 'NO_FINISH'  # 中
+    POSITION_LOWERED = 'POSITION_LOWERED'  # 降
     POSITION_STATE_CHOICES = (
-        (OK, 'ok'),
-        (DISQUALIFIED, 'disqualified'),
-        (CANCELLED, 'cancelled'),
-        (REMOUNT, 'remount'),
-        (DID_NOT_FINISH, 'did_not_finish'),
-        (POSITION_LOWERED, 'position_lowered'),
-        (UNKNOWN, 'unknown')
+        (OK, 'OK'),
+        (DISQUALIFIED, 'Disqualified'),
+        (CANCELLED, 'Cancelled'),
+        (REMOUNT, 'Remount'),
+        (NO_FINISH, 'Did not finish'),
+        (POSITION_LOWERED, 'Position lowered'),
+        (UNKNOWN, 'Unknown')
+    )
+
+    NOSE = 'NOSE'
+    HEAD = 'HEAD'
+    NECK = 'NECK'
+    OTHER = 'OTHER'
+    MARGIN_CHOICES = (
+        (NOSE, 'Nose'),
+        (HEAD, 'Head'),
+        (NECK, 'Neck'),
+        (OTHER, 'Other')
     )
 
     race = models.ForeignKey('server.Race', on_delete=models.CASCADE)
@@ -28,16 +39,19 @@ class RaceContender(BaseModel):
     trainer = models.ForeignKey('server.Trainer', on_delete=models.CASCADE)
     owner = models.ForeignKey('server.Owner', on_delete=models.CASCADE)
     order_of_finish = models.PositiveSmallIntegerField()
-    order_of_finish_lowered = models.BooleanField()
-    disqualified = models.BooleanField()
-    did_remount = models.BooleanField()
+    position_state = models.CharField(max_length=255, choices=POSITION_STATE_CHOICES)
     post_position = models.PositiveSmallIntegerField()
+    horse_number = models.PositiveIntegerField()
     weight_carried = models.FloatField()
     finish_time = models.FloatField()
+    # TODO: How about numeric values?
+    margin = models.CharField(max_length=255, choices=MARGIN_CHOICES)
+    final_stage_time = models.FloatField()
     first_place_odds = models.FloatField()
     popularity = models.PositiveSmallIntegerField()
     horse_weight = models.FloatField(null=True)
     horse_weight_diff = models.FloatField(null=True)
+    purse = models.FloatField(default=0.)
 
     class Meta:
         db_table = 'race_contenders'
