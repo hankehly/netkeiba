@@ -118,13 +118,27 @@ class RaceParser(Parser):
         }
 
         contenders = []
-        for i, record in enumerate(self._contender_rows, start=1):
+        for i, record in enumerate(self._contender_rows):
             contenders.append({
-                'horse': self._parse_contender_horse(i),
-                'jockey': self._parse_contender_jockey(i),
-                'trainer': self._parse_contender_trainer(i),
-                'trainer__stable': self._parse_contender_trainer_stable(i),
-                'owner': self._parse_contender_owner(i),
+                'horse': {
+                    'key': self._parse_contender_horse_key(i),
+                    'age': self._parse_contender_horse_age(i),
+                    'sex': self._parse_contender_horse_sex(i),
+                    'name': self._parse_contender_horse_name(i),
+                },
+                'jockey': {
+                    'key': self._parse_contender_jockey_key(i),
+                    'name': self._parse_contender_jockey_name(i),
+                },
+                'trainer': {
+                    'key': self._parse_contender_trainer_key(i),
+                    'name': self._parse_contender_trainer_name(i),
+                    'stable': self._parse_contender_trainer_stable(i),
+                },
+                'owner': {
+                    'key': self._parse_contender_owner_key(i),
+                    'name': self._parse_contender_owner_name(i),
+                },
                 'order_of_finish': self._parse_contender_order_of_finish(i),
                 'position_state': self._parse_contender_position_state(i),
                 'post_position': self._parse_contender_post_position(i),
@@ -142,36 +156,51 @@ class RaceParser(Parser):
         self.data['contenders'] = contenders
 
     def persist(self):
-        race_key = self.data.get('race').get('key')
+        race_key = self.data['race']['key']
 
         try:
-            Race.objects.create(self.data.get('race'))
+            Race.objects.create(**self.data['race'])
         except IntegrityError:
-            Race.objects.filter(key=race_key).update(self.data.get('race'))
+            Race.objects.filter(key=race_key).update(self.data['race'])
 
-        for contender in self.data.get('contenders'):
-            horse = Horse.objects.get_or_create(key=contender.get('horse'))
-            jockey = Jockey.objects.get_or_create(key=contender.get('jockey'))
-            trainer = Trainer.objects.get_or_create(key=contender.get('trainer'))
-            owner = Owner.objects.get_or_create(key=contender.get('owner'))
+        for contender in self.data['contenders']:
+            horse = Horse.objects.get_or_create(key=contender['horse']['key'], defaults={
+                'age': contender['horse']['age'],
+                'sex': contender['horse']['sex'],
+                'name': contender['horse']['name']
+            })
+
+            jockey = Jockey.objects.get_or_create(key=contender['jockey']['key'], defaults={
+                'name': contender['jockey']['name']
+            })
+
+            trainer = Trainer.objects.get_or_create(key=contender['trainer']['key'], defaults={
+                'name': contender['trainer']['name'],
+                'stable': contender['trainer']['stable']
+            })
+
+            owner = Owner.objects.get_or_create(key=contender['owner']['key'], defaults={
+                'name': contender['owner']['name'],
+            })
+
             defaults = {
-                'order_of_finish': contender.get('order_of_finish'),
-                'position_state': contender.get('position_state'),
-                'post_position': contender.get('post_position'),
-                'horse_number': contender.get('horse_number'),
-                'weight_carried': contender.get('weight_carried'),
-                'finish_time': contender.get('finish_time'),
-                'margin': contender.get('margin'),
-                'final_stage_time': contender.get('final_stage_time'),
-                'first_place_odds': contender.get('first_place_odds'),
-                'popularity': contender.get('popularity'),
-                'horse_weight': contender.get('horse_weight'),
-                'horse_weight_diff': contender.get('horse_weight_diff'),
-                'purse': contender.get('purse'),
+                'order_of_finish': contender['order_of_finish'],
+                'position_state': contender['position_state'],
+                'post_position': contender['post_position'],
+                'horse_number': contender['horse_number'],
+                'weight_carried': contender['weight_carried'],
+                'finish_time': contender['finish_time'],
+                'margin': contender['margin'],
+                'final_stage_time': contender['final_stage_time'],
+                'first_place_odds': contender['first_place_odds'],
+                'popularity': contender['popularity'],
+                'horse_weight': contender['horse_weight'],
+                'horse_weight_diff': contender['horse_weight_diff'],
+                'purse': contender['purse'],
             }
 
             try:
-                RaceContender.objects.create(horse=horse, jockey=jockey, trainer=trainer, owner=owner)
+                RaceContender.objects.create(horse=horse, jockey=jockey, trainer=trainer, owner=owner, **defaults)
             except IntegrityError:
                 RaceContender.objects.filter(horse=horse, jockey=jockey, trainer=trainer, owner=owner).update(defaults)
 
@@ -314,20 +343,39 @@ class RaceParser(Parser):
     def _parse_is_female_only_race(self):
         return '牝' in self._subtitle[-1]
 
-    def _parse_contender_horse(self, i):
+    def _parse_contender_horse_key(self, i):
         horse_url = self._contender_rows[i].select('td')[3].select_one('a').get('href')
         return re.search('/horse/([0-9]+)', horse_url).group(1)
 
-    def _parse_contender_jockey(self, i):
-        jockey_url = self._contender_rows[i].select('td')[6].select_one('a').get('href')
-        return re.search('/jockey/([0-9]+)', jockey_url).group(1)
+    def _parse_contender_horse_age(self, i):
+        string = self._contender_rows[i].select('td')[4].string
+        return int(re.search('[0-9]+', string).group())
 
-    def _parse_contender_trainer(self, i):
-        trainer_url = self._contender_rows[i].select('td')[18].select_one('a').get('href')
-        return re.search('/trainer/([0-9]+)', trainer_url).group(1)
+    def _parse_contender_horse_sex(self, i):
+        string = self._contender_rows[i].select('td')[4].string
+        match = None
+        for key, value in HORSE_SEX.items():
+            if key in string:
+                match = value
+                break
+        return match
+
+    def _parse_contender_horse_name(self, i):
+        return self._contender_rows[i].select('td')[3].select_one('a').string
+
+    def _parse_contender_jockey_key(self, i):
+        jockey_url = self._contender_rows[i].select('td')[6].select_one('a').get('href')
+        return re.search('/jockey/([a-z0-9]+)', jockey_url).group(1)
+
+    def _parse_contender_jockey_name(self, i):
+        return self._contender_rows[i].select('td')[6].select_one('a').string
+
+    def _parse_contender_trainer_key(self, i):
+        trainer_url = self._contender_rows[i].select('td')[-3].select_one('a').get('href')
+        return re.search('/trainer/([a-z0-9]+)', trainer_url).group(1)
 
     def _parse_contender_trainer_stable(self, i):
-        string = self._contender_rows[i].select('td')[18].text
+        string = self._contender_rows[i].select('td')[-3].text
         stable_char = re.search('\[(東|西|地|外)\]', string).group(1)
         match = None
         for key, value in STABLES.items():
@@ -336,9 +384,15 @@ class RaceParser(Parser):
                 break
         return match
 
-    def _parse_contender_owner(self, i):
-        owner_url = self._contender_rows[i].select('td')[19].select_one('a').get('href')
-        return re.search('/owner/([0-9]+)', owner_url).group(1)
+    def _parse_contender_trainer_name(self, i):
+        return self._contender_rows[i].select('td')[-3].select_one('a').string
+
+    def _parse_contender_owner_key(self, i):
+        owner_url = self._contender_rows[i].select('td')[-2].select_one('a').get('href')
+        return re.search('/owner/([a-z0-9]+)', owner_url).group(1)
+
+    def _parse_contender_owner_name(self, i):
+        return self._contender_rows[i].select('td')[-2].select_one('a').string
 
     def _parse_contender_order_of_finish(self, i):
         string = self._contender_rows[i].select('td')[0].string
@@ -375,7 +429,7 @@ class RaceParser(Parser):
     def _parse_contender_margin(self, i):
         string = self._contender_rows[i].select('td')[8].string
         match = None
-        if re.search('[0-9]', string) is None:
+        if string and re.search('[0-9]', string) is None:
             for key, value in MARGINS.items():
                 if string == key:
                     match = value
@@ -407,5 +461,5 @@ class RaceParser(Parser):
         return int(match.group(2)) if match else None
 
     def _parse_contender_purse(self, i):
-        string = self._contender_rows[i].select('td')[-1].string.replace(',', '')
-        return float(string)
+        string = self._contender_rows[i].select('td')[-1].string
+        return float(string.replace(',', '')) if string else None
