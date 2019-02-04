@@ -26,6 +26,7 @@ class RaceContender(BaseModel):
     HEAD = 'HEAD'
     NECK = 'NECK'
     OTHER = 'OTHER'
+    # TODO: numeric values / 大 (/race/201436111511)
     MARGIN_CHOICES = (
         (NOSE, 'Nose'),
         (HEAD, 'Head'),
@@ -44,7 +45,6 @@ class RaceContender(BaseModel):
     horse_number = models.PositiveIntegerField()
     weight_carried = models.FloatField()
     finish_time = models.FloatField()
-    # TODO: How about numeric values?
     margin = models.CharField(max_length=255, choices=MARGIN_CHOICES, null=True)
     final_stage_time = models.FloatField()
     first_place_odds = models.FloatField()
