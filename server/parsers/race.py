@@ -1,11 +1,12 @@
 import logging
 import re
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
+from typing import Optional
 
 import pytz
 from bs4 import Comment
 
-from server.models import Race, Horse, RaceContender
+from server.models import Race, Horse, RaceContender, Trainer
 from server.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
@@ -74,6 +75,19 @@ POSITION_STATES = {
     '降': RaceContender.POSITION_LOWERED,
 }
 
+STABLES = {
+    '東': Trainer.EAST,
+    '西': Trainer.WEST,
+    '地': Trainer.REGIONAL,
+    '外': Trainer.OVERSEAS,
+}
+
+MARGINS = {
+    'ハナ': RaceContender.NOSE,
+    'クビ': RaceContender.NECK,
+    'アタマ': RaceContender.HEAD,
+}
+
 
 class RaceParser(Parser):
     def parse(self):
@@ -101,48 +115,27 @@ class RaceParser(Parser):
         }
 
         contenders = []
-        table_rows = self._soup.select('.race_table_01 tr')[1:]
-        for i, record in enumerate(table_rows, start=1):
-            order_of_finish = record.select('td')[0].string
-
-            if order_of_finish in ['失', '取', '除', '中']:
-                pass
-
-            # 落馬した騎手が再度騎乗してレースを続けること
-            did_remount = '再' in order_of_finish
-
-            # N(降) 降着 (http://www.jra.go.jp/judge/)
-            order_of_finish_lowered = '降' in order_of_finish
-
-            if order_of_finish_lowered or did_remount:
-                order_of_finish = re.search('[0-9]+', order_of_finish).group(0)
-
-            minutes, seconds = map(float, record.select('td')[7].string.split(':'))
-            horse_weight_search = re.search('([0-9]+)\(([+-]?[0-9]+)\)', record.select('td')[14].string)
-            horse_url = record.select('td')[3].select_one('a').get('href')
-            jockey_url = record.select('td')[6].select_one('a').get('href')
-            trainer_url = record.select('td')[18].select_one('a').get('href')
-
-            contender = {
-                'order_of_finish': int(order_of_finish),
-                'order_of_finish_lowered': order_of_finish_lowered,
-                'did_remount': did_remount,
-                'post_position': int(record.select('td')[1].string),
-                'weight_carried': float(record.select('td')[5].string),
-                'first_place_odds': float(record.select('td')[12].string),
-                'popularity': float(record.select('td')[13].string),
-                'horse_key': re.search('/horse/([0-9]+)', horse_url).group(1),
-                'jockey_key': re.search('/jockey/([0-9]+)', jockey_url).group(1),
-                'trainer_key': re.search('/trainer/([0-9]+)', trainer_url).group(1),
-                'finish_time': minutes * 60 + seconds,
-            }
-
-            if horse_weight_search:
-                contender['horse_weight'] = int(horse_weight_search.group(1))
-                contender['horse_weight_diff'] = int(horse_weight_search.group(2))
-
-            contenders.append(contender)
-
+        for i, record in enumerate(self._contender_rows, start=1):
+            contenders.append({
+                'horse': self._parse_contender_horse(i),
+                'jockey': self._parse_contender_jockey(i),
+                'trainer': self._parse_contender_trainer(i),
+                'trainer__stable': self._parse_contender_trainer_stable(i),
+                'owner': self._parse_contender_owner(i),
+                'order_of_finish': self._parse_contender_order_of_finish(i),
+                'position_state': self._parse_contender_position_state(i),
+                'post_position': self._parse_contender_post_position(i),
+                'horse_number': self._parse_contender_horse_number(i),
+                'weight_carried': self._parse_contender_weight_carried(i),
+                'finish_time': self._parse_contender_finish_time(i),
+                'margin': self._parse_contender_margin(i),
+                'final_stage_time': self._parse_contender_final_stage_time(i),
+                'first_place_odds': self._parse_contender_first_place_odds(i),
+                'popularity': self._parse_contender_popularity(i),
+                'horse_weight': self._parse_contender_horse_weight(i),
+                'horse_weight_diff': self._parse_contender_horse_weight_diff(i),
+                'purse': self._parse_contender_purse(i),
+            })
         self.data['contenders'] = contenders
 
     def persist(self):
@@ -210,6 +203,10 @@ class RaceParser(Parser):
             .replace(u'\xa0', u' ') \
             .replace('  ', ' ') \
             .split(' ')
+
+    @property
+    def _contender_rows(self):
+        return self._soup.select('.race_table_01 tr')[1:]
 
     def _parse_key(self):
         race_url = self._soup.select_one('.race_num.fc .active').get('href')
@@ -331,3 +328,99 @@ class RaceParser(Parser):
 
     def _parse_is_female_only_race(self):
         return '牝' in self._subtitle[-1]
+
+    def _parse_contender_horse(self, i):
+        horse_url = self._contender_rows[i].select('td')[3].select_one('a').get('href')
+        return re.search('/horse/([0-9]+)', horse_url).group(1)
+
+    def _parse_contender_jockey(self, i):
+        jockey_url = self._contender_rows[i].select('td')[6].select_one('a').get('href')
+        return re.search('/jockey/([0-9]+)', jockey_url).group(1)
+
+    def _parse_contender_trainer(self, i):
+        trainer_url = self._contender_rows[i].select('td')[18].select_one('a').get('href')
+        return re.search('/trainer/([0-9]+)', trainer_url).group(1)
+
+    def _parse_contender_trainer_stable(self, i):
+        string = self._contender_rows[i].select('td')[18].text
+        stable_char = re.search('\[(東|西|地|外)\]', string).group(1)
+        match = None
+        for key, value in STABLES.items():
+            if stable_char == key:
+                match = key
+                break
+        return match
+
+    def _parse_contender_owner(self, i):
+        owner_url = self._contender_rows[i].select('td')[19].select_one('a').get('href')
+        return re.search('/owner/([0-9]+)', owner_url).group(1)
+
+    def _parse_contender_order_of_finish(self, i):
+        string = self._contender_rows[i].select('td')[0].string
+        match = re.search('[0-9]+', string)
+        return match.group() if match else None
+
+    def _parse_contender_position_state(self, i):
+        string = self._contender_rows[i].select('td')[0].string
+        match = RaceContender.OK
+        for key, value in POSITION_STATES.items():
+            if key in string:
+                match = value
+                break
+        return match
+
+    def _parse_contender_post_position(self, i):
+        string = self._contender_rows[i].select('td')[1].string
+        return int(string)
+
+    def _parse_contender_weight_carried(self, i):
+        string = self._contender_rows[i].select('td')[5].string
+        return float(string)
+
+    def _parse_contender_horse_number(self, i):
+        string = self._contender_rows[i].select('td')[2].string
+        return int(string)
+
+    def _parse_contender_finish_time(self, i) -> float:
+        string = self._contender_rows[i].select('td')[7].string
+        dt = datetime.strptime(string, '%M:%S.%f')
+        td = timedelta(minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond)
+        return td.total_seconds()
+
+    def _parse_contender_margin(self, i):
+        string = self._contender_rows[i].select('td')[8].string
+        match = None
+        if re.search('[0-9]', string) is None:
+            for key, value in MARGINS.items():
+                if string == key:
+                    match = value
+                    break
+        else:
+            match = RaceContender.OTHER
+        return match
+
+    def _parse_contender_final_stage_time(self, i):
+        string = self._contender_rows[i].select('td')[11].string
+        return float(string)
+
+    def _parse_contender_first_place_odds(self, i):
+        string = self._contender_rows[i].select('td')[12].string
+        return float(string)
+
+    def _parse_contender_popularity(self, i):
+        string = self._contender_rows[i].select('td')[13].string
+        return int(string)
+
+    def _parse_contender_horse_weight(self, i) -> Optional[int]:
+        string = self._contender_rows[i].select('td')[14].string
+        match = re.search('([0-9]+)\(([+-]?[0-9]+)\)', string)
+        return int(match.group(1)) if match else None
+
+    def _parse_contender_horse_weight_diff(self, i) -> Optional[int]:
+        string = self._contender_rows[i].select('td')[14].string
+        match = re.search('([0-9]+)\(([+-]?[0-9]+)\)', string)
+        return int(match.group(2)) if match else None
+
+    def _parse_contender_purse(self, i):
+        string = self._contender_rows[i].select('td')[-1].string.replace(',', '')
+        return float(string)
