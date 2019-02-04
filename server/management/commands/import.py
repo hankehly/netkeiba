@@ -38,25 +38,20 @@ class Command(BaseCommand):
 
         i = 1
         exception_count = 0
-        page_count = queryset.count()
+        count = queryset.count()
+        blacklist = [
+            # pages that are buggy and missing content
+            'https://db.netkeiba.com/race/200143082201/'
+        ]
 
-        for page in queryset.iterator():
+        for page in queryset.exclude(url__in=blacklist).iterator():
             parser = page.get_parser()
 
-            logger.debug(f'({i}/{page_count}) parsing {page.url} w/{parser.__class__.__name__}')
+            logger.debug(f'({i}/{count}) {parser.__class__.__name__} <{page.url}>')
 
             try:
                 parser.parse()
-
-                if isinstance(parser, RaceParser):
-                    pre_save_contender_count = RaceContender.objects.count()
-                    parsed_contender_count = len(parser.data.get('contenders'))
-                    parser.persist()
-                    post_save_contender_count = RaceContender.objects.count()
-                    logger.debug(
-                        f'parsed {parsed_contender_count} contenders (total: {pre_save_contender_count} -> {post_save_contender_count})')
-                else:
-                    parser.persist()
+                parser.persist()
             except Exception as e:
                 logger.exception(e)
                 exception_count += 1
