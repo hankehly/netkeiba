@@ -5,8 +5,9 @@ from typing import Optional
 
 import pytz
 from bs4 import Comment
+from django.db import IntegrityError
 
-from server.models import Race, Horse, RaceContender, Trainer
+from server.models import Race, Horse, RaceContender, Trainer, Jockey, Owner
 from server.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
@@ -92,26 +93,28 @@ MARGINS = {
 class RaceParser(Parser):
     def parse(self):
         self.data = {
-            'key': self._parse_key(),
-            'racetrack': self._parse_racetrack(),
-            'impost_category': self._parse_impost_category(),
-            'surface': self._parse_surface(),
-            'course': self._parse_course(),
-            'distance': self._parse_distance(),
-            'number': self._parse_number(),
-            'race_class': self._parse_class(),
-            'grade': self._parse_grade(),
-            'datetime': self._parse_datetime(),
-            'weather': self._parse_weather(),
-            'track_condition': self._parse_track_condition(),
-            'is_outside_racetrack': self._parse_is_outside_racetrack(),
-            'is_regional_maiden_race': self._parse_is_regional_maiden_race(),
-            'is_winner_regional_horse_race': self._parse_is_winner_regional_horse_race(),
-            'is_regional_jockey_race': self._parse_is_regional_jockey_race(),
-            'is_foreign_horse_race': self._parse_is_foreign_horse_race(),
-            'is_foreign_trainer_horse_race': self._parse_is_foreign_trainer_horse_race(),
-            'is_apprentice_jockey_race': self._parse_is_apprentice_jockey_race(),
-            'is_female_only_race': self._parse_is_female_only_race()
+            'race': {
+                'key': self._parse_key(),
+                'racetrack': self._parse_racetrack(),
+                'impost_category': self._parse_impost_category(),
+                'surface': self._parse_surface(),
+                'course': self._parse_course(),
+                'distance': self._parse_distance(),
+                'number': self._parse_number(),
+                'race_class': self._parse_class(),
+                'grade': self._parse_grade(),
+                'datetime': self._parse_datetime(),
+                'weather': self._parse_weather(),
+                'track_condition': self._parse_track_condition(),
+                'is_outside_racetrack': self._parse_is_outside_racetrack(),
+                'is_regional_maiden_race': self._parse_is_regional_maiden_race(),
+                'is_winner_regional_horse_race': self._parse_is_winner_regional_horse_race(),
+                'is_regional_jockey_race': self._parse_is_regional_jockey_race(),
+                'is_foreign_horse_race': self._parse_is_foreign_horse_race(),
+                'is_foreign_trainer_horse_race': self._parse_is_foreign_trainer_horse_race(),
+                'is_apprentice_jockey_race': self._parse_is_apprentice_jockey_race(),
+                'is_female_only_race': self._parse_is_female_only_race()
+            }
         }
 
         contenders = []
@@ -139,56 +142,38 @@ class RaceParser(Parser):
         self.data['contenders'] = contenders
 
     def persist(self):
-        pass
-        # TODO: Create missing objects like turf condition category as you see them
-        # TODO: horse_number
-        # race_key = self.data.get('key')
-        # racetrack_id = RaceTrack.objects.get(name=self.data.get('racetrack')).id
-        # course_type_id = CourseType.objects.get(name=self.data.get('course_type')).id
-        # turf_condition = self.data.get('turf_condition')
-        # dirt_condition = self.data.get('dirt_condition')
-        #
-        # if turf_condition:
-        #     turf_condition_id = TurfConditionCategory.objects.get(name=turf_condition).id
-        # else:
-        #     turf_condition_id = None
-        #
-        # if dirt_condition:
-        #     dirt_condition_id = DirtConditionCategory.objects.get(name=dirt_condition).id
-        # else:
-        #     dirt_condition_id = None
-        #
-        # weather_category_id = WeatherCategory.objects.get(name=self.data.get('weather')).id
-        # impost_category_id = ImpostCategory.objects.get(name=self.data.get('impost_category')).id
-        # race, _ = Race.objects.update_or_create(key=race_key, defaults={
-        #     'racetrack_id': racetrack_id,
-        #     'course_type_id': course_type_id,
-        #     'turf_condition_id': turf_condition_id,
-        #     'dirt_condition_id': dirt_condition_id,
-        #     'distance': self.data.get('distance'),
-        #     'weather_id': weather_category_id,
-        #     'impost_category_id': impost_category_id,
-        #     'datetime': self.data.get('datetime')
-        # })
-        #
-        # for contender in self.data.get('contenders'):
-        #     horse = Horse.objects.get_or_create(key=contender.get('horse_key'))
-        #     jockey = Jockey.objects.get_or_create(key=contender.get('jockey_key'))
-        #     trainer = Trainer.objects.get_or_create(key=contender.get('trainer_key'))
-        #     defaults = {
-        #         'order_of_finish': contender.get('order_of_finish'),
-        #         'order_of_finish_lowered': contender.get('order_of_finish_lowered'),
-        #         'did_remount': contender.get('did_remount'),
-        #         'post_position': contender.get('post_position'),
-        #         'weight_carried': contender.get('weight_carried'),
-        #         'first_place_odds': contender.get('first_place_odds'),
-        #         'popularity': contender.get('popularity'),
-        #         'finish_time': contender.get('finish_time'),
-        #         'horse_weight': contender.get('horse_weight'),
-        #         'horse_weight_diff': contender.get('horse_weight_diff'),
-        #     }
-        #     RaceContender.objects.update_or_create(race=race, horse_id=horse.id, jockey_id=jockey.id,
-        #                                            trainer_id=trainer.id, defaults=defaults)
+        race_key = self.data.get('race').get('key')
+
+        try:
+            Race.objects.create(self.data.get('race'))
+        except IntegrityError:
+            Race.objects.filter(key=race_key).update(self.data.get('race'))
+
+        for contender in self.data.get('contenders'):
+            horse = Horse.objects.get_or_create(key=contender.get('horse'))
+            jockey = Jockey.objects.get_or_create(key=contender.get('jockey'))
+            trainer = Trainer.objects.get_or_create(key=contender.get('trainer'))
+            owner = Owner.objects.get_or_create(key=contender.get('owner'))
+            defaults = {
+                'order_of_finish': contender.get('order_of_finish'),
+                'position_state': contender.get('position_state'),
+                'post_position': contender.get('post_position'),
+                'horse_number': contender.get('horse_number'),
+                'weight_carried': contender.get('weight_carried'),
+                'finish_time': contender.get('finish_time'),
+                'margin': contender.get('margin'),
+                'final_stage_time': contender.get('final_stage_time'),
+                'first_place_odds': contender.get('first_place_odds'),
+                'popularity': contender.get('popularity'),
+                'horse_weight': contender.get('horse_weight'),
+                'horse_weight_diff': contender.get('horse_weight_diff'),
+                'purse': contender.get('purse'),
+            }
+
+            try:
+                RaceContender.objects.create(horse=horse, jockey=jockey, trainer=trainer, owner=owner)
+            except IntegrityError:
+                RaceContender.objects.filter(horse=horse, jockey=jockey, trainer=trainer, owner=owner).update(defaults)
 
     @property
     def _track_details(self):
