@@ -5,17 +5,17 @@ from server.models.base import BaseModel
 
 class Horse(BaseModel):
     UNKNOWN = 'UNKNOWN'
-    MALE = 'ML'
-    FEMALE = 'FM'
-    CASTRATED = 'CT'
+    MALE = 'MALE'
+    FEMALE = 'FEMALE'
+    CASTRATED = 'CASTRATED'
     SEX_CHOICES = (
-        (MALE, 'male'),
-        (FEMALE, 'female'),
-        (CASTRATED, 'castrated'),
-        (UNKNOWN, 'unknown')
+        (MALE, 'Male'),
+        (FEMALE, 'Female'),
+        (CASTRATED, 'Castrated'),
+        (UNKNOWN, 'Unknown')
     )
 
-    key = models.CharField(max_length=255)
+    key = models.CharField(max_length=255, unique=True)
     age = models.PositiveSmallIntegerField(null=True)
     sex = models.CharField(max_length=255, choices=SEX_CHOICES, default=UNKNOWN)
     name = models.CharField(max_length=255, null=True)

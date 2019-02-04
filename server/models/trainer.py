@@ -18,7 +18,8 @@ class Trainer(BaseModel):
         (UNKNOWN, 'Unknown')
     )
 
-    key = models.CharField(max_length=255)
+    key = models.CharField(max_length=255, unique=True)
+    name = models.CharField(max_length=255)
     stable = models.CharField(max_length=255, choices=STABLE_CHOICES, default=UNKNOWN)
 
     class Meta:
