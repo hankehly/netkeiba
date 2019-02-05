@@ -61,40 +61,47 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument('--scrapy-job-dirname', help='The name of the scrapy crawl jobdir')
 
-    def handle(self, *args, **options):
-        start_time = datetime.now(pytz.timezone(TIME_ZONE))
-        logger.info(f'Started import command at {start_time}')
-
-        if options['scrapy_job_dirname']:
+    def _get_queryset(self, scrapy_job_dirname=None):
+        if scrapy_job_dirname:
             crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
-            requests_seen = os.path.join(crawls_dir, options['scrapy_job_dirname'], 'requests.seen')
+            requests_seen = os.path.join(crawls_dir, scrapy_job_dirname, 'requests.seen')
 
             if not os.path.exists(requests_seen):
                 raise CommandError('jobdir/requests.seen does not exist')
 
             fingerprints = open(requests_seen).read().splitlines()
-            queryset = WebPage.objects.filter(fingerprint__in=fingerprints).order_by('-updated_at')
+            queryset = WebPage.objects.filter(fingerprint__in=fingerprints)
         else:
             queryset = WebPage.objects.all()
 
+        return queryset.exclude(url__in=BLACKLIST).order_by('-crawled_at')
+
+    def handle(self, *args, **options):
+        start_time = datetime.now(pytz.timezone(TIME_ZONE))
+        logger.info(f'Started import command at {start_time}')
+
+        queryset = self._get_queryset(options.get('scrapy_job_dirname'))
+
         i = 1
-        exception_count = 0
-        count = queryset.count()
+        exception_pages = []
+        queryset_count = queryset.count()
+        chunk_size = 100
 
-        for page in queryset.exclude(url__in=BLACKLIST).iterator():
-            parser = page.get_parser()
+        for j in range(0, queryset_count, chunk_size):
+            for page in queryset[j:j + chunk_size]:
+                parser = page.get_parser()
+                logger.debug(f'({i}/{queryset_count}) {parser.__class__.__name__} <{page.url}>')
 
-            logger.debug(f'({i}/{count}) {parser.__class__.__name__} <{page.url}>')
-
-            try:
-                parser.parse()
-                parser.persist()
-            except Exception as e:
-                logger.exception(e)
-                exception_count += 1
-            finally:
-                i += 1
+                try:
+                    parser.parse()
+                    parser.persist()
+                except Exception as e:
+                    logger.exception(e)
+                    exception_pages.append(page.url)
+                finally:
+                    i += 1
 
         end_time = datetime.now(pytz.timezone(TIME_ZONE))
         duration = (end_time - start_time).seconds
+        exception_count = len(exception_pages)
         logger.info(f'Finished import command at {end_time} ({duration} seconds, {exception_count} exceptions)')
