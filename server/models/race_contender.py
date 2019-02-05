@@ -1,3 +1,4 @@
+from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
 from server.models import BaseModel
@@ -46,6 +47,7 @@ class RaceContender(BaseModel):
     weight_carried = models.FloatField()
     finish_time = models.FloatField(null=True)
     margin = models.CharField(max_length=255, choices=MARGIN_CHOICES, null=True)
+    corner_pass_order = models.CharField(max_length=255, validators=[validate_comma_separated_integer_list], null=True)
     final_stage_time = models.FloatField(null=True)
     first_place_odds = models.FloatField(null=True)
     popularity = models.PositiveSmallIntegerField(null=True)

@@ -146,6 +146,7 @@ class RaceParser(Parser):
                 'weight_carried': self._parse_contender_weight_carried(i),
                 'finish_time': self._parse_contender_finish_time(i),
                 'margin': self._parse_contender_margin(i),
+                'corner_pass_order': self._parse_contender_corner_pass_order(i),
                 'final_stage_time': self._parse_contender_final_stage_time(i),
                 'first_place_odds': self._parse_contender_first_place_odds(i),
                 'popularity': self._parse_contender_popularity(i),
@@ -194,6 +195,7 @@ class RaceParser(Parser):
                 'weight_carried': contender['weight_carried'],
                 'finish_time': contender['finish_time'],
                 'margin': contender['margin'],
+                'corner_pass_order': contender['corner_pass_order'],
                 'final_stage_time': contender['final_stage_time'],
                 'first_place_odds': contender['first_place_odds'],
                 'popularity': contender['popularity'],
@@ -406,11 +408,14 @@ class RaceParser(Parser):
         return string if string else ''
 
     def _parse_contender_owner_key(self, i):
-        owner_url = self._contender_rows[i].select('td')[-2].select_one('a').get('href')
+        owner_link = self._contender_rows[i].select('td')[-2].select_one('a')
+        if owner_link is None:
+            raise ValueError('Owner does not have link. This is probably a really old race!')
+        owner_url = owner_link.get('href')
         return re.search('/owner/([a-z0-9]+)', owner_url).group(1)
 
     def _parse_contender_owner_name(self, i):
-        string = self._contender_rows[i].select('td')[-2].select_one('a').string
+        string = self._contender_rows[i].select('td')[-2].text.strip()
         return string if string else ''
 
     def _parse_contender_order_of_finish(self, i):
@@ -460,6 +465,12 @@ class RaceParser(Parser):
                     match = value
                     break
         return match
+
+    def _parse_contender_corner_pass_order(self, i):
+        string = self._contender_rows[i].select('td')[10].string
+        if string:
+            return string.replace('-', ',')
+        return None
 
     def _parse_contender_final_stage_time(self, i):
         string = self._contender_rows[i].select('td')[11].string
