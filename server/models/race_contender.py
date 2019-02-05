@@ -44,15 +44,15 @@ class RaceContender(BaseModel):
     post_position = models.PositiveSmallIntegerField()
     horse_number = models.PositiveIntegerField()
     weight_carried = models.FloatField()
-    finish_time = models.FloatField()
+    finish_time = models.FloatField(null=True)
     margin = models.CharField(max_length=255, choices=MARGIN_CHOICES, null=True)
-    final_stage_time = models.FloatField()
-    first_place_odds = models.FloatField()
-    popularity = models.PositiveSmallIntegerField()
+    final_stage_time = models.FloatField(null=True)
+    first_place_odds = models.FloatField(null=True)
+    popularity = models.PositiveSmallIntegerField(null=True)
     horse_weight = models.FloatField(null=True)
     horse_weight_diff = models.FloatField(null=True)
     purse = models.FloatField(default=0.)
 
     class Meta:
         db_table = 'race_contenders'
-        unique_together = ('race', 'horse', 'jockey', 'trainer')
+        unique_together = ('race', 'horse', 'jockey', 'trainer', 'owner')

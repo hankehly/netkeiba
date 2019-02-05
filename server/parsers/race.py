@@ -161,25 +161,28 @@ class RaceParser(Parser):
         try:
             Race.objects.create(**self.data['race'])
         except IntegrityError:
-            Race.objects.filter(key=race_key).update(self.data['race'])
+            Race.objects.filter(key=race_key).update(**self.data['race'])
+
+        # import ipdb; ipdb.set_trace()
+        race = Race.objects.get(key=race_key)
 
         for contender in self.data['contenders']:
-            horse = Horse.objects.get_or_create(key=contender['horse']['key'], defaults={
+            horse, _ = Horse.objects.get_or_create(key=contender['horse']['key'], defaults={
                 'age': contender['horse']['age'],
                 'sex': contender['horse']['sex'],
                 'name': contender['horse']['name']
             })
 
-            jockey = Jockey.objects.get_or_create(key=contender['jockey']['key'], defaults={
+            jockey, _ = Jockey.objects.get_or_create(key=contender['jockey']['key'], defaults={
                 'name': contender['jockey']['name']
             })
 
-            trainer = Trainer.objects.get_or_create(key=contender['trainer']['key'], defaults={
+            trainer, _ = Trainer.objects.get_or_create(key=contender['trainer']['key'], defaults={
                 'name': contender['trainer']['name'],
                 'stable': contender['trainer']['stable']
             })
 
-            owner = Owner.objects.get_or_create(key=contender['owner']['key'], defaults={
+            owner, _ = Owner.objects.get_or_create(key=contender['owner']['key'], defaults={
                 'name': contender['owner']['name'],
             })
 
@@ -200,9 +203,11 @@ class RaceParser(Parser):
             }
 
             try:
-                RaceContender.objects.create(horse=horse, jockey=jockey, trainer=trainer, owner=owner, **defaults)
+                RaceContender.objects.create(race=race, horse=horse, jockey=jockey, trainer=trainer, owner=owner,
+                                             **defaults)
             except IntegrityError:
-                RaceContender.objects.filter(horse=horse, jockey=jockey, trainer=trainer, owner=owner).update(defaults)
+                RaceContender.objects.filter(race=race, horse=horse, jockey=jockey, trainer=trainer,
+                                             owner=owner).update(**defaults)
 
     @property
     def _track_details(self):
@@ -228,7 +233,7 @@ class RaceParser(Parser):
 
     def _parse_racetrack(self):
         string = self._subtitle[1]
-        match = None
+        match = Race.UNKNOWN
         for key, val in RACETRACKS.items():
             if re.search(key, string):
                 match = val
@@ -237,7 +242,7 @@ class RaceParser(Parser):
 
     def _parse_impost_category(self):
         string = self._subtitle[-1]
-        match = None
+        match = Race.UNKNOWN
         for key, val in IMPOST_CATEGORIES.items():
             if key in string:
                 match = val
@@ -245,15 +250,25 @@ class RaceParser(Parser):
         return match
 
     def _parse_surface(self):
-        string = self._track_details[0][0]
-        return SURFACES.get(string)
+        string = self._track_details[0]
+        match = Race.UNKNOWN
+        for key, value in SURFACES.items():
+            if key in string:
+                match = value
+                break
+        return match
 
     def _parse_course(self):
-        string = self._track_details[0][0]
-        return COURSE_TYPES.get(string)
+        string = self._track_details[0]
+        match = Race.UNKNOWN
+        for key, value in COURSE_TYPES.items():
+            if key in string:
+                match = value
+                break
+        return match
 
     def _parse_is_outside_racetrack(self):
-        return '外' in self._track_details[0][0]
+        return '外' in self._track_details[0]
 
     def _parse_distance(self):
         string = self._track_details[0]
@@ -266,7 +281,7 @@ class RaceParser(Parser):
 
     def _parse_class(self):
         string = self._subtitle[-2]
-        match = None
+        match = Race.UNKNOWN
         for key, val in RACE_CLASSES.items():
             if key in string:
                 match = val
@@ -302,7 +317,7 @@ class RaceParser(Parser):
 
     def _parse_weather(self):
         string = self._track_details[1]
-        match = None
+        match = Race.UNKNOWN
         for key, val in WEATHER.items():
             if key in string:
                 match = val
@@ -311,7 +326,7 @@ class RaceParser(Parser):
 
     def _parse_track_condition(self):
         string = self._track_details[2]
-        match = None
+        match = Race.UNKNOWN
         if '不良' in string:
             match = Race.BAD
         elif '良' in string:
@@ -353,7 +368,7 @@ class RaceParser(Parser):
 
     def _parse_contender_horse_sex(self, i):
         string = self._contender_rows[i].select('td')[4].string
-        match = None
+        match = Race.UNKNOWN
         for key, value in HORSE_SEX.items():
             if key in string:
                 match = value
@@ -361,14 +376,16 @@ class RaceParser(Parser):
         return match
 
     def _parse_contender_horse_name(self, i):
-        return self._contender_rows[i].select('td')[3].select_one('a').string
+        string = self._contender_rows[i].select('td')[3].select_one('a').string
+        return string if string else ''
 
     def _parse_contender_jockey_key(self, i):
         jockey_url = self._contender_rows[i].select('td')[6].select_one('a').get('href')
         return re.search('/jockey/([a-z0-9]+)', jockey_url).group(1)
 
     def _parse_contender_jockey_name(self, i):
-        return self._contender_rows[i].select('td')[6].select_one('a').string
+        string = self._contender_rows[i].select('td')[6].select_one('a').string
+        return string if string else ''
 
     def _parse_contender_trainer_key(self, i):
         trainer_url = self._contender_rows[i].select('td')[-3].select_one('a').get('href')
@@ -377,7 +394,7 @@ class RaceParser(Parser):
     def _parse_contender_trainer_stable(self, i):
         string = self._contender_rows[i].select('td')[-3].text
         stable_char = re.search('\[(東|西|地|外)\]', string).group(1)
-        match = None
+        match = Trainer.UNKNOWN
         for key, value in STABLES.items():
             if stable_char == key:
                 match = key
@@ -385,14 +402,16 @@ class RaceParser(Parser):
         return match
 
     def _parse_contender_trainer_name(self, i):
-        return self._contender_rows[i].select('td')[-3].select_one('a').string
+        string = self._contender_rows[i].select('td')[-3].select_one('a').string
+        return string if string else ''
 
     def _parse_contender_owner_key(self, i):
         owner_url = self._contender_rows[i].select('td')[-2].select_one('a').get('href')
         return re.search('/owner/([a-z0-9]+)', owner_url).group(1)
 
     def _parse_contender_owner_name(self, i):
-        return self._contender_rows[i].select('td')[-2].select_one('a').string
+        string = self._contender_rows[i].select('td')[-2].select_one('a').string
+        return string if string else ''
 
     def _parse_contender_order_of_finish(self, i):
         string = self._contender_rows[i].select('td')[0].string
@@ -420,35 +439,39 @@ class RaceParser(Parser):
         string = self._contender_rows[i].select('td')[2].string
         return int(string)
 
-    def _parse_contender_finish_time(self, i) -> float:
+    def _parse_contender_finish_time(self, i) -> Optional[float]:
         string = self._contender_rows[i].select('td')[7].string
-        dt = datetime.strptime(string, '%M:%S.%f')
-        td = timedelta(minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond)
-        return td.total_seconds()
+        if string:
+            dt = datetime.strptime(string, '%M:%S.%f')
+            td = timedelta(minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond)
+            return td.total_seconds()
+        return None
 
     def _parse_contender_margin(self, i):
         string = self._contender_rows[i].select('td')[8].string
         match = None
-        if string and re.search('[0-9]', string) is None:
+        if string is None:
+            match = None
+        elif re.search('[0-9]', string):
+            match = RaceContender.OTHER
+        else:
             for key, value in MARGINS.items():
                 if string == key:
                     match = value
                     break
-        else:
-            match = RaceContender.OTHER
         return match
 
     def _parse_contender_final_stage_time(self, i):
         string = self._contender_rows[i].select('td')[11].string
-        return float(string)
+        return float(string) if string else None
 
     def _parse_contender_first_place_odds(self, i):
         string = self._contender_rows[i].select('td')[12].string
-        return float(string)
+        return None if string == '---' else float(string)
 
     def _parse_contender_popularity(self, i):
         string = self._contender_rows[i].select('td')[13].string
-        return int(string)
+        return int(string) if string else None
 
     def _parse_contender_horse_weight(self, i) -> Optional[int]:
         string = self._contender_rows[i].select('td')[14].string
@@ -462,4 +485,4 @@ class RaceParser(Parser):
 
     def _parse_contender_purse(self, i):
         string = self._contender_rows[i].select('td')[-1].string
-        return float(string.replace(',', '')) if string else None
+        return float(string.replace(',', '')) if string else 0.
