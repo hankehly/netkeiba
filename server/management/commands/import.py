@@ -74,12 +74,11 @@ class Command(BaseCommand):
         else:
             queryset = WebPage.objects.all()
 
-        return queryset.exclude(url__in=BLACKLIST).order_by('-crawled_at')
+        return queryset.exclude(url__in=BLACKLIST)
 
     def handle(self, *args, **options):
         start_time = datetime.now(pytz.timezone(TIME_ZONE))
-        logger.info(f'Started import command at {start_time}')
-
+        logger.info(f'START')
         queryset = self._get_queryset(options.get('scrapy_job_dirname'))
 
         i = 1
@@ -106,4 +105,4 @@ class Command(BaseCommand):
         end_time = datetime.now(pytz.timezone(TIME_ZONE))
         duration = (end_time - start_time).seconds
         exception_count = len(exception_pages)
-        logger.info(f'Finished import command at {end_time} ({duration} seconds, {exception_count} exceptions)')
+        logger.info(f'STOP <{duration} seconds, {exception_count} exceptions>')
