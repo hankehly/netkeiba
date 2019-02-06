@@ -87,6 +87,8 @@ class Command(BaseCommand):
         queryset_count = queryset.count()
         chunk_size = 100
 
+        # rolling our own iterator logic
+        # due to bad `.iterator` performance
         for j in range(0, queryset_count, chunk_size):
             for page in queryset[j:j + chunk_size]:
                 parser = page.get_parser()
