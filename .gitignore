@@ -3,7 +3,7 @@ __pycache__/
 *.sqlite3.gz
 .ipynb_checkpoints
 .env
-.venv-3.6.7
+.venv-*
 .idea/
 tmp/*
 !.gitkeep
