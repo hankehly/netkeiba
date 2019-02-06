@@ -17,12 +17,6 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
 
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
 
-AWS_BUCKET = os.getenv('AWS_BUCKET', '')
-
-DYNAMODB_PIPELINE_REGION_NAME = os.getenv('DYNAMODB_PIPELINE_REGION_NAME', '')
-
-DYNAMODB_PIPELINE_TABLE_NAME = os.getenv('DYNAMODB_PIPELINE_TABLE_NAME', '')
-
 DEBUG = ENVIRONMENT == 'development'
 
 ALLOWED_HOSTS = []
@@ -80,15 +74,8 @@ WSGI_APPLICATION = 'netkeiba.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.getenv('MYSQL_DATABASE'),
-        'USER': os.getenv('MYSQL_USER'),
-        'PASSWORD': os.getenv('MYSQL_PASSWORD'),
-        'HOST': os.getenv('MYSQL_HOST'),
-        'PORT': 3306,
-        'OPTIONS': {
-            'charset': 'utf8mb4',
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
