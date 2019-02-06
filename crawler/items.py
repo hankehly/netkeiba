@@ -23,10 +23,5 @@ class BaseWebPageItem(scrapy.Item):
         return cls(url=response.url, html=response.text, fingerprint=fingerprint, crawled_at=crawled_at)
 
 
-# TODO: Rename this class and model to be specific to Netkeiba (ie. NetkeibaWebPageItem)
 class WebPageItem(BaseWebPageItem):
-    pass
-
-
-class JMAWebPageItem(BaseWebPageItem):
     pass
