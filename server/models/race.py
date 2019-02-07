@@ -58,14 +58,6 @@ class Race(BaseModel):
     G1 = 'G1'
     G2 = 'G2'
     G3 = 'G3'
-    NOT_APPLICABLE = 'NA'
-    GRADE_CHOICES = (
-        (G1, 'G1'),
-        (G2, 'G2'),
-        (G3, 'G3'),
-        (NOT_APPLICABLE, 'Not applicable'),
-    )
-
     OPEN = 'OPEN'
     U1600 = 'U1600'
     U1000 = 'U1000'
@@ -73,6 +65,9 @@ class Race(BaseModel):
     MAIDEN = 'MAIDEN'
     UNRACED_MAIDEN = 'UNRACED_MAIDEN'
     RACE_CLASS_CHOICES = (
+        (G1, 'G1'),
+        (G2, 'G2'),
+        (G3, 'G3'),
         (OPEN, 'Open'),
         (U1600, 'Under 1600'),
         (U1000, 'Under 1000'),
@@ -128,7 +123,6 @@ class Race(BaseModel):
     distance = models.PositiveSmallIntegerField()
     number = models.PositiveSmallIntegerField()
     race_class = models.CharField(max_length=255, choices=RACE_CLASS_CHOICES, default=UNKNOWN)
-    grade = models.CharField(max_length=255, choices=GRADE_CHOICES)
     datetime = models.DateTimeField()
     weather = models.CharField(max_length=255, choices=WEATHER_CHOICES, default=UNKNOWN)
     track_condition = models.CharField(max_length=255, choices=TRACK_CONDITION_CHOICES, default=UNKNOWN)

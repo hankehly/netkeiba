@@ -120,8 +120,7 @@ class RaceParser(Parser):
                 'course': self._parse_course(),
                 'distance': self._parse_distance(),
                 'number': self._parse_number(),
-                'race_class': self._parse_class(),
-                'grade': self._parse_grade(),
+                'race_class': self._parse_race_class(),
                 'datetime': self._parse_datetime(),
                 'weather': self._parse_weather(),
                 'track_condition': self._parse_track_condition(),
@@ -300,26 +299,23 @@ class RaceParser(Parser):
         string = self._soup.select_one('.mainrace_data .racedata dt').string.strip()
         return int(string.split(' ')[0])
 
-    def _parse_class(self):
-        string = self._subtitle[-2]
-        match = Race.UNKNOWN
-        for key, val in RACE_CLASSES.items():
-            if key in string:
-                match = val
-                break
-        return match
-
-    def _parse_grade(self):
-        string = self._soup.select_one('.mainrace_data h1')
-        for child in string.children:
-            if isinstance(child, Comment):
-                child.extract()
-        match = Race.NOT_APPLICABLE
+    def _parse_race_class(self):
+        header = self._soup.select_one('.mainrace_data h1')
+        for node in header.children:
+            if isinstance(node, Comment):
+                node.extract()
+        match = None
         for grade in [Race.G1, Race.G2, Race.G3]:
-            if grade in string:
+            if grade in header.text:
                 match = grade
                 break
-        return match
+        if match is None:
+            race_terms = self._subtitle[-2]
+            for key, val in RACE_CLASSES.items():
+                if key in race_terms:
+                    match = val
+                    break
+        return match if match else Race.UNKNOWN
 
     def _parse_datetime(self):
         race_date = self._parse_date()
@@ -473,7 +469,7 @@ class RaceParser(Parser):
 
     def _parse_contender_margin(self, i):
         string = self._contender_rows[i].select('td')[8].string
-        match = None
+        match = RaceContender.UNKNOWN
         if string:
             for key, value in MARGINS.items():
                 if string == key:
