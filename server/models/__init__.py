@@ -1,4 +1,5 @@
 from server.models.base import BaseModel
+from server.models.betting_ticket import BettingTicket
 from server.models.horse import Horse
 from server.models.jockey import Jockey
 from server.models.owner import Owner
