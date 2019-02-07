@@ -1,15 +1,16 @@
 import re
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 from typing import List
 
+import scrapy
 from scrapy.link import Link
-from scrapy.spiders import CrawlSpider, Rule
+from scrapy.spiders import Rule
 from scrapy.linkextractors import LinkExtractor
 
 from crawler.items import WebPageItem
 
 
-class DBRaceSpider(CrawlSpider):
+class DBRaceSpider(scrapy.Spider):
     name = 'db_race'
     allowed_domains = ['db.netkeiba.com']
     start_urls = ['https://db.netkeiba.com/?pid=race_top']
@@ -57,5 +58,26 @@ class DBRaceSpider(CrawlSpider):
 
         return follow_links
 
-    def parse_web_page_item(self, response):
+    def parse(self, response):
+        race_list_links = LinkExtractor(allow='/race/list/[0-9]+', restrict_css='.race_calendar') \
+            .extract_links(response)
+
+        for link in self.process_date_links(race_list_links):
+            yield scrapy.Request(link.url, callback=self.parse_race_list)
+
+        prev_links = LinkExtractor(allow='pid=race_top&date=[0-9]+', restrict_css='.race_calendar .rev') \
+            .extract_links(response)
+
+        valid_prev_links = self.process_date_links(prev_links)
+
+        if len(valid_prev_links) > 1:
+            yield scrapy.Request(valid_prev_links[-1].url, callback=self.parse)
+
+    def parse_race_list(self, response):
+        race_links = LinkExtractor(allow='/race/[0-9]+', restrict_css='.race_list').extract_links(response)
+
+        for link in race_links:
+            yield scrapy.Request(link.url, callback=self.scrape_web_page_item)
+
+    def scrape_web_page_item(self, response):
         return WebPageItem.from_response(response)
