@@ -87,9 +87,28 @@ MARGINS = {
     'ハナ': RaceContender.NOSE,
     'クビ': RaceContender.NECK,
     'アタマ': RaceContender.HEAD,
+    '1/2': RaceContender.BS_00__1_2,
+    '3/4': RaceContender.BS_00__3_4,
+    '1': RaceContender.BS_01__0_0,
+    '1.1/4': RaceContender.BS_01__1_4,
+    '1.1/2': RaceContender.BS_01__1_2,
+    '1.3/4': RaceContender.BS_01__3_4,
+    '2': RaceContender.BS_02__0_0,
+    '2.1/2': RaceContender.BS_02__1_2,
+    '3': RaceContender.BS_03__0_0,
+    '3.1/2': RaceContender.BS_03__1_2,
+    '4': RaceContender.BS_04__0_0,
+    '5': RaceContender.BS_05__0_0,
+    '6': RaceContender.BS_06__0_0,
+    '7': RaceContender.BS_07__0_0,
+    '8': RaceContender.BS_08__0_0,
+    '9': RaceContender.BS_09__0_0,
+    '10': RaceContender.BS_10__0_0,
+    '大': RaceContender.HEAD,
 }
 
 
+# TODO: Parse other odds
 class RaceParser(Parser):
     def parse(self):
         self.data = {
@@ -455,11 +474,7 @@ class RaceParser(Parser):
     def _parse_contender_margin(self, i):
         string = self._contender_rows[i].select('td')[8].string
         match = None
-        if string is None:
-            match = None
-        elif re.search('[0-9]', string):
-            match = RaceContender.OTHER
-        else:
+        if string:
             for key, value in MARGINS.items():
                 if string == key:
                     match = value
@@ -478,7 +493,7 @@ class RaceParser(Parser):
 
     def _parse_contender_first_place_odds(self, i):
         string = self._contender_rows[i].select('td')[12].string
-        return None if string == '---' else float(string)
+        return None if string == '---' else float(string.replace(',', ''))
 
     def _parse_contender_popularity(self, i):
         string = self._contender_rows[i].select('td')[13].string

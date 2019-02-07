@@ -6,16 +6,16 @@ from server.models.base import BaseModel
 class Race(BaseModel):
     UNKNOWN = 'UNKNOWN'
 
-    SAPPORO = 'SP'
-    HAKODATE = 'HD'
-    FUMA = 'FM'
-    NIIGATA = 'NG'
-    TOKYO = 'TK'
-    NAKAYAMA = 'NY'
-    CHUKYO = 'CK'
-    KYOTO = 'KT'
-    HANSHIN = 'HS'
-    OGURA = 'OG'
+    SAPPORO = 'SAPPORO'
+    HAKODATE = 'HAKODATE'
+    FUMA = 'FUMA'
+    NIIGATA = 'NIIGATA'
+    TOKYO = 'TOKYO'
+    NAKAYAMA = 'NAKAYAMA'
+    CHUKYO = 'CHUKYO'
+    KYOTO = 'KYOTO'
+    HANSHIN = 'HANSHIN'
+    OGURA = 'OGURA'
     RACETRACK_CHOICES = (
         (SAPPORO, 'Sapporo'),
         (HAKODATE, 'Hakodate'),
@@ -30,10 +30,10 @@ class Race(BaseModel):
         (UNKNOWN, 'Unknown'),
     )
 
-    HORSE_AGE = 'HA'
-    WEIGHT_FOR_AGE = 'WF'
-    SET_WEIGHT = 'SW'
-    HANDICAP = 'HC'
+    HORSE_AGE = 'HORSE_AGE'
+    WEIGHT_FOR_AGE = 'WEIGHT_FOR_AGE'
+    SET_WEIGHT = 'SET_WEIGHT'
+    HANDICAP = 'HANDICAP'
     IMPOST_CATEGORY_CHOICES = (
         # [馬齢] 同一年齢の馬だけのレース
         (HORSE_AGE, 'Horse age'),
@@ -66,12 +66,12 @@ class Race(BaseModel):
         (NOT_APPLICABLE, 'Not applicable'),
     )
 
-    OPEN = 'OP'
+    OPEN = 'OPEN'
     U1600 = 'U1600'
     U1000 = 'U1000'
     U500 = 'U500'
-    MAIDEN = 'MD'
-    UNRACED_MAIDEN = 'UMD'
+    MAIDEN = 'MAIDEN'
+    UNRACED_MAIDEN = 'UNRACED_MAIDEN'
     RACE_CLASS_CHOICES = (
         (OPEN, 'Open'),
         (U1600, 'Under 1600'),
@@ -82,11 +82,11 @@ class Race(BaseModel):
         (UNKNOWN, 'Unknown'),
     )
 
-    CLOUDY = 'CD'
-    RAINY = 'RN'
-    LIGHT_RAIN = 'LR'
-    SUNNY = 'SN'
-    SNOWY = 'SW'
+    CLOUDY = 'CLOUDY'
+    RAINY = 'RAINY'
+    LIGHT_RAIN = 'LIGHT_RAIN'
+    SUNNY = 'SUNNY'
+    SNOWY = 'SNOWY'
     WEATHER_CHOICES = (
         (CLOUDY, 'Cloudy'),
         (RAINY, 'Rainy'),
@@ -96,10 +96,10 @@ class Race(BaseModel):
         (UNKNOWN, 'Unknown'),
     )
 
-    SLIGHTLY_HEAVY = 'SH'
-    HEAVY = 'HV'
-    GOOD = 'GD'
-    BAD = 'BD'
+    SLIGHTLY_HEAVY = 'SLIGHTLY_HEAVY'
+    HEAVY = 'HEAVY'
+    GOOD = 'GOOD'
+    BAD = 'BAD'
     TRACK_CONDITION_CHOICES = (
         (SLIGHTLY_HEAVY, 'Slightly heavy'),
         (HEAVY, 'Heavy'),
@@ -160,3 +160,4 @@ class Race(BaseModel):
     class Meta:
         db_table = 'races'
         get_latest_by = '-datetime'
+        unique_together = ('racetrack', 'datetime')
