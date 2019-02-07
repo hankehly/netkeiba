@@ -19,10 +19,10 @@ ROBOTSTXT_OBEY = True
 
 COOKIES_ENABLED = False
 
-# crawl in BFO order
-DEPTH_PRIORITY = 1
-SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
-SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
+# Uncomment to crawl in BFO order
+# DEPTH_PRIORITY = 1
+# SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
+# SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
 
 AUTOTHROTTLE_ENABLED = True
 
