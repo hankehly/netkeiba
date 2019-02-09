@@ -7,7 +7,7 @@ import pytz
 from bs4 import Comment
 from django.db import IntegrityError
 
-from server.models import Race, Horse, RaceContender, Trainer, Jockey, Owner, BettingTicket
+from server.models import Race, Horse, RaceContender, Trainer, Jockey, Owner
 from server.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
@@ -50,17 +50,6 @@ COURSE_TYPES = {
     '右': Race.RIGHT,
     '直線': Race.STRAIGHT,
     '障': Race.OBSTACLE
-}
-
-BET_TYPES = {
-    '単勝': BettingTicket.WIN,
-    '複勝': BettingTicket.SHOW,
-    '馬連': BettingTicket.QUINELLA,
-    '枠連': BettingTicket.BRACKET_QUINELLA,
-    'ワイド': BettingTicket.DUET,
-    '馬単': BettingTicket.EXACTA,
-    '三連複': BettingTicket.TRIO,
-    '三連単': BettingTicket.TRIFECTA,
 }
 
 HORSE_SEX = {
@@ -203,13 +192,6 @@ class RaceParser(Parser):
             Race.objects.filter(key=race_key).update(**self.data['race'])
 
         race = Race.objects.get(key=race_key)
-
-        for ticket in self.data['betting_tickets']:
-            try:
-                BettingTicket.objects.create(**ticket)
-            except IntegrityError:
-                BettingTicket.objects.filter(race=race, bet_type=ticket['bet_type'],
-                                             horse_number=ticket['horse_number']).update(payoff=ticket['payoff'])
 
         for contender in self.data['contenders']:
             horse, _ = Horse.objects.get_or_create(key=contender['horse']['key'], defaults={
@@ -538,28 +520,3 @@ class RaceParser(Parser):
     def _parse_contender_purse(self, i):
         string = self._contender_rows[i].select('td')[-1].string
         return float(string.replace(',', '')) if string else 0.
-
-    def _parse_betting_ticket(self, bet):
-        # TODO
-        # if bet_type is WIN:
-        #     parse single
-        # elif bet_type is SHOW:
-        #     parse three numbers per <td>
-        # elif QUINELLA/BRACKET_QUINELLA/馬単/三連複/三連単:
-        #     .replace('-', ',').replace('→', ',').replace(' ', '') => '6,8'
-        # etc..
-        # horse_numbers_string = bet.select('td')[0].text
-        # horse_numbers = int(horse_number_string)
-        # return horse_number
-        pass
-
-    def _parse_bet_type(self, bet):
-        string = bet.select_one('th').text
-        return BET_TYPES.get(string)
-
-    def _parse_bet_horse_number(self, bet):
-        pass
-
-    def _parse_payoff(self, bet):
-        string = bet.select('td')[1].text.replace(',', '')
-        return int(string)
