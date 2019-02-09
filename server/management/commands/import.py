@@ -30,6 +30,8 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument('--scrapy-job-dirname', help='The name of the scrapy crawl jobdir')
+        parser.add_argument('--offset', type=int, help='Index offset from which to start importing queryset items',
+                            default=0)
 
     def _get_queryset(self, scrapy_job_dirname=None):
         if scrapy_job_dirname:
@@ -47,13 +49,14 @@ class Command(BaseCommand):
         return queryset
 
     def handle(self, *args, **options):
-        start_time = datetime.now(pytz.timezone(TIME_ZONE))
-        logger.info(f'START')
+        started_at = datetime.now(pytz.timezone(TIME_ZONE))
+        logger.info(f'START <{started_at}>')
+
         queryset = self._get_queryset(options.get('scrapy_job_dirname'))
-        page_count = queryset.count()
+        count = queryset.count()
 
         with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
-            future_to_ix = {executor.submit(import_page, queryset, i): i for i in range(page_count)}
+            future_to_ix = {executor.submit(import_page, queryset, i): i for i in range(options['offset'], count)}
             for future in concurrent.futures.as_completed(future_to_ix):
                 row = future_to_ix[future] + 1
                 try:
@@ -61,8 +64,8 @@ class Command(BaseCommand):
                 except Exception as e:
                     logger.exception(e)
                 else:
-                    logger.info(f'({row}/{page_count}) <{url}>')
+                    logger.info(f'({row}/{count}) <{url}>')
 
-        stop_time = datetime.now(pytz.timezone(TIME_ZONE))
-        duration = (stop_time - start_time).seconds
-        logger.info(f'STOP <{duration} seconds>')
+        stopped_at = datetime.now(pytz.timezone(TIME_ZONE))
+        duration = (stopped_at - started_at).seconds
+        logger.info(f'STOP <{stopped_at}, duration: {duration} seconds>')
