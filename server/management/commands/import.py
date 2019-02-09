@@ -1,8 +1,7 @@
+import concurrent
 import logging
 import os
-import uuid
 
-import pandas as pd
 from datetime import datetime
 
 import pytz
@@ -13,6 +12,17 @@ from netkeiba.settings import TIME_ZONE
 from server.models import WebPage
 
 logger = logging.getLogger(__name__)
+
+
+def import_page(queryset, i):
+    page = queryset[i]
+    parser = page.get_parser()
+    try:
+        parser.parse()
+        parser.persist()
+    except Exception as e:
+        raise e
+    return page.url
 
 
 class Command(BaseCommand):
@@ -40,31 +50,19 @@ class Command(BaseCommand):
         start_time = datetime.now(pytz.timezone(TIME_ZONE))
         logger.info(f'START')
         queryset = self._get_queryset(options.get('scrapy_job_dirname'))
+        page_count = queryset.count()
 
-        i = 1
-        exceptions = []
-        queryset_count = queryset.count()
-        chunk_size = 100
-
-        # rolling our own iterator logic
-        # due to bad `.iterator` performance
-        for j in range(0, queryset_count, chunk_size):
-            for page in queryset[j:j + chunk_size]:
-                parser = page.get_parser()
-                logger.info(f'({i}/{queryset_count}) {parser.__class__.__name__} <{page.url}>')
+        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+            future_to_ix = {executor.submit(import_page, queryset, i): i for i in range(page_count)}
+            for future in concurrent.futures.as_completed(future_to_ix):
+                row = future_to_ix[future] + 1
                 try:
-                    parser.parse()
-                    parser.persist()
+                    url = future.result()
                 except Exception as e:
                     logger.exception(e)
-                    exceptions.append([page.url, str(e)])
-                finally:
-                    i += 1
+                else:
+                    logger.info(f'({row}/{page_count}) <{url}>')
 
         stop_time = datetime.now(pytz.timezone(TIME_ZONE))
         duration = (stop_time - start_time).seconds
-        exception_count = len(exceptions)
-        logger.info(f'STOP <{duration} seconds, {exception_count} exceptions>')
-        uid = str(uuid.uuid4())
-        exceptions_csv_path = os.path.join(settings.TMP_DIR, f'exceptions_{uid}.csv')
-        pd.DataFrame(exceptions, columns=['url', 'message']).to_csv(exceptions_csv_path)
+        logger.info(f'STOP <{duration} seconds>')
