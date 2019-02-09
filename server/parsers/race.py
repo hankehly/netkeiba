@@ -135,15 +135,6 @@ class RaceParser(Parser):
             }
         }
 
-        betting_tickets = []
-        for bet in self._payoff_rows:
-            betting_tickets.append({
-                'bet_type': self._parse_bet_type(bet),
-                'horse_number': self._parse_bet_horse_number(bet),
-                'payoff': self._parse_payoff(bet),
-            })
-        self.data['betting_tickets'] = betting_tickets
-
         contenders = []
         for i, record in enumerate(self._contender_rows):
             contenders.append({
