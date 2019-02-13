@@ -7,7 +7,7 @@ from scrapy.link import Link
 from scrapy.spiders import Rule
 from scrapy.linkextractors import LinkExtractor
 
-from crawler.items import WebPageItem
+from netkeiba.items import WebPageItem
 
 
 class DBRaceSpider(scrapy.Spider):

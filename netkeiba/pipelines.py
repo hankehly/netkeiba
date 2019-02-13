@@ -3,7 +3,7 @@ import pytz
 from django.conf import settings
 from django.db import IntegrityError
 
-from server.models.webpage import WebPage
+from netkeiba.models.webpage import WebPage
 
 
 class WebPagePipeline:

@@ -40,8 +40,7 @@ class Command(BaseCommand):
         custom_settings = {'JOBDIR': jobdir}
 
         scrapy_settings = Settings()
-        os.environ['SCRAPY_SETTINGS_MODULE'] = 'crawler.settings'
-        settings_module_path = os.environ['SCRAPY_SETTINGS_MODULE']
+        settings_module_path = os.getenv('SCRAPY_SETTINGS_MODULE')
         scrapy_settings.setmodule(settings_module_path, priority='project')
 
         runner = CrawlerRunner({**scrapy_settings, **custom_settings})

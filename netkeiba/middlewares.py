@@ -3,12 +3,12 @@ import random
 
 import pandas as pd
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+from django.conf import settings
 
 
 class UserAgentMiddleware(object):
     def __init__(self):
-        filepath = os.path.join(PROJECT_ROOT, 'crawler', 'user_agents.txt')
+        filepath = os.path.join(settings.BASE_DIR, 'netkeiba', 'user_agents.txt')
         self.user_agent_list = pd.read_csv(filepath, header=None, delimiter='\n').values.flatten()
 
     def process_request(self, request, spider):

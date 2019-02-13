@@ -6,7 +6,7 @@ import scrapy
 from bs4 import BeautifulSoup
 from django.db import connection
 
-from server.parsers.race import RACETRACKS, SURFACES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
+from netkeiba.parsers.race import RACETRACKS, SURFACES, IMPOST_CATEGORIES, HORSE_SEX, WEATHER
 
 
 class TABLE_COL:
