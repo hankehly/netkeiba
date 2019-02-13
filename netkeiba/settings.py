@@ -13,10 +13,6 @@ SECRET_KEY = os.environ['SECRET_KEY']
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 
-AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID', '')
-
-AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY', '')
-
 DEBUG = ENVIRONMENT == 'development'
 
 ALLOWED_HOSTS = []
@@ -24,13 +20,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 PREREQUISITE_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
     'rest_framework',
+    'django_extensions',
 ]
 
 PROJECT_APPS = [
@@ -39,33 +30,11 @@ PROJECT_APPS = [
 
 INSTALLED_APPS = PREREQUISITE_APPS + PROJECT_APPS
 
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
+MIDDLEWARE = []
 
 ROOT_URLCONF = 'netkeiba.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+TEMPLATES = []
 
 WSGI_APPLICATION = 'netkeiba.wsgi.application'
 
@@ -76,37 +45,12 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
+    },
+    'custom': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.getenv('CUSTOM_DB_PATH', ''),
+    },
 }
-
-REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ],
-    'DEFAULT_PARSER_CLASSES': (
-        'rest_framework.parsers.JSONParser',
-    )
-}
-
-# Password validation
-# https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
-
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.1/topics/i18n/
@@ -125,10 +69,6 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 STATIC_URL = '/static/'
-
-CRONTAB_LOCK_JOBS = True
-
-CRONTAB_COMMAND_PREFIX = f". {os.path.join(BASE_DIR, '.env')};"
 
 LOGGING = {
     'version': 1,
@@ -159,7 +99,7 @@ LOGGING = {
             'level': 'DEBUG',
             'formatter': 'default',
         },
-        'fluent': {
+        'fluentd': {
             'class': 'fluent.handler.FluentHandler',
             'host': 'localhost',
             'port': 24224,

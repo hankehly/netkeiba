@@ -19,9 +19,9 @@ ROBOTSTXT_OBEY = True
 
 COOKIES_ENABLED = False
 
-ENABLE_BFO = True
+CRAWL_BFO = os.getenv('CRAWL_BFO', False) == 1
 
-if ENABLE_BFO:
+if CRAWL_BFO:
     DEPTH_PRIORITY = 1
     SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
     SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'

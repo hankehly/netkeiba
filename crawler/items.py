@@ -6,7 +6,7 @@ from django.conf import settings
 from scrapy.utils.request import request_fingerprint
 
 
-class BaseWebPageItem(scrapy.Item):
+class WebPageItem(scrapy.Item):
     url = scrapy.Field()
     html = scrapy.Field()
     fingerprint = scrapy.Field()
@@ -21,7 +21,3 @@ class BaseWebPageItem(scrapy.Item):
         fingerprint = request_fingerprint(response.request)
         crawled_at = datetime.now(pytz.timezone(settings.TIME_ZONE)).replace(microsecond=0).isoformat()
         return cls(url=response.url, html=response.text, fingerprint=fingerprint, crawled_at=crawled_at)
-
-
-class WebPageItem(BaseWebPageItem):
-    pass

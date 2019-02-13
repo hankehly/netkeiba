@@ -27,13 +27,13 @@ class Command(BaseCommand):
                             help='Number of backups to keep (old backups are deleted)')
 
     def handle(self, *args, **options):
-        start_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
-        logger.info(f'Started backup command at {start_dt}')
+        started_at = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
+        logger.info(f'Started backup command at {started_at}')
 
         bucket_name = os.environ.get('GCLOUD_BUCKET')
-        ts_fmt = '%Y-%m-%dT%H%M%S'
-        timestamp = datetime.now().strftime(ts_fmt)
-        gcs_netkeiba_data_dir = os.path.join('gs://', bucket_name, 'data', 'db_backups')
+        bucket_backup_dir = os.getenv('GCLOUD_BACKUP_DIR', 'data/db_backups')
+        timestamp = datetime.now().strftime('%Y-%m-%dT%H%M%S')
+        gcs_netkeiba_data_dir = os.path.join('gs://', bucket_name, bucket_backup_dir)
         gcs_backup_path = os.path.join(gcs_netkeiba_data_dir, timestamp, 'db.sqlite3.gz')
 
         db_path = settings.DATABASES['default']['NAME']
@@ -53,6 +53,6 @@ class Command(BaseCommand):
             rm_proc = Popen(['gsutil', 'rm', '-r', backup_path], stderr=STDOUT, stdout=PIPE)
             log_proc_output(rm_proc.stdout)
 
-        finish_dt = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
-        duration = (finish_dt - start_dt).seconds
-        logger.info(f'Finished backup command at {finish_dt} ({duration} seconds)')
+        stopped_at = datetime.now(tz=pytz.timezone(settings.TIME_ZONE))
+        duration = (stopped_at - started_at).seconds
+        logger.info(f'Finished backup command at {stopped_at} ({duration} seconds)')

@@ -6,14 +6,6 @@ __pycache__/
 .venv-*
 .idea/
 tmp/*
+dist/
 !.gitkeep
-.bundle
-.kitchen
-vendor/
-cookbooks/
-Gemfile.lock
-Berksfile.lock
-provision/data_bags/aws/credentials.json
-MANIFEST
-*.joblib
 *.log

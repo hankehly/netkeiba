@@ -1,8 +1,0 @@
-{
-    "run_list": [
-        "recipe[netkeiba]"
-    ],
-    "automatic": {
-        "ipaddress": "netkeiba"
-    }
-}
