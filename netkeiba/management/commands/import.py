@@ -8,8 +8,8 @@ import pytz
 from django.conf import settings
 from django.core.management import BaseCommand, CommandError
 
-from netkeiba.settings import TIME_ZONE
-from server.models import WebPage
+from config.settings import TIME_ZONE
+from netkeiba.models import WebPage
 
 logger = logging.getLogger(__name__)
 

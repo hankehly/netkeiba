@@ -1,6 +1,6 @@
 from django.db import models
 
-from server.models.base import BaseModel
+from netkeiba.models.base import BaseModel
 
 
 class Trainer(BaseModel):

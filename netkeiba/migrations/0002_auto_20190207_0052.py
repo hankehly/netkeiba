@@ -9,7 +9,7 @@ import re
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('server', '0001_initial'),
+        ('netkeiba', '0001_initial'),
     ]
 
     operations = [

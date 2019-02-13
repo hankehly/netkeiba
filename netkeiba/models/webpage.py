@@ -4,8 +4,8 @@ from django.db import models
 from scrapy import Request
 from scrapy.utils.request import request_fingerprint
 
-from server.models.base import BaseModel
-from server.parsers import Parser, RaceParser, NoopParser
+from netkeiba.models.base import BaseModel
+from netkeiba.parsers import Parser, RaceParser, NoopParser
 
 
 class WebPageManager(models.Manager):

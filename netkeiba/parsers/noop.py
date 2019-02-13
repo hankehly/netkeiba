@@ -1,4 +1,4 @@
-from server.parsers.parser import Parser
+from netkeiba.parsers.parser import Parser
 
 
 class NoopParser(Parser):

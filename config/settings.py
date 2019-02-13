@@ -9,7 +9,7 @@ TMP_DIR = os.path.join(BASE_DIR, 'tmp')
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # django.core.management.utils.get_random_secret_key
-SECRET_KEY = os.environ['SECRET_KEY']
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 ENVIRONMENT = os.getenv('ENVIRONMENT', 'development')
 
@@ -25,18 +25,18 @@ PREREQUISITE_APPS = [
 ]
 
 PROJECT_APPS = [
-    'server'
+    'netkeiba'
 ]
 
 INSTALLED_APPS = PREREQUISITE_APPS + PROJECT_APPS
 
 MIDDLEWARE = []
 
-ROOT_URLCONF = 'netkeiba.urls'
+ROOT_URLCONF = 'config.urls'
 
 TEMPLATES = []
 
-WSGI_APPLICATION = 'netkeiba.wsgi.application'
+WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases

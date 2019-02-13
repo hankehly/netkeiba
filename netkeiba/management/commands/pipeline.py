@@ -6,7 +6,7 @@ import pytz
 from django.conf import settings
 from django.core.management import BaseCommand, call_command
 
-from server.argtype import date_string
+from netkeiba.argtype import date_string
 
 logger = logging.getLogger(__name__)
 

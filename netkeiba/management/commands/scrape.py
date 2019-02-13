@@ -8,7 +8,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.settings import Settings
 from twisted.internet import reactor
 
-from server.argtype import date_string
+from netkeiba.argtype import date_string
 
 
 class Command(BaseCommand):

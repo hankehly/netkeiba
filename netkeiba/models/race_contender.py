@@ -1,7 +1,7 @@
 from django.core.validators import validate_comma_separated_integer_list
 from django.db import models
 
-from server.models import BaseModel
+from netkeiba.models import BaseModel
 
 
 class RaceContender(BaseModel):
@@ -69,11 +69,11 @@ class RaceContender(BaseModel):
         (UNKNOWN, 'Unknown')
     )
 
-    race = models.ForeignKey('server.Race', on_delete=models.CASCADE)
-    horse = models.ForeignKey('server.Horse', on_delete=models.CASCADE)
-    jockey = models.ForeignKey('server.Jockey', on_delete=models.CASCADE)
-    trainer = models.ForeignKey('server.Trainer', on_delete=models.CASCADE)
-    owner = models.ForeignKey('server.Owner', on_delete=models.CASCADE)
+    race = models.ForeignKey('netkeiba.Race', on_delete=models.CASCADE)
+    horse = models.ForeignKey('netkeiba.Horse', on_delete=models.CASCADE)
+    jockey = models.ForeignKey('netkeiba.Jockey', on_delete=models.CASCADE)
+    trainer = models.ForeignKey('netkeiba.Trainer', on_delete=models.CASCADE)
+    owner = models.ForeignKey('netkeiba.Owner', on_delete=models.CASCADE)
     order_of_finish = models.PositiveSmallIntegerField(null=True)
     position_state = models.CharField(max_length=255, choices=POSITION_STATE_CHOICES)
     post_position = models.PositiveSmallIntegerField()

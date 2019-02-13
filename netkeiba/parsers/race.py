@@ -7,8 +7,8 @@ import pytz
 from bs4 import Comment
 from django.db import IntegrityError
 
-from server.models import Race, Horse, RaceContender, Trainer, Jockey, Owner
-from server.parsers.parser import Parser
+from netkeiba.models import Race, Horse, RaceContender, Trainer, Jockey, Owner
+from netkeiba.parsers.parser import Parser
 
 logger = logging.getLogger(__name__)
 
