@@ -3,6 +3,7 @@ __pycache__/
 *.sqlite3.gz
 .ipynb_checkpoints
 .env
+.python-version
 .venv-*
 .idea/
 tmp/*
