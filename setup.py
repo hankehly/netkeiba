@@ -19,6 +19,10 @@ setup(
     author='Hank Ehly',
     author_email='henry.ehly@gmail.com',
     url='https://github.com/hankehly/netkeiba',
+    install_requires=[
+        'scrapy>=1.6.0',
+        'beautifulsoup4>=4.7.1'
+    ],
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
