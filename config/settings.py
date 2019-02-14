@@ -21,16 +21,7 @@ ALLOWED_HOSTS = []
 
 # Application definition
 
-PREREQUISITE_APPS = [
-    'rest_framework',
-    'django_extensions',
-]
-
-PROJECT_APPS = [
-    'netkeiba'
-]
-
-INSTALLED_APPS = PREREQUISITE_APPS + PROJECT_APPS
+INSTALLED_APPS = ['netkeiba']
 
 MIDDLEWARE = []
 
@@ -80,14 +71,6 @@ LOGGING = {
             'format': '%(asctime)s %(levelname)-8s %(name)-15s %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S',
         },
-        'fluentfmt': {
-            '()': 'fluent.handler.FluentRecordFormatter',
-            'format': {
-                'level': '%(levelname)s',
-                'hostname': '%(hostname)s',
-                'where': '%(module)s.%(funcName)s',
-            }
-        }
     },
     'filters': {
         'require_debug_true': {
@@ -100,14 +83,6 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'level': 'DEBUG',
             'formatter': 'default',
-        },
-        'fluentd': {
-            'class': 'fluent.handler.FluentHandler',
-            'host': 'localhost',
-            'port': 24224,
-            'tag': 'netkeiba.default',
-            'formatter': 'fluentfmt',
-            'level': 'DEBUG',
         },
         'dlog': {
             'class': 'logging.FileHandler',
