@@ -106,10 +106,10 @@ class Migration(migrations.Migration):
                 ('horse_weight', models.FloatField(null=True)),
                 ('horse_weight_diff', models.FloatField(null=True)),
                 ('purse', models.FloatField(default=0.0)),
-                ('horse', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Horse')),
-                ('jockey', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Jockey')),
-                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Owner')),
-                ('race', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Race')),
+                ('horse', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='netkeiba.Horse')),
+                ('jockey', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='netkeiba.Jockey')),
+                ('owner', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='netkeiba.Owner')),
+                ('race', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='netkeiba.Race')),
             ],
             options={
                 'db_table': 'race_contenders',
@@ -132,7 +132,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='racecontender',
             name='trainer',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='server.Trainer'),
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='netkeiba.Trainer'),
         ),
         migrations.AlterUniqueTogether(
             name='race',
