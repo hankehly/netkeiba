@@ -21,17 +21,17 @@ class Command(BaseCommand):
                             help='Scrape all races that come on or before this date (fmt: YYYY-MM-DD)')
 
     def handle(self, *args, **options):
-        crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
+        crawls_dir = os.path.join(settings.BASE_DIR, 'tmp', 'crawls')
         if not os.path.isdir(crawls_dir):
-            os.mkdir(crawls_dir)
+            os.makedirs(crawls_dir, exist_ok=True)
 
-        piddir = os.path.join(settings.TMP_DIR, 'pids')
+        piddir = os.path.join(settings.BASE_DIR, 'tmp', 'pids')
         if not os.path.isdir(piddir):
-            os.mkdir(piddir)
+            os.makedirs(piddir, exist_ok=True)
 
         job_timestamp = datetime.now(tz=pytz.timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H%M%S')
         jobdir = os.path.join(crawls_dir, job_timestamp)
-        os.mkdir(jobdir)
+        os.makedirs(jobdir)
 
         pidfile = os.path.join(piddir, f'{job_timestamp}.pid')
         with open(pidfile, 'w') as f:
