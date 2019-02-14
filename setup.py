@@ -18,6 +18,7 @@ setup(
     long_description_content_type='text/markdown',
     author='Hank Ehly',
     author_email='henry.ehly@gmail.com',
+    url='https://github.com/hankehly/netkeiba',
     classifiers=[
         'Environment :: Web Environment',
         'Framework :: Django',
