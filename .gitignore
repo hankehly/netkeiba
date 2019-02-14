@@ -10,3 +10,4 @@ tmp/*
 dist/
 !.gitkeep
 *.log
+*.egg-info/
