@@ -6,14 +6,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('netkeiba', '0002_auto_20190207_0052'),
+        ('netkeiba', '0003_alter_race_remove_grade'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='race',
-            name='grade',
-        ),
         migrations.AlterField(
             model_name='race',
             name='race_class',
