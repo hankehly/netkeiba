@@ -15,6 +15,7 @@ setup(
     license='MIT License',
     description='A Django app to scrape and clean data from netkeiba.com.',
     long_description=README,
+    long_description_content_type='text/markdown',
     author='Hank Ehly',
     author_email='henry.ehly@gmail.com',
     classifiers=[
