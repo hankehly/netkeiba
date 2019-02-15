@@ -3,8 +3,6 @@ import os
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-LOG_DIR = os.getenv('LOG_DIR', os.path.join(BASE_DIR, 'log'))
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
@@ -86,13 +84,13 @@ LOGGING = {
             'filters': ['require_debug_true'],
             'level': 'DEBUG',
             'formatter': 'default',
-            'filename': os.path.join(LOG_DIR, 'debug.log'),
+            'filename': 'debug.log',
         },
         'ilog': {
             'class': 'logging.FileHandler',
             'level': 'INFO',
             'formatter': 'default',
-            'filename': os.path.join(LOG_DIR, 'info.log'),
+            'filename': 'info.log',
         },
     },
     'loggers': {
@@ -103,37 +101,3 @@ LOGGING = {
         }
     }
 }
-
-## SCRAPY
-
-BOT_NAME = 'netkeiba'
-
-SPIDER_MODULES = ['netkeiba.spiders']
-NEWSPIDER_MODULE = 'netkeiba.spiders'
-
-ROBOTSTXT_OBEY = True
-
-COOKIES_ENABLED = False
-
-CRAWL_BFO = os.getenv('CRAWL_BFO', False) == 1
-
-if CRAWL_BFO:
-    DEPTH_PRIORITY = 1
-    SCHEDULER_DISK_QUEUE = 'scrapy.squeues.PickleFifoDiskQueue'
-    SCHEDULER_MEMORY_QUEUE = 'scrapy.squeues.FifoMemoryQueue'
-
-AUTOTHROTTLE_ENABLED = True
-
-CONCURRENT_REQUESTS_PER_DOMAIN = 16
-
-DOWNLOAD_DELAY = 1.0
-
-DOWNLOADER_MIDDLEWARES = {
-    'netkeiba.middlewares.UserAgentMiddleware': 300,
-}
-
-ITEM_PIPELINES = {
-    'netkeiba.pipelines.WebPagePipeline': 300,
-}
-
-RETRY_TIMES = 4
