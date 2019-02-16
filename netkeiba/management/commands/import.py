@@ -1,6 +1,6 @@
-import concurrent
 import logging
 import os
+from concurrent.futures import as_completed, ThreadPoolExecutor
 
 from datetime import datetime
 
@@ -55,9 +55,9 @@ class Command(BaseCommand):
         queryset = self._get_queryset(options.get('scrapy_job_dirname'))
         count = queryset.count()
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=4) as executor:
+        with ThreadPoolExecutor(max_workers=4) as executor:
             future_to_ix = {executor.submit(import_page, queryset, i): i for i in range(options['offset'], count)}
-            for future in concurrent.futures.as_completed(future_to_ix):
+            for future in as_completed(future_to_ix):
                 row = future_to_ix[future] + 1
                 try:
                     url = future.result()
