@@ -33,7 +33,7 @@ class Command(BaseCommand):
             os.makedirs(piddir, exist_ok=True)
 
         timestamp = datetime.now(tz=pytz.timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H%M%S')
-        job_dirname = options.get('scrapy_job_dirname', timestamp)
+        job_dirname = options.get('scrapy_job_dirname') if options.get('scrapy_job_dirname') else timestamp
         jobdir = os.path.join(crawls_dir, job_dirname)
         os.makedirs(jobdir)
 
