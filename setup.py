@@ -13,7 +13,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='MIT License',
-    description='A Django app to scrape and clean data from netkeiba.com.',
+    description='A Django app which crawls and imports race data from netkeiba.com',
     long_description=README,
     long_description_content_type='text/markdown',
     author='Hank Ehly',

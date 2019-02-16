@@ -1,3 +1,4 @@
 # netkeiba
 
-A Django app to scrape and clean data from netkeiba.com.
+A Django app which crawls and imports race data from netkeiba.com
+
