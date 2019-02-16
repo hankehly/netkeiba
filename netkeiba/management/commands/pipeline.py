@@ -31,8 +31,9 @@ class Command(BaseCommand):
         scrapy_job_dirname = started_at.strftime('%Y-%m-%dT%H%M%S')
         logger.debug(f'Scrapy job dirname set to {scrapy_job_dirname}')
 
-        call_command('scrape', scrapy_job_dirname, min_date=options.get('min_date'), max_date=options.get('max_date'))
-        call_command('import', scrapy_job_dirname)
+        call_command('scrape', scrapy_job_dirname=scrapy_job_dirname, min_date=options.get('min_date'),
+                     max_date=options.get('max_date'))
+        call_command('import', scrapy_job_dirname=scrapy_job_dirname)
 
         if options.get('backup'):
             call_command('backup')
