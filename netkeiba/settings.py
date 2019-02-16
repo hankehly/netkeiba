@@ -4,14 +4,8 @@ from django.apps import apps
 from django.conf import settings
 
 DATABASES = getattr(settings, 'DATABASES')
-LOGGING = getattr(settings, 'LOGGING')
-
-ENVIRONMENT = getattr(settings, 'ENVIRONMENT', 'development')
-DEBUG = getattr(settings, 'DEBUG', ENVIRONMENT == 'development')
 
 APP_DIR = apps.get_app_config('netkeiba').path
-
-LOG_DIR = getattr(settings, 'NETKEIBA_LOG_DIR', os.path.join(settings.BASE_DIR, 'log'))
 
 TMP_DIR = getattr(settings, 'NETKEIBA_TMP_DIR', os.path.join(settings.BASE_DIR, 'tmp'))
 
