@@ -28,15 +28,12 @@ class Command(BaseCommand):
     help = 'Extract, clean and persist scraped netkeiba HTML'
 
     def add_arguments(self, parser):
-        parser.add_argument('--scrapy-job-dirname',
-                            help='The name of the scrapy crawl jobdir (ex. "xxx" if tmp/crawls/xxx)')
-        parser.add_argument('--offset', type=int, help='Index offset from which to start importing queryset items',
-                            default=0)
+        parser.add_argument('--scrapy-job-dirname', help='The name of the scrapy crawl jobdir')
+        parser.add_argument('--offset', type=int, help='Start parsing web pages from {offset}', default=0)
 
     def _get_queryset(self, scrapy_job_dirname=None):
         if scrapy_job_dirname:
-            crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
-            requests_seen = os.path.join(crawls_dir, scrapy_job_dirname, 'requests.seen')
+            requests_seen = os.path.join(settings.TMP_DIR, 'crawls', scrapy_job_dirname, 'requests.seen')
 
             if not os.path.exists(requests_seen):
                 raise CommandError('jobdir/requests.seen does not exist')

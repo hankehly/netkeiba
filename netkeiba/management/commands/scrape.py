@@ -16,6 +16,8 @@ class Command(BaseCommand):
     help = 'Start netkeiba db scrapy spider'
 
     def add_arguments(self, parser):
+        parser.add_argument('--scrape-job-dirname', dest='scrapy_job_dirname',
+                            help='Name to use as scrapy job directory. By default, this value is generated at runtime.')
         parser.add_argument('--min-date', dest='min_date', type=date_string,
                             help='Scrape all races that come on or after this date (fmt: YYYY-MM-DD)')
         parser.add_argument('--max-date', dest='max_date', type=date_string,
@@ -30,11 +32,12 @@ class Command(BaseCommand):
         if not os.path.isdir(piddir):
             os.makedirs(piddir, exist_ok=True)
 
-        job_timestamp = datetime.now(tz=pytz.timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H%M%S')
-        jobdir = os.path.join(crawls_dir, job_timestamp)
+        timestamp = datetime.now(tz=pytz.timezone(settings.TIME_ZONE)).strftime('%Y-%m-%dT%H%M%S')
+        job_dirname = options.get('scrapy_job_dirname', timestamp)
+        jobdir = os.path.join(crawls_dir, job_dirname)
         os.makedirs(jobdir)
 
-        pidfile = os.path.join(piddir, f'{job_timestamp}.pid')
+        pidfile = os.path.join(piddir, f'{job_dirname}.pid')
         with open(pidfile, 'w') as f:
             f.write(str(os.getpid()) + os.linesep)
 
