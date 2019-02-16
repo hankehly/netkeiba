@@ -7,8 +7,9 @@ from datetime import datetime
 from subprocess import PIPE, STDOUT, Popen, check_output
 
 import pytz
-from django.conf import settings
 from django.core.management import BaseCommand
+
+from netkeiba import settings
 
 logger = logging.getLogger(__name__)
 

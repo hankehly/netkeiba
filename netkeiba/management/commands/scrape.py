@@ -9,6 +9,7 @@ from twisted.internet import reactor
 
 from netkeiba import settings
 from netkeiba.argtype import date_string
+from netkeiba.spiders.db_race import DBRaceSpider
 
 
 class Command(BaseCommand):
@@ -37,12 +38,13 @@ class Command(BaseCommand):
         with open(pidfile, 'w') as f:
             f.write(str(os.getpid()) + os.linesep)
 
-        custom_settings = {'JOBDIR': jobdir}
+        custom_settings = {'JOBDIR': jobdir, }
 
         scrapy_settings = Settings()
         scrapy_settings.setmodule(settings, priority='project')
 
+        spider = DBRaceSpider(min_date=options.get('min_date'), max_date=options.get('max_date'))
         runner = CrawlerRunner({**scrapy_settings, **custom_settings})
-        d = runner.crawl('db_race', options.get('min_date'), options.get('max_date'))
+        d = runner.crawl(spider)
         d.addBoth(lambda _: reactor.stop())
         reactor.run()

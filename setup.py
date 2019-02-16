@@ -21,7 +21,8 @@ setup(
     url='https://github.com/hankehly/netkeiba',
     install_requires=[
         'scrapy>=1.6.0',
-        'beautifulsoup4>=4.7.1'
+        'beautifulsoup4>=4.7.1',
+        'python-dateutil>=2.8.0'
     ],
     classifiers=[
         'Environment :: Web Environment',

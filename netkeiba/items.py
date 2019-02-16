@@ -2,8 +2,9 @@ from datetime import datetime
 
 import pytz
 import scrapy
-from django.conf import settings
 from scrapy.utils.request import request_fingerprint
+
+from . import settings
 
 
 class WebPageItem(scrapy.Item):

@@ -5,10 +5,9 @@ import os
 from datetime import datetime
 
 import pytz
-from django.conf import settings
 from django.core.management import BaseCommand, CommandError
 
-from config.settings import TIME_ZONE
+from netkeiba import settings
 from netkeiba.models import WebPage
 
 logger = logging.getLogger(__name__)
@@ -36,7 +35,7 @@ class Command(BaseCommand):
 
     def _get_queryset(self, scrapy_job_dirname=None):
         if scrapy_job_dirname:
-            crawls_dir = os.path.join(settings.BASE_DIR, 'tmp', 'crawls')
+            crawls_dir = os.path.join(settings.TMP_DIR, 'crawls')
             requests_seen = os.path.join(crawls_dir, scrapy_job_dirname, 'requests.seen')
 
             if not os.path.exists(requests_seen):
@@ -50,7 +49,7 @@ class Command(BaseCommand):
         return queryset
 
     def handle(self, *args, **options):
-        started_at = datetime.now(pytz.timezone(TIME_ZONE))
+        started_at = datetime.now(pytz.timezone(settings.TIME_ZONE))
         logger.info(f'START <{started_at}>')
 
         queryset = self._get_queryset(options.get('scrapy_job_dirname'))
@@ -67,6 +66,6 @@ class Command(BaseCommand):
                 else:
                     logger.info(f'({row}/{count}) <{url}>')
 
-        stopped_at = datetime.now(pytz.timezone(TIME_ZONE))
+        stopped_at = datetime.now(pytz.timezone(settings.TIME_ZONE))
         duration = (stopped_at - started_at).seconds
         logger.info(f'STOP <{stopped_at}, duration: {duration} seconds>')

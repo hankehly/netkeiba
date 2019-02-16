@@ -1,15 +1,16 @@
-import dateutil
 import pytz
-from django.conf import settings
 from django.db import IntegrityError
+from dateutil import parser as date_parser
 
-from netkeiba.models.webpage import WebPage
+from . import settings
+
+from netkeiba.models import WebPage
 
 
 class WebPagePipeline:
     def process_item(self, item, spider):
         tzinfo = pytz.timezone(settings.TIME_ZONE)
-        crawled_at = dateutil.parser.isoparse(item['crawled_at']).replace(tzinfo=tzinfo)
+        crawled_at = date_parser.isoparse(item['crawled_at']).replace(tzinfo=tzinfo)
         defaults = {'html': item['html'], 'url': item['url'], 'crawled_at': crawled_at}
 
         try:

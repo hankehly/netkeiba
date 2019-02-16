@@ -1,12 +1,12 @@
 import os
 import random
 
-from django.conf import settings
+from . import settings
 
 
 class UserAgentMiddleware(object):
     def __init__(self):
-        filepath = os.path.join(settings.BASE_DIR, 'netkeiba', 'user_agents.txt')
+        filepath = os.path.join(settings.APP_DIR, 'user_agents.txt')
 
         with open(filepath) as f:
             self.user_agent_list = f.read().split('\n')
