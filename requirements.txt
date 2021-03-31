@@ -10,7 +10,7 @@ Django==2.1.7
 hyperlink==18.0.0
 idna==2.8
 incremental==17.5.0
-lxml==4.3.1
+lxml==4.6.3
 numpy==1.16.1
 parsel==1.5.1
 pyasn1==0.4.5
